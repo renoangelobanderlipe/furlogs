@@ -22,6 +22,10 @@ class HouseholdService
 
         $owner->update(['current_household_id' => $household->id]);
 
+        // Assign Spatie 'owner' role scoped to this household (team_id = household_id).
+        setPermissionsTeamId($household->id);
+        $owner->assignRole('owner');
+
         return $household;
     }
 }

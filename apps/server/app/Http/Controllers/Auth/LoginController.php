@@ -38,11 +38,6 @@ class LoginController extends Controller
         }
 
         RateLimiter::clear($key);
-
-        if ($remember) {
-            config(['session.lifetime' => 43200]); // 30 days in minutes
-        }
-
         $request->session()->regenerate();
 
         return response()->json(['message' => 'Login successful.']);

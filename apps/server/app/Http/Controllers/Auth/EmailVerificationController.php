@@ -8,21 +8,26 @@ use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class EmailVerificationController extends Controller
 {
-    public function verify(EmailVerificationRequest $request): JsonResponse
+    public function verify(EmailVerificationRequest $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email already verified.']);
+        $frontendUrl = config('app.frontend_url');
+
+        $user = $request->user();
+
+        if (! $user->hasVerifiedEmail()) {
+            if ($user->markEmailAsVerified()) {
+                event(new Verified($user));
+            }
         }
 
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
-        }
+        $destination = $user->current_household_id ? '/pets' : '/onboarding';
 
-        return response()->json(['message' => 'Email verified successfully.']);
+        return redirect("{$frontendUrl}{$destination}?verified=1");
     }
 
     public function resend(Request $request): JsonResponse

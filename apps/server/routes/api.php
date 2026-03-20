@@ -7,6 +7,9 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HouseholdController;
+use App\Http\Controllers\PetController;
+use App\Http\Controllers\PetWeightController;
+use App\Http\Controllers\VetClinicController;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -52,4 +55,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Onboarding
     Route::post('households', [HouseholdController::class, 'store'])->name('households.store');
+
+    // Pets
+    Route::apiResource('pets', PetController::class);
+    Route::post('pets/{pet}/avatar', [PetController::class, 'uploadAvatar']);
+    Route::apiResource('pets.weights', PetWeightController::class)->only(['index', 'store']);
+
+    // Vet Clinics
+    Route::apiResource('vet-clinics', VetClinicController::class);
 });

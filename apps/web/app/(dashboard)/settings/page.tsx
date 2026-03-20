@@ -9,7 +9,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,14 @@ const settingsTabs = [
   { label: "Profile", icon: User },
 ];
 
+const TAB_TO_PARAM: Record<string, string> = {
+  Household: "household",
+  Notifications: "notifications",
+  Profile: "profile",
+};
+
 function SettingsPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const initialTab =
@@ -49,6 +56,13 @@ function SettingsPageContent() {
         : "Household";
 
   const [tab, setTab] = useState(initialTab);
+
+  const handleTabChange = (label: string) => {
+    setTab(label);
+    router.replace(`/settings?tab=${TAB_TO_PARAM[label] ?? "household"}`, {
+      scroll: false,
+    });
+  };
   const { toast } = useToast();
   const user = useAuthStore((s) => s.user);
 
@@ -165,7 +179,7 @@ function SettingsPageContent() {
           <button
             key={t.label}
             type="button"
-            onClick={() => setTab(t.label)}
+            onClick={() => handleTabChange(t.label)}
             className={cn(
               "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px",
               tab === t.label

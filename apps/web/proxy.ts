@@ -4,8 +4,15 @@ import { NextResponse } from "next/server";
 const SESSION_COOKIE = "furlog-session";
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
   const hasSession = request.cookies.has(SESSION_COOKIE);
+
+  // Session expired: clear stale cookie and let user reach /login
+  if (pathname === "/login" && searchParams.has("expired")) {
+    const response = NextResponse.next();
+    response.cookies.delete(SESSION_COOKIE);
+    return response;
+  }
 
   // Unauthenticated users hitting dashboard routes → /login
   const dashboardRoutes = [

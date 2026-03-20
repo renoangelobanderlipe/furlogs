@@ -18,7 +18,9 @@ apiClient.interceptors.response.use(
       error.response?.status === 401 &&
       typeof window !== "undefined"
     ) {
-      window.location.href = "/login";
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login?expired=1";
+      }
     }
     return Promise.reject(error);
   },

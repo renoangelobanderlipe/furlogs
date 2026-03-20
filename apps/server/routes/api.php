@@ -9,9 +9,13 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\FoodProductController;
 use App\Http\Controllers\FoodStockItemController;
 use App\Http\Controllers\HouseholdController;
+use App\Http\Controllers\MedicationController;
 use App\Http\Controllers\PetController;
 use App\Http\Controllers\PetWeightController;
+use App\Http\Controllers\VaccinationController;
 use App\Http\Controllers\VetClinicController;
+use App\Http\Controllers\VetVisitAttachmentController;
+use App\Http\Controllers\VetVisitController;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -78,4 +82,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Projections
     Route::get('food-stock/projections', [FoodStockItemController::class, 'projections']);
+
+    // Vet Visits — non-resource routes must be registered before the resource route
+    Route::get('vet-visits/stats', [VetVisitController::class, 'stats'])->name('vet-visits.stats');
+    Route::delete('vet-visits/bulk', [VetVisitController::class, 'bulkDestroy'])->name('vet-visits.bulk-destroy');
+    Route::apiResource('vet-visits', VetVisitController::class);
+    Route::post('vet-visits/{vet_visit}/attachments', [VetVisitAttachmentController::class, 'store'])->name('vet-visits.attachments.store');
+    Route::delete('vet-visits/{vet_visit}/attachments/{mediaId}', [VetVisitAttachmentController::class, 'destroy'])->name('vet-visits.attachments.destroy');
+
+    // Vaccinations
+    Route::apiResource('vaccinations', VaccinationController::class);
+
+    // Medications
+    Route::apiResource('medications', MedicationController::class);
 });

@@ -21,7 +21,10 @@ export const productSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name is too long"),
   brand: z.string().max(100, "Brand is too long").optional().or(z.literal("")),
   type: z.enum(FOOD_TYPES, { message: "Food type is required" }),
-  unitWeightGrams: z.number({ error: "Must be a number" }).positive("Must be positive").optional(),
+  unitWeightGrams: z
+    .number({ error: "Must be a number" })
+    .positive("Must be positive")
+    .optional(),
   unitType: z.enum(UNIT_TYPES, { message: "Unit type is required" }),
   alertThresholdPct: z
     .number({ error: "Must be a number" })
@@ -61,7 +64,10 @@ export const purchaseSchema = z.object({
 });
 
 export const consumptionRateSchema = z.object({
-  petId: z.number({ error: "Pet is required" }).int().positive("Pet is required"),
+  petId: z
+    .number({ error: "Pet is required" })
+    .int()
+    .positive("Pet is required"),
   dailyAmountGrams: z
     .number({ error: "Daily amount is required" })
     .min(1, "Must be at least 1 gram"),

@@ -20,9 +20,12 @@ class PetController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
+        $this->authorize('viewAny', Pet::class);
+
         $pets = Pet::query()
             ->with('latestWeight')
             ->when($request->query('species'), fn ($q, $s) => $q->where('species', $s))
+            // PostgreSQL only — do not switch DB driver without updating this operator
             ->when($request->query('search'), fn ($q, $s) => $q->where('name', 'ilike', "%{$s}%"))
             ->orderBy('name')
             ->paginate(20);
@@ -53,6 +56,19 @@ class PetController extends Controller
         $pet = $this->petService->update($pet, $request->validated());
 
         return new PetResource($pet);
+    }
+
+    public function uploadAvatar(Request $request, Pet $pet): JsonResponse
+    {
+        $this->authorize('update', $pet);
+
+        $request->validate([
+            'avatar' => ['required', 'file', 'mimes:jpeg,png,webp', 'max:5120'],
+        ]);
+
+        $this->petService->uploadAvatar($pet, $request->file('avatar'));
+
+        return response()->json(new PetResource($pet->fresh()), 200);
     }
 
     public function destroy(Request $request, Pet $pet): Response

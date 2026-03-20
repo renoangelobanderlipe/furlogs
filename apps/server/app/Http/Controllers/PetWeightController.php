@@ -19,7 +19,7 @@ class PetWeightController extends Controller
     {
         $this->authorize('view', $pet);
 
-        $weights = $pet->weights()->orderByDesc('recorded_at')->get();
+        $weights = $pet->weights()->latest('recorded_at')->limit(365)->get();
 
         return PetWeightResource::collection($weights);
     }

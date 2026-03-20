@@ -58,6 +58,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Pets
     Route::apiResource('pets', PetController::class);
+    Route::post('pets/{pet}/avatar', [PetController::class, 'uploadAvatar']);
     Route::apiResource('pets.weights', PetWeightController::class)->only(['index', 'store']);
 
     // Vet Clinics

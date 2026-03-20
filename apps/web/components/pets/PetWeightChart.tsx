@@ -96,7 +96,7 @@ export function PetWeightChart({ petId }: PetWeightChartProps) {
               borderRadius: theme.shape.borderRadius,
               color: theme.palette.text.primary,
             }}
-            formatter={(value: number) => [`${value} kg`, "Weight"]}
+            formatter={(value) => [`${value} kg`, "Weight"]}
           />
           <Line
             type="monotone"

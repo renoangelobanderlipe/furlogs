@@ -32,9 +32,8 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import NextLink from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { PetFilterToggle } from "@/components/pets/PetFilterToggle";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -285,6 +284,14 @@ export default function DashboardLayout({
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const router = useRouter();
+  const user = useAuthStore((s) => s.user);
+
+  useEffect(() => {
+    if (user && user.current_household_id === null) {
+      router.replace("/onboarding");
+    }
+  }, [user, router]);
 
   const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
 

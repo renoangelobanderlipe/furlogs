@@ -4,7 +4,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface FileUploaderProps {
   value?: File | null;
@@ -24,11 +24,26 @@ export function FileUploader({
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(preview ?? null);
 
-  const previewUrl = value ? URL.createObjectURL(value) : preview;
+  useEffect(() => {
+    if (!value) {
+      setPreviewUrl(preview ?? null);
+      return;
+    }
+    const url = URL.createObjectURL(value);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [value, preview]);
+
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
   const handleFile = (file: File) => {
     setError(null);
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError("Only JPEG, PNG, and WebP images are allowed.");
+      return;
+    }
     const sizeMB = file.size / (1024 * 1024);
     if (sizeMB > maxSizeMB) {
       setError(`File must be smaller than ${maxSizeMB}MB`);

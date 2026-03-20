@@ -11,7 +11,7 @@ class PetObserver
 {
     public function created(Pet $pet): void
     {
-        Log::info('Pet created', ['pet_id' => $pet->id, 'household_id' => $pet->household_id, 'name' => $pet->name]);
+        Log::info('Pet created', ['pet_id' => $pet->id, 'household_id' => $pet->household_id]);
     }
 
     public function updated(Pet $pet): void

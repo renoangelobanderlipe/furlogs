@@ -216,6 +216,7 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
           >
             <EditIcon />
           </IconButton>
+          {/* TODO: hide for non-owners once role is exposed on GET /api/user — backend returns 403 in the meantime */}
           <IconButton
             onClick={() => setIsDeleteDialogOpen(true)}
             aria-label="Delete pet"

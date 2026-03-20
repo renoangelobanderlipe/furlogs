@@ -156,6 +156,11 @@ it('returns 404 when viewing pet from another household due to scope', function 
     $response->assertNotFound();
 });
 
+it('returns 401 for unauthenticated requests', function () {
+    $response = $this->getJson('/api/pets');
+    $response->assertStatus(401);
+});
+
 it('can record a weight for a pet', function () {
     [$owner, $household] = createOwnerWithHousehold();
 

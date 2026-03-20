@@ -17,15 +17,17 @@ class EmailVerificationController extends Controller
     {
         $frontendUrl = config('app.frontend_url');
 
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect("{$frontendUrl}/pets?verified=already");
+        $user = $request->user();
+
+        if (! $user->hasVerifiedEmail()) {
+            if ($user->markEmailAsVerified()) {
+                event(new Verified($user));
+            }
         }
 
-        if ($request->user()->markEmailAsVerified()) {
-            event(new Verified($request->user()));
-        }
+        $destination = $user->current_household_id ? '/pets' : '/onboarding';
 
-        return redirect("{$frontendUrl}/pets?verified=1");
+        return redirect("{$frontendUrl}{$destination}?verified=1");
     }
 
     public function resend(Request $request): JsonResponse

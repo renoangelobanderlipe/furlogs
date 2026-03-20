@@ -17,6 +17,7 @@ export interface PetAttributes {
   notes: string | null;
   avatarUrl: string | null;
   thumbUrl: string | null;
+  latestWeightKg: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,6 +38,10 @@ export interface PetWeight {
   id: number;
   type: "pet-weights";
   attributes: PetWeightAttributes;
+}
+
+export interface WeightListResponse {
+  data: PetWeight[];
 }
 
 export interface PaginatedResponse<T> {
@@ -78,7 +83,7 @@ export const petEndpoints = {
   delete: (id: number) => apiClient.delete(`/api/pets/${id}`),
 
   listWeights: (petId: number) =>
-    apiClient.get<PaginatedResponse<PetWeight>>(`/api/pets/${petId}/weights`),
+    apiClient.get<WeightListResponse>(`/api/pets/${petId}/weights`),
 
   recordWeight: (petId: number, data: WeightFormValues) =>
     apiClient.post<PetWeight>(`/api/pets/${petId}/weights`, data),

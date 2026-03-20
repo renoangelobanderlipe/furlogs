@@ -16,7 +16,6 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -33,7 +32,6 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string|null $breed
  * @property Sex $sex
  * @property Carbon|null $birthday
- * @property string|null $photo_path
  * @property bool $is_neutered
  * @property PetSize|null $size
  * @property string|null $notes
@@ -41,7 +39,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
-#[Fillable(['household_id', 'name', 'species', 'breed', 'sex', 'birthday', 'photo_path', 'is_neutered', 'size', 'notes'])]
+#[Fillable(['household_id', 'name', 'species', 'breed', 'sex', 'birthday', 'is_neutered', 'size', 'notes'])]
 #[ObservedBy(PetObserver::class)]
 class Pet extends Model implements HasMedia
 {
@@ -62,12 +60,6 @@ class Pet extends Model implements HasMedia
         ];
     }
 
-    /** @return BelongsTo<Household, $this> */
-    public function household(): BelongsTo
-    {
-        return $this->belongsTo(Household::class);
-    }
-
     /** @return HasMany<PetWeight, $this> */
     public function weights(): HasMany
     {
@@ -78,27 +70,6 @@ class Pet extends Model implements HasMedia
     public function latestWeight(): HasOne
     {
         return $this->hasOne(PetWeight::class)->latestOfMany('recorded_at');
-    }
-
-    /** @return HasMany<VetClinic, $this> */
-    public function vetVisits(): HasMany
-    {
-        // Phase 2
-        return $this->hasMany(VetClinic::class);
-    }
-
-    /** @return HasMany<VetClinic, $this> */
-    public function vaccinations(): HasMany
-    {
-        // Phase 2
-        return $this->hasMany(VetClinic::class);
-    }
-
-    /** @return HasMany<VetClinic, $this> */
-    public function medications(): HasMany
-    {
-        // Phase 2
-        return $this->hasMany(VetClinic::class);
     }
 
     /**

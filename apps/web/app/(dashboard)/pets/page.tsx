@@ -17,7 +17,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PetCard } from "@/components/pets/PetCard";
 import { PetCardSkeleton } from "@/components/pets/PetCardSkeleton";
@@ -25,6 +25,15 @@ import { PetForm } from "@/components/pets/PetForm";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useCreatePet, usePets } from "@/hooks/api/usePets";
 import type { PetFormValues } from "@/lib/validation/pet.schema";
+
+function useDebounced<T>(value: T, delay = 300): T {
+  const [debounced, setDebounced] = useState<T>(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}
 
 type SpeciesFilter = "all" | "dog" | "cat";
 
@@ -34,8 +43,10 @@ export default function PetsPage() {
   const [speciesFilter, setSpeciesFilter] = useState<SpeciesFilter>("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
+  const debouncedSearch = useDebounced(search);
+
   const filters = {
-    ...(search ? { search } : {}),
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
     ...(speciesFilter !== "all" ? { species: speciesFilter } : {}),
   };
 

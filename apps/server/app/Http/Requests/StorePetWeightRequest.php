@@ -11,7 +11,7 @@ class StorePetWeightRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('view', $this->route('pet'));
+        return $this->user()->can('update', $this->route('pet'));
     }
 
     /**

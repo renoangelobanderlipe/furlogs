@@ -17,7 +17,9 @@ class HouseholdScope implements Scope
      */
     public function apply(Builder $builder, Model $model): void
     {
-        if (! auth()->check()) {
+        if (! auth()->check() || auth()->user()->current_household_id === null) {
+            $builder->whereRaw('1 = 0');
+
             return;
         }
 

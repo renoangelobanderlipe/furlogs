@@ -25,8 +25,12 @@ export const petSchema = z.object({
   species: z.enum(SPECIES, { message: "Species is required" }),
   breed: z.string().max(100, "Breed is too long").optional().or(z.literal("")),
   sex: z.enum(SEX, { message: "Sex is required" }),
-  birthday: z.string().optional(),
-  isNeutered: z.boolean().default(false),
+  birthday: z
+    .string()
+    .date("Must be a valid date")
+    .optional()
+    .or(z.literal("")),
+  isNeutered: z.boolean(),
   size: z.enum(PET_SIZE).optional(),
   notes: z
     .string()

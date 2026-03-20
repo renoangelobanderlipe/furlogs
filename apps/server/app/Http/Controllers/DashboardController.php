@@ -57,37 +57,36 @@ class DashboardController extends Controller
             'petName' => $r->pet?->name,
         ])->values()->all();
 
-        // Vet visit stats: count this year + spend (1 aggregate query)
+        // Vet visit stats: count + spend this year
         $yearStart = now()->startOfYear()->toDateString();
-        $ytdStats = VetVisit::query()
+        $ytdBase = VetVisit::query()
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))
-            ->where('visit_date', '>=', $yearStart)
-            ->selectRaw('COUNT(*) as visit_count, COALESCE(SUM(cost), 0) as total_spend')
-            ->first();
+            ->where('visit_date', '>=', $yearStart);
 
-        // Last visit with pet name (1 query)
+        $ytdVisitCount = (int) (clone $ytdBase)->count();
+        $ytdSpend = (float) (clone $ytdBase)->sum('cost');
+
+        // Last visit with pet name
         $lastVisit = VetVisit::query()
             ->with('pet')
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))
             ->orderBy('visit_date', 'desc')
             ->first();
 
-        // Monthly spend: current + previous month (1 aggregate query)
+        // Monthly spend: current and previous month
         $thisMonthStart = now()->startOfMonth()->toDateString();
         $lastMonthStart = now()->subMonth()->startOfMonth()->toDateString();
+        $lastMonthEnd = now()->subMonth()->endOfMonth()->toDateString();
 
-        $spendRow = VetVisit::query()
+        $currentMonthSpend = (float) VetVisit::query()
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))
-            ->where('visit_date', '>=', $lastMonthStart)
-            ->selectRaw(
-                'COALESCE(SUM(CASE WHEN visit_date >= ? THEN cost ELSE 0 END), 0) AS current_month,'
-                .' COALESCE(SUM(CASE WHEN visit_date < ? THEN cost ELSE 0 END), 0) AS last_month',
-                [$thisMonthStart, $thisMonthStart],
-            )
-            ->first();
+            ->where('visit_date', '>=', $thisMonthStart)
+            ->sum('cost');
 
-        $currentMonthSpend = (float) $spendRow->current_month;
-        $lastMonthSpend = (float) $spendRow->last_month;
+        $lastMonthSpend = (float) VetVisit::query()
+            ->when($petId, fn ($q) => $q->where('pet_id', $petId))
+            ->whereBetween('visit_date', [$lastMonthStart, $lastMonthEnd])
+            ->sum('cost');
         $changePercent = $lastMonthSpend > 0
             ? round((($currentMonthSpend - $lastMonthSpend) / $lastMonthSpend) * 100, 1)
             : null;
@@ -128,8 +127,8 @@ class DashboardController extends Controller
                 ],
                 'stockStatus' => $stockStatus,
                 'vetVisitStats' => [
-                    'countThisYear' => (int) $ytdStats->visit_count,
-                    'totalSpendThisYear' => (float) $ytdStats->total_spend,
+                    'countThisYear' => $ytdVisitCount,
+                    'totalSpendThisYear' => $ytdSpend,
                     'lastVisitDate' => $lastVisit?->visit_date->toDateString(),
                     'lastVisitPetName' => $lastVisit?->pet?->name,
                 ],

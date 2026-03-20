@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
-use App\Enums\HouseholdRole;
 use App\Models\Household;
-use Carbon\Carbon;
+use App\Models\HouseholdMember;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,18 +20,17 @@ class HouseholdResource extends JsonResource
         /** @var Household $household */
         $household = $this->resource;
 
-        $members = $household->members->map(function ($user): array {
-            $role = $user->pivot->role;
-            $joinedAt = $user->pivot->joined_at;
+        $members = $household->householdMembers->map(function (HouseholdMember $member): array {
+            $role = $member->role;
+            $joinedAt = $member->joined_at;
+            $user = $member->user;
 
             return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $role instanceof HouseholdRole ? $role->value : (string) $role,
-                'joinedAt' => $joinedAt instanceof Carbon
-                    ? $joinedAt->toDateString()
-                    : (is_string($joinedAt) ? substr($joinedAt, 0, 10) : null),
+                'id' => $user?->id,
+                'name' => $user?->name,
+                'email' => $user?->email,
+                'role' => $role->value,
+                'joinedAt' => $joinedAt?->toDateString(),
             ];
         });
 

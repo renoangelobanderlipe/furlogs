@@ -5,17 +5,26 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\HouseholdRole;
+use Carbon\Carbon;
 use Database\Factories\HouseholdMemberFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
+/**
+ * @property HouseholdRole $role
+ * @property Carbon|null $joined_at
+ */
 #[Fillable(['user_id', 'household_id', 'role', 'invited_at', 'joined_at'])]
-class HouseholdMember extends Model
+class HouseholdMember extends Pivot
 {
     /** @use HasFactory<HouseholdMemberFactory> */
     use HasFactory;
+
+    public $incrementing = true;
+
+    protected $table = 'household_members';
 
     protected function casts(): array
     {

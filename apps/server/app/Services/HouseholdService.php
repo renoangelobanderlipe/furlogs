@@ -42,10 +42,7 @@ class HouseholdService
     {
         /** @var Household $household */
         $household = Household::query()
-            ->with(['members' => function ($query): void {
-                $query->select('users.id', 'users.name', 'users.email')
-                    ->withPivot(['role', 'joined_at']);
-            }])
+            ->with(['householdMembers.user'])
             ->findOrFail($user->current_household_id);
 
         return $household;
@@ -141,9 +138,6 @@ class HouseholdService
      */
     private function loadHousehold(Household $household): Household
     {
-        return $household->load(['members' => function ($query): void {
-            $query->select('users.id', 'users.name', 'users.email')
-                ->withPivot(['role', 'joined_at']);
-        }]);
+        return $household->load(['householdMembers.user']);
     }
 }

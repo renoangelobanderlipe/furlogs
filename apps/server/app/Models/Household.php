@@ -17,10 +17,11 @@ class Household extends Model
     /** @use HasFactory<HouseholdFactory> */
     use HasFactory;
 
-    /** @return BelongsToMany<User, $this> */
+    /** @return BelongsToMany<User, $this, HouseholdMember> */
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'household_members')
+            ->using(HouseholdMember::class)
             ->withPivot(['role', 'invited_at', 'joined_at'])
             ->withTimestamps();
     }

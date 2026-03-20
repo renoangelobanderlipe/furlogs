@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import type { Pet } from "@/lib/api/pets";
 import { SPECIES_EMOJI } from "@/lib/constants";
 

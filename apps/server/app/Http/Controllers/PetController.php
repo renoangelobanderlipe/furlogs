@@ -20,8 +20,6 @@ class PetController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $this->authorize('viewAny', Pet::class);
-
         $pets = Pet::query()
             ->with('latestWeight')
             ->when($request->query('species'), fn ($q, $s) => $q->where('species', $s))

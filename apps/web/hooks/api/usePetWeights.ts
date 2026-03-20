@@ -20,7 +20,7 @@ export function useRecordWeight(petId: number) {
 
   return useMutation({
     mutationFn: (data: WeightFormValues) =>
-      petEndpoints.recordWeight(petId, data).then((r) => r.data),
+      petEndpoints.recordWeight(petId, data).then((r) => r.data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: petKeys.weights(petId) });
       queryClient.invalidateQueries({ queryKey: petKeys.detail(petId) });

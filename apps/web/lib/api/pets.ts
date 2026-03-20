@@ -44,6 +44,10 @@ export interface WeightListResponse {
   data: PetWeight[];
 }
 
+export interface SingleResourceResponse<T> {
+  data: T;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   links: {
@@ -70,15 +74,19 @@ export const petEndpoints = {
   list: (filters?: PetFilters) =>
     apiClient.get<PaginatedResponse<Pet>>("/api/pets", { params: filters }),
 
-  get: (id: number) => apiClient.get<Pet>(`/api/pets/${id}`),
+  get: (id: number) =>
+    apiClient.get<SingleResourceResponse<Pet>>(`/api/pets/${id}`),
 
   getWithWeights: (id: number) =>
-    apiClient.get<Pet>(`/api/pets/${id}?include=weights`),
+    apiClient.get<SingleResourceResponse<Pet>>(
+      `/api/pets/${id}?include=weights`,
+    ),
 
-  create: (data: PetFormValues) => apiClient.post<Pet>("/api/pets", data),
+  create: (data: PetFormValues) =>
+    apiClient.post<SingleResourceResponse<Pet>>("/api/pets", data),
 
   update: (id: number, data: PetUpdateFormValues) =>
-    apiClient.patch<Pet>(`/api/pets/${id}`, data),
+    apiClient.patch<SingleResourceResponse<Pet>>(`/api/pets/${id}`, data),
 
   delete: (id: number) => apiClient.delete(`/api/pets/${id}`),
 
@@ -86,13 +94,18 @@ export const petEndpoints = {
     apiClient.get<WeightListResponse>(`/api/pets/${petId}/weights`),
 
   recordWeight: (petId: number, data: WeightFormValues) =>
-    apiClient.post<PetWeight>(`/api/pets/${petId}/weights`, data),
+    apiClient.post<SingleResourceResponse<PetWeight>>(
+      `/api/pets/${petId}/weights`,
+      data,
+    ),
 
   uploadAvatar: (petId: number, file: File) => {
     const formData = new FormData();
     formData.append("avatar", file);
-    return apiClient.post<Pet>(`/api/pets/${petId}/avatar`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    return apiClient.post<SingleResourceResponse<Pet>>(
+      `/api/pets/${petId}/avatar`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
   },
 };

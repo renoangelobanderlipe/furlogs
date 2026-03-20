@@ -20,7 +20,7 @@ export function usePets(filters?: PetFilters) {
 export function usePet(id: number) {
   return useQuery({
     queryKey: petKeys.detail(id),
-    queryFn: () => petEndpoints.get(id).then((r) => r.data),
+    queryFn: () => petEndpoints.get(id).then((r) => r.data.data),
     staleTime: STALE_TIME,
     enabled: id > 0,
   });
@@ -31,7 +31,7 @@ export function useCreatePet() {
 
   return useMutation({
     mutationFn: (data: PetFormValues) =>
-      petEndpoints.create(data).then((r) => r.data),
+      petEndpoints.create(data).then((r) => r.data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: petKeys.lists() });
       toast.success("Pet added!");
@@ -50,7 +50,7 @@ export function useUpdatePet() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: PetUpdateFormValues }) =>
-      petEndpoints.update(id, data).then((r) => r.data),
+      petEndpoints.update(id, data).then((r) => r.data.data),
     onSuccess: (pet) => {
       queryClient.invalidateQueries({ queryKey: petKeys.detail(pet.id) });
       queryClient.invalidateQueries({ queryKey: petKeys.lists() });
@@ -88,7 +88,7 @@ export function useUploadPetAvatar() {
 
   return useMutation({
     mutationFn: ({ id, file }: { id: number; file: File }) =>
-      petEndpoints.uploadAvatar(id, file).then((r) => r.data),
+      petEndpoints.uploadAvatar(id, file).then((r) => r.data.data),
     onSuccess: (pet) => {
       queryClient.invalidateQueries({ queryKey: petKeys.detail(pet.id) });
       queryClient.invalidateQueries({ queryKey: petKeys.lists() });

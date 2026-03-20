@@ -38,7 +38,10 @@ export const vaccinationSchema = z.object({
 
 export const vaccinationUpdateSchema = vaccinationSchema.partial();
 
-export type VaccinationFormValues = z.infer<typeof vaccinationSchema>;
-export type VaccinationUpdateFormValues = z.infer<
+/** Output type — what you receive in handleSubmit (transforms applied) */
+export type VaccinationFormValues = z.output<typeof vaccinationSchema>;
+/** Input type — what the form fields hold (raw strings incl. empty string) */
+export type VaccinationFormInput = z.input<typeof vaccinationSchema>;
+export type VaccinationUpdateFormValues = z.output<
   typeof vaccinationUpdateSchema
 >;

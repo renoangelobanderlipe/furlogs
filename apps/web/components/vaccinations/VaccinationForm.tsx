@@ -22,6 +22,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { usePets } from "@/hooks/api/usePets";
 import {
+  type VaccinationFormInput,
   type VaccinationFormValues,
   vaccinationSchema,
 } from "@/lib/validation/vaccination.schema";
@@ -42,7 +43,7 @@ export function VaccinationForm({
   const { data: petsData } = usePets();
   const pets = petsData?.data ?? [];
 
-  const form = useForm<VaccinationFormValues>({
+  const form = useForm<VaccinationFormInput, unknown, VaccinationFormValues>({
     resolver: zodResolver(vaccinationSchema),
     defaultValues: {
       vaccineName: "",

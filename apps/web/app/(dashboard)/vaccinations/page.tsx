@@ -37,6 +37,7 @@ import {
 import { SPECIES_EMOJI } from "@/lib/constants";
 import { formatShortDate } from "@/lib/format";
 import {
+  type VaccinationFormInput,
   type VaccinationFormValues,
   vaccinationSchema,
 } from "@/lib/validation/vaccination.schema";
@@ -63,7 +64,7 @@ export default function VaccinationsPage() {
     control,
     reset,
     formState: { errors },
-  } = useForm<VaccinationFormValues>({
+  } = useForm<VaccinationFormInput, unknown, VaccinationFormValues>({
     resolver: zodResolver(vaccinationSchema),
     defaultValues: {
       petId: undefined,

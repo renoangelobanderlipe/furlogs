@@ -43,18 +43,22 @@ const TYPE_CONFIG: Record<
   DisplayType,
   { label: string; color: string; displayName: string }
 > = {
-  vet: { label: "🔵 Vet", color: "bg-primary", displayName: "Vet Visit" },
+  vet: { label: "Vet Visit", color: "bg-primary", displayName: "Vet Visit" },
   vaccine: {
-    label: "🔴 Vaccine",
+    label: "Vaccination",
     color: "bg-destructive",
     displayName: "Vaccination",
   },
   medication: {
-    label: "🟡 Medication",
+    label: "Medication",
     color: "bg-warning",
     displayName: "Medication",
   },
-  stock: { label: "🟠 Stock", color: "bg-warning", displayName: "Stock Alert" },
+  stock: {
+    label: "Stock Alert",
+    color: "bg-orange-500",
+    displayName: "Stock Alert",
+  },
 };
 
 function getRange(year: number, month: number) {
@@ -202,7 +206,12 @@ export default function CalendarPage() {
             (typeof TYPE_CONFIG)[DisplayType],
           ][]
         ).map(([, cfg]) => (
-          <span key={cfg.label}>{cfg.label}</span>
+          <span key={cfg.label} className="flex items-center gap-1.5">
+            <span
+              className={cn("inline-block h-2.5 w-2.5 rounded-sm", cfg.color)}
+            />
+            {cfg.label}
+          </span>
         ))}
       </div>
 

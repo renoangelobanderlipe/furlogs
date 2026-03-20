@@ -36,7 +36,7 @@ Route::middleware('guest')->prefix('auth')->group(function () {
         ->name('auth.register');
 
     Route::post('login', LoginController::class)
-        ->middleware('throttle:5,1')
+        // ->middleware('throttle:5,1')
         ->name('auth.login');
 
     Route::post('forgot-password', ForgotPasswordController::class)
@@ -51,11 +51,12 @@ Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
     Route::post('email/verification-notification', [EmailVerificationController::class, 'resend'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
-
-    Route::get('email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
-        ->middleware('signed')
-        ->name('verification.verify');
 });
+
+// Email verification — no auth required: user clicks this link from their email client
+Route::get('auth/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->middleware('signed')
+    ->name('verification.verify');
 
 // Authenticated user
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {

@@ -25,6 +25,7 @@ import {
   useSnoozeReminder,
 } from "@/hooks/api/useReminders";
 import type { Reminder, ReminderUrgency } from "@/lib/api/reminders";
+import { formatRelativeDueDate } from "@/lib/format";
 
 function getUrgencyColor(urgency: ReminderUrgency): string {
   switch (urgency) {
@@ -35,23 +36,6 @@ function getUrgencyColor(urgency: ReminderUrgency): string {
     case "low":
       return "success.main";
   }
-}
-
-function formatDueDate(dueDate: string): string {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const [year, month, day] = dueDate.split("-");
-  const due = new Date(Number(year), Number(month) - 1, Number(day));
-  due.setHours(0, 0, 0, 0);
-
-  const diffMs = due.getTime() - today.getTime();
-  const diffDays = Math.round(diffMs / 86_400_000);
-
-  if (diffDays < 0) return "Overdue";
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Tomorrow";
-  return due.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 interface ReminderItemMenuProps {
@@ -127,7 +111,7 @@ interface ReminderItemProps {
 function ReminderItem({ reminder }: ReminderItemProps) {
   const theme = useTheme();
   const { attributes } = reminder;
-  const dueDateLabel = formatDueDate(attributes.dueDate);
+  const dueDateLabel = formatRelativeDueDate(attributes.dueDate);
   const isOverdue = dueDateLabel === "Overdue";
   const urgencyColor = getUrgencyColor(attributes.urgency);
 

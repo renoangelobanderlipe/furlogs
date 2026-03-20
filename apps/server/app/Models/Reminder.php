@@ -73,4 +73,19 @@ class Reminder extends Model
     {
         return $this->morphTo();
     }
+
+    /**
+     * Calculate urgency based on days until due date.
+     * high = ≤3 days, medium = ≤7 days, low = beyond 7 days.
+     */
+    public function urgency(): string
+    {
+        $daysUntilDue = (int) now()->startOfDay()->diffInDays($this->due_date, false);
+
+        return match (true) {
+            $daysUntilDue <= 3 => 'high',
+            $daysUntilDue <= 7 => 'medium',
+            default => 'low',
+        };
+    }
 }

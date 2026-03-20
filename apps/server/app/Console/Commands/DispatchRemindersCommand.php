@@ -13,6 +13,7 @@ use App\Notifications\VetVisitFollowUpNotification;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 #[Signature('notifications:dispatch-reminders')]
@@ -21,28 +22,28 @@ class DispatchRemindersCommand extends Command
 {
     public function handle(): int
     {
-        $reminders = Reminder::query()
+        $dispatched = 0;
+        $errors = 0;
+
+        Reminder::query()
             ->withoutGlobalScopes()
             ->whereIn('status', [ReminderStatus::Pending, ReminderStatus::Snoozed])
             ->where('due_date', '<=', now()->addDays(7)->toDateString())
             ->with(['pet', 'household.members'])
-            ->get();
-
-        $dispatched = 0;
-        $errors = 0;
-
-        foreach ($reminders as $reminder) {
-            try {
-                $this->processReminder($reminder);
-                $dispatched++;
-            } catch (\Throwable $e) {
-                $errors++;
-                Log::error('Failed to dispatch reminder notification', [
-                    'reminder_id' => $reminder->id,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
+            ->chunkById(100, function (Collection $reminders) use (&$dispatched, &$errors): void {
+                foreach ($reminders as $reminder) {
+                    try {
+                        $this->processReminder($reminder);
+                        $dispatched++;
+                    } catch (\Throwable $e) {
+                        $errors++;
+                        Log::error('Failed to dispatch reminder notification', [
+                            'reminder_id' => $reminder->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            });
 
         $this->info("Dispatched notifications for {$dispatched} reminder(s). Errors: {$errors}.");
 

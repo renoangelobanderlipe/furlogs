@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MarkAllReadRequest;
+use App\Http\Resources\NotificationResource;
 use App\Services\NotificationService;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
@@ -27,28 +27,8 @@ class NotificationController extends Controller
 
         $paginated = $this->service->getPaginated($user, $filters);
 
-        /** @var array<int, DatabaseNotification> $notifications */
-        $notifications = $paginated->items();
-
-        $items = array_map(function (DatabaseNotification $notification): array {
-            /** @var array<string, mixed> $data */
-            $data = $notification->getAttribute('data') ?? [];
-            /** @var Carbon|null $readAt */
-            $readAt = $notification->getAttribute('read_at');
-            /** @var Carbon|null $createdAt */
-            $createdAt = $notification->getAttribute('created_at');
-
-            return [
-                'id' => $notification->getKey(),
-                'type' => $data['type'] ?? null,
-                'data' => $data,
-                'read_at' => $readAt?->toISOString(),
-                'created_at' => $createdAt?->toISOString(),
-            ];
-        }, $notifications);
-
         return response()->json([
-            'data' => $items,
+            'data' => NotificationResource::collection($paginated->items()),
             'meta' => [
                 'current_page' => $paginated->currentPage(),
                 'last_page' => $paginated->lastPage(),

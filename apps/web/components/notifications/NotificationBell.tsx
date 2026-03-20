@@ -14,11 +14,13 @@ export function NotificationBell() {
   const toggleBell = useNotificationStore((s) => s.toggleBell);
   const bellRef = useRef<HTMLButtonElement>(null);
   const prevCountRef = useRef<number>(count);
+  const isInitialRef = useRef(true);
 
   useEffect(() => {
-    if (count > prevCountRef.current && prevCountRef.current >= 0) {
+    if (!isInitialRef.current && count > prevCountRef.current) {
       toast.info("You have new notifications");
     }
+    isInitialRef.current = false;
     prevCountRef.current = count;
   }, [count]);
 

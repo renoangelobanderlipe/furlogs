@@ -144,7 +144,8 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
 
 export function NotificationDropdown() {
   const theme = useTheme();
-  const { bellOpen, anchorEl, closeBell } = useNotificationStore();
+  const { anchorEl, closeBell } = useNotificationStore();
+  const bellOpen = anchorEl !== null;
   const { data, isLoading } = useNotifications(undefined, {
     enabled: bellOpen,
   });

@@ -19,8 +19,6 @@ class ReminderResource extends JsonResource
         /** @var Reminder $reminder */
         $reminder = $this->resource;
 
-        $daysUntilDue = (int) now()->startOfDay()->diffInDays($reminder->due_date, false);
-
         return [
             'id' => $reminder->id,
             'type' => 'reminders',
@@ -32,12 +30,8 @@ class ReminderResource extends JsonResource
                 'isRecurring' => $reminder->is_recurring,
                 'recurrenceDays' => $reminder->recurrence_days,
                 'status' => $reminder->status->value,
-                'daysUntilDue' => $daysUntilDue,
-                'urgency' => match (true) {
-                    $daysUntilDue <= 3 => 'high',
-                    $daysUntilDue <= 7 => 'medium',
-                    default => 'low',
-                },
+                'daysUntilDue' => (int) now()->startOfDay()->diffInDays($reminder->due_date, false),
+                'urgency' => $reminder->urgency(),
                 'petName' => $this->whenLoaded('pet', fn () => $this->pet?->name),
                 'createdAt' => $reminder->created_at->toISOString(),
                 'updatedAt' => $reminder->updated_at->toISOString(),

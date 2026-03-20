@@ -34,19 +34,13 @@ class MedicationReminderNotification extends Notification implements ShouldQueue
      */
     public function toDatabase(object $notifiable): array
     {
-        $daysUntilDue = (int) now()->startOfDay()->diffInDays($this->reminder->due_date, false);
-
         return [
             'type' => 'medication_reminder',
             'pet_id' => $this->reminder->pet_id,
             'pet_name' => $this->petName,
             'title' => $this->reminder->title,
             'due_date' => $this->reminder->due_date->format('Y-m-d'),
-            'urgency' => match (true) {
-                $daysUntilDue <= 3 => 'high',
-                $daysUntilDue <= 7 => 'medium',
-                default => 'low',
-            },
+            'urgency' => $this->reminder->urgency(),
         ];
     }
 

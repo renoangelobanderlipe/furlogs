@@ -1,7 +1,6 @@
 import { create } from "zustand";
 
 interface NotificationStore {
-  bellOpen: boolean;
   anchorEl: HTMLElement | null;
   openBell: (anchor: HTMLElement) => void;
   closeBell: () => void;
@@ -9,19 +8,13 @@ interface NotificationStore {
 }
 
 export const useNotificationStore = create<NotificationStore>((set, get) => ({
-  bellOpen: false,
   anchorEl: null,
 
-  openBell: (anchor) => set({ bellOpen: true, anchorEl: anchor }),
+  openBell: (anchor) => set({ anchorEl: anchor }),
 
-  closeBell: () => set({ bellOpen: false, anchorEl: null }),
+  closeBell: () => set({ anchorEl: null }),
 
   toggleBell: (anchor) => {
-    const { bellOpen } = get();
-    if (bellOpen) {
-      set({ bellOpen: false, anchorEl: null });
-    } else {
-      set({ bellOpen: true, anchorEl: anchor });
-    }
+    set({ anchorEl: get().anchorEl !== null ? null : anchor });
   },
 }));

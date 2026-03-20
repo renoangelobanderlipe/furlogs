@@ -43,6 +43,7 @@ class NotificationService
     public function getPaginated(User $user, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
         return $user->notifications()
+            ->select(['id', 'type', 'data', 'read_at', 'created_at', 'notifiable_type', 'notifiable_id'])
             ->when(
                 isset($filters['read']),
                 function ($query) use ($filters) {

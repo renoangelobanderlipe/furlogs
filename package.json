@@ -1,0 +1,21 @@
+{
+  "name": "@petlog/root",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "concurrently -c \"#93c5fd,#c4b5fd\" \"bun run dev:web\" \"bun run dev:server\" --names=web,server --kill-others",
+    "dev:web": "bun run --cwd apps/web dev",
+    "dev:server": "composer --working-dir=apps/server dev",
+    "build:web": "bun run --cwd apps/web build",
+    "lint:web": "bun run --cwd apps/web lint",
+    "format:web": "bun run --cwd apps/web format",
+    "test:server": "composer --working-dir=apps/server test",
+    "install:server": "composer install --working-dir=apps/server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

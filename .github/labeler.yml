@@ -1,0 +1,15 @@
+frontend:
+  - "apps/frontend/**"
+
+backend:
+  - "apps/backend/**"
+
+devops:
+  - ".github/**"
+
+docs:
+  - "**/*.md"
+
+tests:
+  - "**/*.test.*"
+  - "**/__tests__/**"

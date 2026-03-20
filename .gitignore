@@ -1,0 +1,40 @@
+# Bun
+node_modules/
+
+# Next.js
+apps/web/.next/
+apps/web/out/
+apps/web/build/
+apps/web/coverage/
+apps/web/next-env.d.ts
+apps/web/*.tsbuildinfo
+
+# Laravel
+apps/server/.env
+apps/server/.env.backup
+apps/server/.env.production
+apps/server/vendor/
+apps/server/public/build/
+apps/server/public/hot/
+apps/server/public/storage/
+apps/server/storage/*.key
+apps/server/storage/pail/
+apps/server/.phpunit.cache/
+apps/server/.phpunit.result.cache
+apps/server/auth.json
+
+# IDE
+.DS_Store
+Thumbs.db
+*.pem
+*.log
+.idea/
+.vscode/
+.nova/
+.zed/
+.fleet/
+
+# Env
+.env
+.env.*
+!.env.example

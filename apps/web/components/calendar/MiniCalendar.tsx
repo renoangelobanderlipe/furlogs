@@ -3,7 +3,6 @@
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
-import timeGridPlugin from "@fullcalendar/timegrid";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useTheme } from "@mui/material/styles";
@@ -25,23 +24,26 @@ function getInitialRange(): DateRange {
   };
 }
 
-const LEGEND_ITEMS: {
-  type: CalendarEvent["type"];
-  label: string;
-  color: string;
-}[] = [
-  { type: "vet_visit", label: "Vet Visit", color: "#2196f3" },
-  { type: "vaccination", label: "Vaccination", color: "#f44336" },
-  { type: "medication", label: "Medication", color: "#ff9800" },
-  { type: "stock_alert", label: "Stock Alert", color: "#ff5722" },
+const EVENT_TYPE_COLORS: Record<CalendarEvent["type"], string> = {
+  vet_visit: "#2196f3",
+  vaccination: "#f44336",
+  medication: "#ff9800",
+  stock_alert: "#ff5722",
+};
+
+const LEGEND_ITEMS: { type: CalendarEvent["type"]; label: string }[] = [
+  { type: "vet_visit", label: "Vet Visit" },
+  { type: "vaccination", label: "Vaccination" },
+  { type: "medication", label: "Medication" },
+  { type: "stock_alert", label: "Stock Alert" },
 ];
 
-export default function CalendarPage() {
+export function MiniCalendar() {
   const theme = useTheme();
   const router = useRouter();
   const [range, setRange] = useState<DateRange>(getInitialRange);
 
-  const { data: events = [], isFetching } = useCalendarEvents(range);
+  const { data: events = [], isLoading } = useCalendarEvents(range);
 
   const fcEvents = events.map((e) => ({
     id: e.id,
@@ -49,63 +51,18 @@ export default function CalendarPage() {
     start: e.start,
     backgroundColor: e.color,
     borderColor: e.color,
-    extendedProps: { url: e.url, type: e.type, petName: e.petName },
+    extendedProps: { url: e.url, type: e.type },
   }));
 
   return (
-    <Box sx={{ pb: 4 }}>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={700}>
-          Calendar
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          All upcoming events, visits, and reminders in one place
-        </Typography>
-      </Box>
-
-      {/* Legend */}
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 2,
-          mb: 2,
-        }}
-      >
-        {LEGEND_ITEMS.map((item) => (
-          <Box
-            key={item.type}
-            sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
-          >
-            <Box
-              sx={{
-                width: 10,
-                height: 10,
-                borderRadius: "50%",
-                bgcolor: item.color,
-                flexShrink: 0,
-              }}
-            />
-            <Typography variant="body2" color="text.secondary" fontWeight={500}>
-              {item.label}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
-
-      {/* Calendar */}
+    <Box>
       <Box
         sx={{
           position: "relative",
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          border: "1px solid",
-          borderColor: "divider",
-          p: { xs: 1, sm: 2 },
           "& .fc": {
             color: theme.palette.text.primary,
             fontFamily: theme.typography.fontFamily,
+            fontSize: "0.8rem",
           },
           "& .fc-theme-standard td": {
             borderColor: theme.palette.divider,
@@ -118,15 +75,16 @@ export default function CalendarPage() {
           },
           "& .fc-col-header-cell": {
             bgcolor: theme.palette.background.paper,
+            color: theme.palette.text.secondary,
           },
           "& .fc-col-header-cell-cushion": {
             color: theme.palette.text.secondary,
             textDecoration: "none",
+            fontSize: "0.7rem",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
           },
           "& .fc-daygrid-day": {
-            bgcolor: theme.palette.background.paper,
-          },
-          "& .fc-timegrid-slot": {
             bgcolor: theme.palette.background.paper,
           },
           "& .fc-day-today": {
@@ -135,83 +93,59 @@ export default function CalendarPage() {
           "& .fc-daygrid-day-number": {
             color: theme.palette.text.primary,
             textDecoration: "none",
+            fontSize: "0.75rem",
+            padding: "2px 4px",
           },
           "& .fc-toolbar-title": {
             color: theme.palette.text.primary,
-            fontSize: "1.1rem !important",
+            fontSize: "0.875rem !important",
             fontWeight: 600,
           },
           "& .fc-button-primary": {
             bgcolor: `${theme.palette.primary.main} !important`,
             borderColor: `${theme.palette.primary.main} !important`,
             color: `${theme.palette.primary.contrastText} !important`,
+            fontSize: "0.7rem",
+            padding: "2px 6px",
             "&:hover": {
               bgcolor: `${theme.palette.primary.dark} !important`,
-              borderColor: `${theme.palette.primary.dark} !important`,
-            },
-            "&:not(:disabled):active": {
-              bgcolor: `${theme.palette.primary.dark} !important`,
-            },
-            "&:disabled": {
-              bgcolor: `${theme.palette.action.disabledBackground} !important`,
-              borderColor: `${theme.palette.action.disabledBackground} !important`,
-            },
-            "&.fc-button-active": {
-              bgcolor: `${theme.palette.primary.dark} !important`,
-              borderColor: `${theme.palette.primary.dark} !important`,
             },
           },
           "& .fc-event": {
             cursor: "pointer",
-            borderRadius: "4px",
+            borderRadius: "3px",
+            fontSize: "0.65rem",
           },
-          "& .fc-event-title": {
-            fontWeight: 500,
+          "& .fc-toolbar": {
+            mb: "4px !important",
           },
-          "& .fc-list-event": {
-            cursor: "pointer",
+          "& .fc-daygrid-dot-event": {
+            padding: "1px 2px",
           },
-          "& .fc-list-day-cushion": {
-            bgcolor: `${theme.palette.background.default} !important`,
-          },
-          "& .fc-list-table": {
-            color: theme.palette.text.primary,
-          },
-          "& .fc-more-link": {
-            color: theme.palette.primary.main,
-          },
-          "& .fc-popover": {
-            bgcolor: theme.palette.background.paper,
-            borderColor: theme.palette.divider,
-            color: theme.palette.text.primary,
-          },
-          "& .fc-popover-header": {
-            bgcolor: theme.palette.background.default,
+          "& .fc-daygrid-event-dot": {
+            borderWidth: "4px",
           },
         }}
       >
-        {isFetching && (
+        {isLoading && (
           <Box
             sx={{
               position: "absolute",
-              top: 12,
-              right: 12,
+              top: 8,
+              right: 8,
               zIndex: 10,
             }}
           >
-            <CircularProgress size={18} />
+            <CircularProgress size={14} />
           </Box>
         )}
         <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          plugins={[dayGridPlugin, interactionPlugin]}
           initialView="dayGridMonth"
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek",
-          }}
-          height="auto"
+          headerToolbar={{ left: "prev", center: "title", right: "next" }}
+          height={300}
           events={fcEvents}
+          eventDisplay="list-item"
           datesSet={(info) => {
             setRange({
               start: info.startStr.slice(0, 10),
@@ -228,8 +162,40 @@ export default function CalendarPage() {
           dateClick={(info) => {
             router.push(`/calendar?date=${info.dateStr}`);
           }}
-          dayMaxEvents={3}
         />
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 1.5,
+          mt: 1.5,
+        }}
+      >
+        {LEGEND_ITEMS.map((item) => (
+          <Box
+            key={item.type}
+            sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
+          >
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                bgcolor: EVENT_TYPE_COLORS[item.type],
+                flexShrink: 0,
+              }}
+            />
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              fontWeight={500}
+              lineHeight={1}
+            >
+              {item.label}
+            </Typography>
+          </Box>
+        ))}
       </Box>
     </Box>
   );

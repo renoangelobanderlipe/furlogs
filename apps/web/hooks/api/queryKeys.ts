@@ -8,3 +8,18 @@ export const petKeys = {
   detail: (id: number) => [...petKeys.details(), id] as const,
   weights: (petId: number) => [...petKeys.detail(petId), "weights"] as const,
 };
+
+export const foodProductKeys = {
+  all: ["food-products"] as const,
+  lists: () => [...foodProductKeys.all, "list"] as const,
+  detail: (id: number) => [...foodProductKeys.all, "detail", id] as const,
+};
+
+export const foodStockItemKeys = {
+  all: ["food-stock-items"] as const,
+  lists: () => [...foodStockItemKeys.all, "list"] as const,
+};
+
+export const foodProjectionKeys = {
+  all: ["food-projections"] as const,
+};

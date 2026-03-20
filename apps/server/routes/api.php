@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\FoodProductController;
+use App\Http\Controllers\FoodStockItemController;
 use App\Http\Controllers\HouseholdController;
 use App\Http\Controllers\PetController;
 use App\Http\Controllers\PetWeightController;
@@ -63,4 +65,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Vet Clinics
     Route::apiResource('vet-clinics', VetClinicController::class);
+
+    // Food Products
+    Route::apiResource('food-products', FoodProductController::class);
+    Route::post('food-products/{food_product}/consumption-rates', [FoodProductController::class, 'storeConsumptionRate']);
+    Route::delete('food-products/{food_product}/consumption-rates/{pet}', [FoodProductController::class, 'destroyConsumptionRate']);
+
+    // Food Stock Items
+    Route::apiResource('food-stock-items', FoodStockItemController::class);
+    Route::patch('food-stock-items/{food_stock_item}/open', [FoodStockItemController::class, 'open']);
+    Route::patch('food-stock-items/{food_stock_item}/finish', [FoodStockItemController::class, 'markFinished']);
+
+    // Projections
+    Route::get('food-stock/projections', [FoodStockItemController::class, 'projections']);
 });

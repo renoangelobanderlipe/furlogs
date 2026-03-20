@@ -1,3 +1,5 @@
+import type { CalendarFilters } from "@/lib/api/calendar";
+import type { DashboardFilters } from "@/lib/api/dashboard";
 import type { MedicationFilters } from "@/lib/api/medications";
 import type { NotificationFilters } from "@/lib/api/notifications";
 import type { PetFilters } from "@/lib/api/pets";
@@ -72,4 +74,16 @@ export const reminderKeys = {
   list: (filters?: ReminderFilters) =>
     [...reminderKeys.lists(), { filters }] as const,
   detail: (id: number) => [...reminderKeys.all, "detail", id] as const,
+};
+
+export const dashboardKeys = {
+  all: ["dashboard"] as const,
+  summary: (filters?: DashboardFilters) =>
+    [...dashboardKeys.all, "summary", filters] as const,
+};
+
+export const calendarKeys = {
+  all: ["calendar"] as const,
+  events: (filters?: CalendarFilters) =>
+    [...calendarKeys.all, "events", filters] as const,
 };

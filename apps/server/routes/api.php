@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FoodProductController;
 use App\Http\Controllers\FoodStockItemController;
 use App\Http\Controllers\HouseholdController;
@@ -60,6 +62,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('user', function (Request $request): User {
         return $request->user()->load('currentHousehold');
     })->name('user');
+
+    // Dashboard
+    Route::get('dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');
+
+    // Calendar
+    Route::get('calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
 
     // Onboarding
     Route::post('households', [HouseholdController::class, 'store'])->name('households.store');

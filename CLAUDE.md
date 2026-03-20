@@ -4,9 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**Petlog** — Bun workspaces monorepo with two apps:
+**FurLog** — Multi-user pet care management app. Bun workspaces monorepo:
 - `apps/web` (`@petlog/web`) — Next.js 16.2.0 frontend (React 19, TypeScript, App Router)
-- `apps/server` — Laravel 13 backend (PHP 8.3, PostgreSQL)
+- `apps/server` — Laravel 13 backend (PHP 8.3+, PostgreSQL)
+
+**Domains:**
+- Frontend: `furlogs.reno-is.dev` (Vercel)
+- API: `api.furlogs.reno-is.dev` (Laravel Cloud)
+- Cookie domain: `.furlogs.reno-is.dev`
 
 ## Root Commands
 
@@ -26,41 +31,52 @@ bun run install:server  # composer install for apps/server
 
 For Artisan commands, run from `apps/server/`: `php artisan <command>`
 
+## MCP Strict-Usage Directive
+
+**Always consult MCP servers before writing framework-specific code:**
+- `nextjs` MCP → before any Next.js 16 patterns (routing, data fetching, proxy, etc.)
+- `mui` MCP → before writing any MUI components or theme code
+- `laravel-boost` MCP → before any Laravel patterns (routing, auth, migrations, etc.)
+
+See `.mcp.json` for server configs.
+
 ## Web App (`apps/web`)
 
-**Stack:** Next.js App Router, React Compiler (via Babel plugin), Biome 2.2, TypeScript 5. Path alias `@/*` maps to `apps/web/`.
+**Stack:** Next.js 16.2.0 App Router, React Compiler (Babel plugin), Biome 2.2, TypeScript 5.
 
-> **Important:** This is Next.js 16.2.0 — APIs and conventions may differ from training data. Check `node_modules/next/dist/docs/` before writing Next.js-specific code.
+> **Important:** This is Next.js 16.2.0 — `middleware.ts` is deprecated and renamed to `proxy.ts`. Check `apps/web/node_modules/next/dist/docs/` before writing Next.js-specific code.
+
+See `apps/web/CLAUDE.md` for detailed frontend patterns.
 
 ## Server App (`apps/server`)
 
 ```bash
-# Run from apps/server/ or via root bun run scripts above
-composer setup                    # First-time setup (install, key gen, migrate)
-php artisan test --compact        # Run tests
-php artisan test --filter=name    # Run specific test
-vendor/bin/pint --dirty           # Format changed PHP files (run after any PHP edits)
+# Run from apps/server/ or via root bun run scripts
+vendor/bin/pint --dirty   # Format changed PHP files (always run after edits)
+vendor/bin/phpstan analyse # Static analysis (level 6)
+php artisan test --compact # Run tests
 ```
 
-**Stack:** Laravel 13 API-only, Eloquent ORM, PostgreSQL, Pest 4, Laravel Pint, Laravel Boost (MCP tools).
+**Stack:** Laravel 13 API-only, Sanctum 4, PostgreSQL, Pest 4, Pint, PHPStan/Larastan.
 
-API routes live in `routes/api.php` (prefixed `/api`). No views, no Vite, no frontend assets.
+See `apps/server/CLAUDE.md` for detailed backend patterns.
 
-### Laravel Conventions
+## Commit Convention
 
-- Use `php artisan make:` for all new files; always pass `--no-interaction`
-- Prefer `Model::query()` over `DB::` raw queries
-- Use eager loading to avoid N+1 queries
-- Validation in Form Request classes, not inline in controllers
-- `env()` only in config files; use `config('key')` everywhere else
-- After modifying PHP files, run `vendor/bin/pint --dirty --format agent`
+Conventional commits with required scope:
 
-### Testing
+```
+feat(auth): add login flow
+fix(pets): correct weight unit conversion
+chore(deps): bump MUI to 7.4
+```
 
-- Most tests are feature tests: `php artisan make:test --pest {Name}`
-- Use model factories in tests; check for existing factory states before manual setup
-- Do not delete tests without approval
+**Valid scopes:** `pets`, `vet-visits`, `stock`, `auth`, `api`, `ui`, `db`, `config`, `reminders`, `notifications`, `household`, `calendar`, `spending`, `deps`
 
-## Architecture Notes
+## Coding Standards
 
-`apps/server` is **not** a Bun workspace member — it manages its own JS deps (`npm install`) internally via `composer setup` for its Vite/Tailwind asset pipeline. The root `bun.lock` and `node_modules/` only cover `apps/web`.
+- All PHP files: `declare(strict_types=1);`
+- No `$guarded = []` on models — use `$fillable` or `#[Fillable]` attribute
+- No `any` types in TypeScript
+- Named exports for components (`export function Foo`, not `export default`)
+- One component per file

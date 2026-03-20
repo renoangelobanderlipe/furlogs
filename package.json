@@ -13,9 +13,23 @@
     "lint:web": "bun run --cwd apps/web lint",
     "format:web": "bun run --cwd apps/web format",
     "test:server": "composer --working-dir=apps/server test",
-    "install:server": "composer install --working-dir=apps/server"
+    "install:server": "composer install --working-dir=apps/server",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "apps/web/**/*.{ts,tsx,js,jsx,json,css}": [
+      "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true"
+    ],
+    "apps/server/**/*.php": [
+      "./apps/server/vendor/bin/pint"
+    ]
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "@biomejs/biome": "2.2.0",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "concurrently": "^9.2.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
   }
 }

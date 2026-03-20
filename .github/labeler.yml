@@ -1,8 +1,8 @@
 frontend:
-  - "apps/frontend/**"
+  - "apps/web/**"
 
 backend:
-  - "apps/backend/**"
+  - "apps/server/**"
 
 devops:
   - ".github/**"

@@ -1,7 +1,9 @@
 <?php
 
-test('the application returns a successful response', function () {
-    $response = $this->get('/');
+declare(strict_types=1);
 
-    $response->assertStatus(200);
+test('health check returns ok', function () {
+    $response = $this->getJson('/api/health');
+
+    $response->assertOk()->assertJson(['status' => 'ok']);
 });

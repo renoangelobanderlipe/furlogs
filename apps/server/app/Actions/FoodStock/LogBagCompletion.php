@@ -31,9 +31,7 @@ class LogBagCompletion
 
         $unitWeightGrams = $product->unit_weight_grams ?? 0;
 
-        $actualDailyRate = $actualDuration > 0
-            ? (int) round($unitWeightGrams / $actualDuration)
-            : $unitWeightGrams;
+        $actualDailyRate = (int) round($unitWeightGrams / $actualDuration);
 
         $estimatedRate = (int) $product->consumptionRates->sum('daily_amount_grams');
 

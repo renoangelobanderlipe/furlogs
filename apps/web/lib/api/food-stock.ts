@@ -47,13 +47,15 @@ export interface FoodStockItemAttributes {
   daysSinceOpened: number | null;
   createdAt: string;
   updatedAt: string;
-  foodProduct?: FoodProduct;
 }
 
 export interface FoodStockItem {
   id: number;
   type: "food-stock-items";
   attributes: FoodStockItemAttributes;
+  relationships?: {
+    foodProduct?: FoodProduct;
+  };
 }
 
 export interface FoodProjection {

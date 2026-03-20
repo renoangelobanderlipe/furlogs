@@ -1,24 +1,17 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/Add";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import SpeedIcon from "@mui/icons-material/Speed";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
-import Grid from "@mui/material/Grid";
-import LinearProgress from "@mui/material/LinearProgress";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-
+import { CheckCircle2, Gauge, Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import type {
   FoodProjectionItem,
   ProjectionStatus,
 } from "@/lib/api/food-stock";
 import type { Pet } from "@/lib/api/pets";
+import { cn } from "@/lib/utils";
 
 interface ActiveConsumptionCardProps {
   projectionItem: FoodProjectionItem;
@@ -29,24 +22,11 @@ interface ActiveConsumptionCardProps {
   isMarkingFinished: boolean;
 }
 
-const STATUS_CHIP_COLOR_MAP: Record<
-  ProjectionStatus | "unknown",
-  "success" | "warning" | "error" | "default"
-> = {
-  good: "success",
-  low: "warning",
-  critical: "error",
-  unknown: "default",
-};
-
-const PROGRESS_COLOR_MAP: Record<
-  ProjectionStatus | "unknown",
-  "success" | "warning" | "error" | "inherit"
-> = {
-  good: "success",
-  low: "warning",
-  critical: "error",
-  unknown: "inherit",
+const STATUS_BADGE_CLASS: Record<ProjectionStatus | "unknown", string> = {
+  good: "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/20",
+  low: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
+  critical: "bg-destructive/15 text-destructive border-destructive/20",
+  unknown: "bg-muted text-muted-foreground border-border",
 };
 
 const STATUS_LABELS: Record<ProjectionStatus | "unknown", string> = {
@@ -54,6 +34,20 @@ const STATUS_LABELS: Record<ProjectionStatus | "unknown", string> = {
   low: "Low",
   critical: "Critical",
   unknown: "No rates",
+};
+
+const BORDER_COLOR_CLASS: Record<ProjectionStatus | "unknown", string> = {
+  good: "border-l-green-500",
+  low: "border-l-yellow-500",
+  critical: "border-l-destructive",
+  unknown: "border-l-border",
+};
+
+const PROGRESS_CLASS: Record<ProjectionStatus | "unknown", string> = {
+  good: "[&>div]:bg-green-500",
+  low: "[&>div]:bg-yellow-500",
+  critical: "[&>div]:bg-destructive",
+  unknown: "",
 };
 
 function formatDate(dateStr: string): string {
@@ -71,14 +65,10 @@ interface StatGridItemProps {
 
 function StatGridItem({ label, value }: StatGridItemProps) {
   return (
-    <Box>
-      <Typography variant="caption" color="text.secondary" display="block">
-        {label}
-      </Typography>
-      <Typography variant="body2" fontWeight={600}>
-        {value}
-      </Typography>
-    </Box>
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-sm font-semibold">{value}</p>
+    </div>
   );
 }
 
@@ -92,140 +82,100 @@ export function ActiveConsumptionCard({
 }: ActiveConsumptionCardProps) {
   const { item, projection } = projectionItem;
   const attr = item.attributes;
-  const product = attr.foodProduct;
+  const product = item.relationships?.foodProduct;
   const rates = product?.attributes.consumptionRates ?? [];
   const totalDailyRate = projection?.totalDailyRate ?? 0;
 
   const projStatus: ProjectionStatus | "unknown" =
     projection?.status ?? "unknown";
 
-  const borderColorMap: Record<ProjectionStatus | "unknown", string> = {
-    good: "success.main",
-    low: "warning.main",
-    critical: "error.main",
-    unknown: "divider",
-  };
-
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        borderLeft: "4px solid",
-        borderLeftColor: borderColorMap[projStatus],
-      }}
-    >
-      <CardContent>
+    <Card className={cn("border-l-4", BORDER_COLOR_CLASS[projStatus])}>
+      <CardContent className="p-4">
         {/* Header */}
-        <Box display="flex" alignItems="flex-start" gap={1} mb={1.5}>
-          <Box flexGrow={1}>
-            <Typography variant="subtitle1" fontWeight={700}>
+        <div className="mb-3 flex items-start gap-2">
+          <div className="flex-1">
+            <h3 className="font-bold">
               {product?.attributes.name ?? `Stock Item #${item.id}`}
-            </Typography>
+            </h3>
             {product?.attributes.brand && (
-              <Typography variant="caption" color="text.secondary">
+              <p className="text-xs text-muted-foreground">
                 {product.attributes.brand}
-              </Typography>
+              </p>
             )}
-          </Box>
-          <Chip
-            label={STATUS_LABELS[projStatus]}
-            color={STATUS_CHIP_COLOR_MAP[projStatus]}
-            size="small"
-          />
-        </Box>
+          </div>
+          <Badge className={cn("text-xs", STATUS_BADGE_CLASS[projStatus])}>
+            {STATUS_LABELS[projStatus]}
+          </Badge>
+        </div>
 
         {/* Progress bar */}
         {projection && (
-          <Box mb={2}>
-            <Box display="flex" justifyContent="space-between" mb={0.5}>
-              <Typography variant="caption" color="text.secondary">
+          <div className="mb-4">
+            <div className="mb-1 flex justify-between">
+              <span className="text-xs text-muted-foreground">
                 Stock remaining
-              </Typography>
-              <Typography variant="caption" fontWeight={600}>
+              </span>
+              <span className="text-xs font-semibold">
                 {projection.percentageRemaining.toFixed(0)}%
-              </Typography>
-            </Box>
-            <Box position="relative">
-              <LinearProgress
-                variant="determinate"
+              </span>
+            </div>
+            <div className="relative">
+              <Progress
                 value={Math.min(projection.percentageRemaining, 100)}
-                color={PROGRESS_COLOR_MAP[projStatus]}
-                sx={{ height: 10, borderRadius: 5 }}
+                className={cn("h-2.5", PROGRESS_CLASS[projStatus])}
               />
-              {/* Alert threshold marker */}
               {product?.attributes.alertThresholdPct != null && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    bottom: 0,
-                    left: `${product.attributes.alertThresholdPct}%`,
-                    width: "2px",
-                    bgcolor: "warning.main",
-                    borderRadius: 1,
-                  }}
+                <div
+                  className="absolute bottom-0 top-0 w-0.5 rounded bg-yellow-500"
+                  style={{ left: `${product.attributes.alertThresholdPct}%` }}
                 />
               )}
-            </Box>
+            </div>
             {product?.attributes.alertThresholdPct != null && (
-              <Typography variant="caption" color="text.secondary">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 Alert at {product.attributes.alertThresholdPct}%
-              </Typography>
+              </p>
             )}
-          </Box>
+          </div>
         )}
 
         {/* Stats grid */}
-        <Grid container spacing={2} mb={2}>
-          <Grid size={{ xs: 6, sm: 3 }}>
-            <StatGridItem
-              label="Daily Rate"
-              value={totalDailyRate > 0 ? `${totalDailyRate}g/day` : "—"}
-            />
-          </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
-            <StatGridItem
-              label="Days Since Opened"
-              value={
-                attr.daysSinceOpened != null ? `${attr.daysSinceOpened}d` : "—"
-              }
-            />
-          </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
-            <StatGridItem
-              label="Days Remaining"
-              value={
-                projection?.daysRemaining != null
-                  ? `${projection.daysRemaining}d`
-                  : "—"
-              }
-            />
-          </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
-            <StatGridItem
-              label="Projected Empty"
-              value={
-                projection?.runsOutDate
-                  ? formatDate(projection.runsOutDate)
-                  : "—"
-              }
-            />
-          </Grid>
-        </Grid>
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatGridItem
+            label="Daily Rate"
+            value={totalDailyRate > 0 ? `${totalDailyRate}g/day` : "—"}
+          />
+          <StatGridItem
+            label="Days Since Opened"
+            value={
+              attr.daysSinceOpened != null ? `${attr.daysSinceOpened}d` : "—"
+            }
+          />
+          <StatGridItem
+            label="Days Remaining"
+            value={
+              projection?.daysRemaining != null
+                ? `${projection.daysRemaining}d`
+                : "—"
+            }
+          />
+          <StatGridItem
+            label="Projected Empty"
+            value={
+              projection?.runsOutDate ? formatDate(projection.runsOutDate) : "—"
+            }
+          />
+        </div>
 
         {/* Per-pet breakdown */}
         {rates.length > 0 && (
           <>
-            <Divider sx={{ mb: 1.5 }} />
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              display="block"
-              mb={1}
-            >
+            <Separator className="mb-3" />
+            <p className="mb-2 text-xs text-muted-foreground">
               Per-pet breakdown
-            </Typography>
-            <Stack spacing={0.75}>
+            </p>
+            <div className="flex flex-col gap-2">
               {rates.map((rate) => {
                 const pet = pets.find((p) => p.id === rate.petId);
                 const pct =
@@ -235,63 +185,57 @@ export function ActiveConsumptionCard({
                       )
                     : "—";
                 return (
-                  <Box
-                    key={rate.petId}
-                    display="flex"
-                    alignItems="center"
-                    gap={1}
-                  >
-                    <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                  <div key={rate.petId} className="flex items-center gap-2">
+                    <p className="flex-1 text-sm">
                       {pet?.attributes.name ?? `Pet #${rate.petId}`}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    </p>
+                    <p className="text-sm text-muted-foreground">
                       {rate.dailyAmountGrams}g
-                    </Typography>
-                    <Chip
-                      label={`${pct}%`}
-                      size="small"
-                      variant="outlined"
-                      sx={{ minWidth: 52 }}
-                    />
-                  </Box>
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className="min-w-[52px] text-center text-xs"
+                    >
+                      {pct}%
+                    </Badge>
+                  </div>
                 );
               })}
-            </Stack>
+            </div>
           </>
         )}
 
         {/* Actions */}
-        <Box display="flex" flexWrap="wrap" gap={1} mt={2}>
+        <div className="mt-4 flex flex-wrap gap-2">
           <Button
-            size="small"
-            variant="outlined"
-            startIcon={<SpeedIcon />}
+            size="sm"
+            variant="outline"
             onClick={onAdjustRates}
-            sx={{ minHeight: 36 }}
+            className="min-h-[36px] gap-1.5"
           >
+            <Gauge className="h-3.5 w-3.5" />
             Adjust Rates
           </Button>
           <Button
-            size="small"
-            variant="outlined"
-            color="success"
-            startIcon={<CheckCircleIcon />}
+            size="sm"
+            variant="outline"
             onClick={onMarkFinished}
             disabled={isMarkingFinished}
-            sx={{ minHeight: 36 }}
+            className="min-h-[36px] gap-1.5 border-green-500/30 text-green-600 hover:bg-green-500/10 hover:text-green-700 dark:text-green-400"
           >
-            {isMarkingFinished ? "Finishing…" : "Mark Finished"}
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            {isMarkingFinished ? "Finishing\u2026" : "Mark Finished"}
           </Button>
           <Button
-            size="small"
-            variant="outlined"
-            startIcon={<AddIcon />}
+            size="sm"
+            variant="outline"
             onClick={onLogNewBag}
-            sx={{ minHeight: 36 }}
+            className="min-h-[36px] gap-1.5"
           >
+            <Plus className="h-3.5 w-3.5" />
             Log New Bag
           </Button>
-        </Box>
+        </div>
       </CardContent>
     </Card>
   );

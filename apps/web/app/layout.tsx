@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Roboto } from "next/font/google";
-import { Toaster } from "sonner";
+import {
+  DM_Sans,
+  Geist,
+  Geist_Mono,
+  Inter,
+  Nunito_Sans,
+  Public_Sans,
+} from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import "./globals.css";
@@ -15,16 +22,32 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const roboto = Roboto({
-  weight: ["300", "400", "500", "700"],
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-  display: "swap",
-  variable: "--font-roboto",
+});
+
+const publicSans = Public_Sans({
+  variable: "--font-public-sans",
+  subsets: ["latin"],
+});
+
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
+  subsets: ["latin"],
+});
+
+const nunitoSans = Nunito_Sans({
+  variable: "--font-nunito-sans",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "FurLog — Pet Care Management",
   description: "Track your pets' health, vet visits, and daily care.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -35,11 +58,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${publicSans.variable} ${dmSans.variable} ${nunitoSans.variable}`}
+      suppressHydrationWarning
     >
       <body>
         <QueryProvider>
-          <ThemeProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+          >
             {children}
             <Toaster position="top-right" richColors />
           </ThemeProvider>

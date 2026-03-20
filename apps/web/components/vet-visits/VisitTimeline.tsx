@@ -1,27 +1,34 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
-import Typography from "@mui/material/Typography";
 import { useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   type VetVisit,
   type VetVisitType,
   VISIT_TYPE_LABEL,
 } from "@/lib/api/vet-visits";
+import { cn } from "@/lib/utils";
 
 interface VisitTimelineProps {
   visits: VetVisit[];
   onSelectVisit: (visit: VetVisit) => void;
 }
 
-// Palette-path colors for inline sx usage (different from MUI Chip color prop)
-const VISIT_TYPE_PALETTE_COLOR: Record<VetVisitType, string> = {
-  checkup: "info.main",
-  treatment: "warning.main",
-  vaccine: "success.main",
-  emergency: "error.main",
+// Tailwind bg classes for the timeline dots
+const VISIT_TYPE_DOT_CLASS: Record<VetVisitType, string> = {
+  checkup: "bg-blue-500",
+  treatment: "bg-yellow-500",
+  vaccine: "bg-green-500",
+  emergency: "bg-destructive",
+};
+
+// Badge classes for inline chip
+const VISIT_TYPE_BADGE_CLASS: Record<VetVisitType, string> = {
+  checkup: "border-blue-500/30 text-blue-600 dark:text-blue-400",
+  treatment: "border-yellow-500/30 text-yellow-600 dark:text-yellow-400",
+  vaccine: "border-green-500/30 text-green-600 dark:text-green-400",
+  emergency: "border-destructive/30 text-destructive",
 };
 
 function getMonthYear(dateStr: string): string {
@@ -59,130 +66,70 @@ export function VisitTimeline({ visits, onSelectVisit }: VisitTimelineProps) {
   const groups = useMemo(() => groupByMonth(visits), [visits]);
 
   return (
-    <Box>
+    <div>
       {Array.from(groups.entries()).map(([monthYear, monthVisits]) => (
-        <Box key={monthYear} mb={3}>
-          <Typography
-            variant="overline"
-            color="text.secondary"
-            fontWeight={700}
-            letterSpacing={1}
-          >
+        <div key={monthYear} className="mb-6">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
             {monthYear}
-          </Typography>
-          <Divider sx={{ mb: 2, mt: 0.5 }} />
+          </p>
+          <Separator className="mb-4 mt-1" />
 
-          <Box display="flex" flexDirection="column" gap={0}>
+          <div className="flex flex-col">
             {monthVisits.map((visit, index) => (
-              <Box key={visit.id} display="flex" alignItems="stretch">
+              <div key={visit.id} className="flex items-stretch">
                 {/* Timeline column */}
-                <Box
-                  display="flex"
-                  flexDirection="column"
-                  alignItems="center"
-                  mr={2}
-                  sx={{ width: 20, flexShrink: 0 }}
-                >
-                  <Box
-                    sx={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: "50%",
-                      bgcolor:
-                        VISIT_TYPE_PALETTE_COLOR[visit.attributes.visitType],
-                      flexShrink: 0,
-                      mt: 0.75,
-                      border: "2px solid",
-                      borderColor: "background.paper",
-                      boxShadow: "0 0 0 2px",
-                      boxShadowColor:
-                        VISIT_TYPE_PALETTE_COLOR[visit.attributes.visitType],
-                    }}
+                <div className="mr-4 flex w-5 flex-shrink-0 flex-col items-center">
+                  <div
+                    className={cn(
+                      "mt-3 h-3 w-3 flex-shrink-0 rounded-full ring-2 ring-background",
+                      VISIT_TYPE_DOT_CLASS[visit.attributes.visitType],
+                    )}
                   />
                   {index < monthVisits.length - 1 && (
-                    <Box
-                      sx={{
-                        width: 2,
-                        flexGrow: 1,
-                        bgcolor: "divider",
-                        my: 0.5,
-                        minHeight: 16,
-                      }}
-                    />
+                    <div className="my-1 min-h-[16px] w-0.5 flex-1 bg-border" />
                   )}
-                </Box>
+                </div>
 
                 {/* Content */}
-                <Box
-                  component="button"
+                <button
                   type="button"
                   onClick={() => onSelectVisit(visit)}
-                  sx={{
-                    flexGrow: 1,
-                    mb: index < monthVisits.length - 1 ? 1.5 : 0,
-                    p: 1.5,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 1,
-                    cursor: "pointer",
-                    background: "none",
-                    bgcolor: "transparent",
-                    textAlign: "left",
-                    width: "100%",
-                    transition: "background-color 0.15s",
-                    "&:hover": {
-                      bgcolor: "action.hover",
-                    },
-                  }}
+                  className={cn(
+                    "mb-3 flex-1 rounded-md border border-border px-3 py-2.5 text-left transition-colors hover:bg-accent/50",
+                    index < monthVisits.length - 1 ? "mb-3" : "mb-0",
+                  )}
                 >
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    mb={0.5}
-                  >
-                    <Typography variant="body2" fontWeight={600} noWrap>
+                  <div className="mb-1 flex items-center justify-between">
+                    <p className="truncate text-sm font-semibold">
                       {visit.attributes.reason}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ flexShrink: 0, ml: 1 }}
-                    >
+                    </p>
+                    <span className="ml-2 flex-shrink-0 text-xs text-muted-foreground">
                       {formatDayMonth(visit.attributes.visitDate)}
-                    </Typography>
-                  </Box>
+                    </span>
+                  </div>
 
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Chip
-                      label={VISIT_TYPE_LABEL[visit.attributes.visitType]}
-                      size="small"
-                      variant="outlined"
-                      sx={{
-                        height: 18,
-                        fontSize: 10,
-                        color:
-                          VISIT_TYPE_PALETTE_COLOR[visit.attributes.visitType],
-                        borderColor:
-                          VISIT_TYPE_PALETTE_COLOR[visit.attributes.visitType],
-                      }}
-                    />
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "h-[18px] text-[10px]",
+                        VISIT_TYPE_BADGE_CLASS[visit.attributes.visitType],
+                      )}
+                    >
+                      {VISIT_TYPE_LABEL[visit.attributes.visitType]}
+                    </Badge>
                     {visit.attributes.vetName && (
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        noWrap
-                      >
+                      <span className="truncate text-xs text-muted-foreground">
                         {visit.attributes.vetName}
-                      </Typography>
+                      </span>
                     )}
-                  </Box>
-                </Box>
-              </Box>
+                  </div>
+                </button>
+              </div>
             ))}
-          </Box>
-        </Box>
+          </div>
+        </div>
       ))}
-    </Box>
+    </div>
   );
 }

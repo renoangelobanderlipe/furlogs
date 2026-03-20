@@ -1,11 +1,17 @@
 "use client";
 
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
-import DialogTitle from "@mui/material/DialogTitle";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -27,24 +33,25 @@ export function ConfirmDialog({
   isLoading = false,
 }: ConfirmDialogProps) {
   return (
-    <Dialog open={open} onClose={onCancel} maxWidth="xs" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>{description}</DialogContentText>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onCancel} disabled={isLoading}>
-          Cancel
-        </Button>
-        <Button
-          onClick={onConfirm}
-          color="error"
-          variant="contained"
-          disabled={isLoading}
-        >
-          {isLoading ? "Deleting…" : confirmLabel}
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <AlertDialog open={open} onOpenChange={(o) => !o && onCancel()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isLoading} onClick={onCancel}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            disabled={isLoading}
+            className={cn(buttonVariants({ variant: "destructive" }))}
+          >
+            {isLoading ? "Deleting..." : confirmLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

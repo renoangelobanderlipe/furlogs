@@ -1,506 +1,352 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/Add";
-import Inventory2Icon from "@mui/icons-material/Inventory2";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import TrendingDownIcon from "@mui/icons-material/TrendingDown";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Grid from "@mui/material/Grid";
-import Skeleton from "@mui/material/Skeleton";
-import Tab from "@mui/material/Tab";
-import Tabs from "@mui/material/Tabs";
-import Typography from "@mui/material/Typography";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Package,
+  PlusCircle,
+} from "lucide-react";
 import { useState } from "react";
-
-import { ActiveConsumptionCard } from "@/components/stock/ActiveConsumptionCard";
-import { AddProductDialog } from "@/components/stock/AddProductDialog";
-import { EditConsumptionRatesDialog } from "@/components/stock/EditConsumptionRatesDialog";
-import { InventoryTable } from "@/components/stock/InventoryTable";
-import { LogPurchaseDialog } from "@/components/stock/LogPurchaseDialog";
-import { PurchaseHistoryFeed } from "@/components/stock/PurchaseHistoryFeed";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { StatCard } from "@/components/ui/StatCard";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useCreateFoodProduct,
-  useDeleteConsumptionRate,
-  useDeleteFoodProduct,
-  useFoodProducts,
   useFoodProjections,
   useFoodStockItems,
   useLogPurchase,
-  useMarkFinished,
-  useUpdateFoodProduct,
-  useUpsertConsumptionRate,
 } from "@/hooks/api/useFoodStock";
-import { usePets } from "@/hooks/api/usePets";
-import type {
-  FoodProduct,
-  FoodProjectionItem,
-  FoodStockItem,
-} from "@/lib/api/food-stock";
-import type {
-  ConsumptionRateFormValues,
-  ProductFormValues,
-  PurchaseFormValues,
-} from "@/lib/validation/food-stock.schema";
+import { formatCurrency, formatShortDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
-// ─── Helper ──────────────────────────────────────────────────────────────────
+const STATUS_COLORS: Record<string, string> = {
+  ok: "bg-success/15 text-success",
+  low: "bg-warning/15 text-warning",
+  critical: "bg-destructive/15 text-destructive",
+};
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "PHP",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function isThisMonth(dateStr: string): boolean {
-  const d = new Date(dateStr);
-  const now = new Date();
-  return (
-    d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
-  );
-}
-
-// ─── Stats row ───────────────────────────────────────────────────────────────
-
-interface StatsRowProps {
-  products: FoodProduct[];
-  items: FoodStockItem[];
-  projections: FoodProjectionItem[];
-  isLoading: boolean;
-}
-
-function StatsRow({ products, items, projections, isLoading }: StatsRowProps) {
-  if (isLoading) {
-    return (
-      <Grid container spacing={2} mb={3}>
-        {Array.from({ length: 4 }).map((_, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: skeleton
-          <Grid key={i} size={{ xs: 6, md: 3 }}>
-            <Skeleton variant="rounded" height={88} />
-          </Grid>
-        ))}
-      </Grid>
-    );
-  }
-
-  const alertCount = projections.filter(
-    (p) =>
-      p.projection?.status === "low" || p.projection?.status === "critical",
-  ).length;
-
-  const monthlySpend = items
-    .filter((item) => isThisMonth(item.attributes.purchasedAt))
-    .reduce((sum, item) => sum + (item.attributes.purchaseCost ?? 0), 0);
-
-  const projectionsWithData = projections.filter((p) => p.projection != null);
-  const avgDays =
-    projectionsWithData.length > 0
-      ? projectionsWithData.reduce(
-          (sum, p) => sum + (p.projection?.daysRemaining ?? 0),
-          0,
-        ) / projectionsWithData.length
-      : 0;
-
-  return (
-    <Grid container spacing={2} mb={3}>
-      <Grid size={{ xs: 6, md: 3 }}>
-        <StatCard
-          label="Total Products"
-          value={products.length}
-          icon={<Inventory2Icon />}
-        />
-      </Grid>
-      <Grid size={{ xs: 6, md: 3 }}>
-        <StatCard
-          label="Low / Critical"
-          value={alertCount}
-          subtitle="items need attention"
-          icon={<TrendingDownIcon />}
-        />
-      </Grid>
-      <Grid size={{ xs: 6, md: 3 }}>
-        <StatCard
-          label="Monthly Spend"
-          value={formatCurrency(monthlySpend)}
-          subtitle="this month"
-          icon={<ShoppingCartIcon />}
-        />
-      </Grid>
-      <Grid size={{ xs: 6, md: 3 }}>
-        <StatCard
-          label="Avg Days Remaining"
-          value={
-            Number.isNaN(avgDays) || avgDays === 0
-              ? "—"
-              : `${avgDays.toFixed(0)}d`
-          }
-          subtitle="across open bags"
-        />
-      </Grid>
-    </Grid>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
+const PER_PAGE = 5;
 
 export default function StockPage() {
-  const [activeTab, setActiveTab] = useState(0);
+  const [page, setPage] = useState(1);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    brand: "",
+    type: "dry",
+    cost: "",
+    purchasedAt: "",
+  });
 
-  // Dialog state
-  const [addProductOpen, setAddProductOpen] = useState(false);
-  const [editProduct, setEditProduct] = useState<FoodProduct | null>(null);
-  const [deleteProduct, setDeleteProduct] = useState<FoodProduct | null>(null);
-  const [logPurchaseOpen, setLogPurchaseOpen] = useState(false);
-  const [preselectedProductId, setPreselectedProductId] = useState<
-    number | null
-  >(null);
-  const [ratesProduct, setRatesProduct] = useState<FoodProduct | null>(null);
-  const [finishItem, setFinishItem] = useState<FoodStockItem | null>(null);
-
-  // Data queries
-  const {
-    data: products = [],
-    isLoading: productsLoading,
-    isError: productsError,
-  } = useFoodProducts();
-
-  const {
-    data: items = [],
-    isLoading: itemsLoading,
-    isError: itemsError,
-  } = useFoodStockItems();
-
-  const {
-    data: projections = [],
-    isLoading: projectionsLoading,
-    isError: projectionsError,
-  } = useFoodProjections();
-
-  const { data: petsData } = usePets();
-  const pets = petsData?.data ?? [];
-
-  // Mutations
+  const { data: items = [], isLoading: itemsLoading } = useFoodStockItems();
+  const { data: projections = [], isLoading: projectionsLoading } =
+    useFoodProjections();
   const createProduct = useCreateFoodProduct();
-  const updateProduct = useUpdateFoodProduct();
-  const deleteProductMutation = useDeleteFoodProduct();
   const logPurchase = useLogPurchase();
-  const markFinished = useMarkFinished();
-  const upsertRate = useUpsertConsumptionRate();
-  const deleteRate = useDeleteConsumptionRate();
 
-  const isLoading = productsLoading || itemsLoading || projectionsLoading;
+  const isLoading = itemsLoading || projectionsLoading;
 
-  // ── Derived ──
+  const resetForm = () =>
+    setForm({ name: "", brand: "", type: "dry", cost: "", purchasedAt: "" });
 
-  const criticalProjections = projections.filter(
-    (p) => p.projection?.status === "critical",
+  const handleClose = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) resetForm();
+  };
+
+  // Build projection map: itemId → projection
+  const projectionMap = new Map(
+    projections.map((p) => [p.item.id, p.projection]),
   );
 
-  const openItems = items
-    .filter((item) => item.attributes.status === "open")
-    .map((item) => {
-      const proj = projections.find((p) => p.item.id === item.id);
-      return proj ?? { item, projection: null };
-    })
-    .sort((a, b) => {
-      const order: Record<string, number> = { critical: 0, low: 1, good: 2 };
-      return (
-        (order[a.projection?.status ?? "good"] ?? 2) -
-        (order[b.projection?.status ?? "good"] ?? 2)
-      );
-    });
+  const activeItems = items.filter((i) => i.attributes.status !== "finished");
+  const lowCount = projections.filter(
+    (p) => p.projection?.status === "low",
+  ).length;
+  const critCount = projections.filter(
+    (p) => p.projection?.status === "critical",
+  ).length;
 
-  // ── Handlers ──
+  // Pagination
+  const totalPages = Math.ceil(activeItems.length / PER_PAGE);
+  const paginatedItems = activeItems.slice(
+    (page - 1) * PER_PAGE,
+    page * PER_PAGE,
+  );
 
-  const handleProductSubmit = (values: ProductFormValues) => {
-    if (editProduct) {
-      updateProduct.mutate(
-        { id: editProduct.id, data: values },
-        { onSuccess: () => setEditProduct(null) },
-      );
-    } else {
-      createProduct.mutate(values, {
-        onSuccess: () => setAddProductOpen(false),
-      });
-    }
-  };
+  const handleAdd = () => {
+    if (!form.name || !form.purchasedAt) return;
 
-  const handlePurchaseSubmit = (values: PurchaseFormValues) => {
-    logPurchase.mutate(values, {
-      onSuccess: () => {
-        setLogPurchaseOpen(false);
-        setPreselectedProductId(null);
+    createProduct.mutate(
+      {
+        name: form.name,
+        brand: form.brand || undefined,
+        type: form.type as "dry" | "wet" | "treat" | "supplement",
+        unitType: "kg",
       },
-    });
+      {
+        onSuccess: (product) => {
+          logPurchase.mutate(
+            {
+              foodProductId: product.id,
+              purchasedAt: form.purchasedAt,
+              purchaseCost: form.cost ? parseFloat(form.cost) : undefined,
+              quantity: 1,
+            },
+            {
+              onSuccess: () => {
+                setDialogOpen(false);
+                resetForm();
+                setPage(1);
+              },
+            },
+          );
+        },
+      },
+    );
   };
-
-  const handleConfirmDelete = () => {
-    if (!deleteProduct) return;
-    deleteProductMutation.mutate(deleteProduct.id, {
-      onSuccess: () => setDeleteProduct(null),
-    });
-  };
-
-  const handleMarkFinished = () => {
-    if (!finishItem) return;
-    markFinished.mutate(finishItem.id, {
-      onSuccess: () => setFinishItem(null),
-    });
-  };
-
-  const handleUpsertRate = (
-    productId: number,
-    data: ConsumptionRateFormValues,
-  ) => {
-    upsertRate.mutate({ productId, data });
-  };
-
-  const handleDeleteRate = (productId: number, petId: number) => {
-    deleteRate.mutate({ productId, petId });
-  };
-
-  const openLogNewBag = (productId: number) => {
-    setPreselectedProductId(productId);
-    setLogPurchaseOpen(true);
-  };
-
-  // ── Render ──
-
-  const hasError = productsError || itemsError || projectionsError;
 
   return (
-    <Box>
-      {/* Page header */}
-      <Box
-        display="flex"
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        flexDirection={{ xs: "column", sm: "row" }}
-        gap={2}
-        mb={3}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={700}>
-            Food Stock
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Track food inventory and consumption for your pets
-          </Typography>
-        </Box>
-        <Box flexGrow={1} />
-        <Box display="flex" gap={1}>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between animate-fade-in-up">
+        <h1 className="text-2xl font-bold tracking-tight">Food Stock</h1>
+        <Button size="sm" onClick={() => setDialogOpen(true)}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Product
+        </Button>
+      </div>
+
+      {/* Summary bar */}
+      {!isLoading && activeItems.length > 0 && (
+        <div className="rounded-lg border border-border bg-card p-4 text-sm animate-fade-in-up">
+          <span className="font-medium">{activeItems.length} items open</span>
+          {" · "}
+          <span className="text-warning">{lowCount} low</span>
+          {" · "}
+          <span className="text-destructive">{critCount} critical</span>
+        </div>
+      )}
+
+      {/* Content */}
+      {isLoading ? (
+        <div className="space-y-3">
+          {["s1", "s2", "s3"].map((k) => (
+            <Skeleton key={k} className="h-[68px] rounded-lg" />
+          ))}
+        </div>
+      ) : activeItems.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in-up">
+          <Package className="h-12 w-12 text-muted-foreground/40 mb-4" />
+          <h2 className="text-lg font-semibold">No food stock tracked</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Add products and log purchases to track stock levels
+          </p>
           <Button
-            variant="outlined"
-            startIcon={<ShoppingCartIcon />}
-            onClick={() => {
-              setPreselectedProductId(null);
-              setLogPurchaseOpen(true);
-            }}
-            sx={{ minHeight: 48 }}
+            size="sm"
+            className="mt-4"
+            onClick={() => setDialogOpen(true)}
           >
-            Log Purchase
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => {
-              setEditProduct(null);
-              setAddProductOpen(true);
-            }}
-            sx={{ minHeight: 48 }}
-          >
+            <PlusCircle className="mr-2 h-4 w-4" />
             Add Product
           </Button>
-        </Box>
-      </Box>
-
-      {/* Error alert */}
-      {hasError && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          Failed to load food stock data. Please refresh the page.
-        </Alert>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {paginatedItems.map((item, i) => {
+            const product = item.relationships?.foodProduct;
+            const projection = projectionMap.get(item.id);
+            const projStatus = projection?.status ?? "good";
+            const status =
+              projStatus === "critical"
+                ? "critical"
+                : projStatus === "low"
+                  ? "low"
+                  : "ok";
+            const daysLeft = projection?.daysRemaining;
+            return (
+              <div
+                key={item.id}
+                className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 animate-fade-in-up"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
+                <Package className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium">
+                    {product?.attributes.name ?? `Item #${item.id}`}
+                    {product?.attributes.brand && (
+                      <span className="text-muted-foreground font-normal">
+                        {" "}
+                        · {product.attributes.brand}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {product?.attributes.type ?? "—"} ·{" "}
+                    {formatShortDate(item.attributes.purchasedAt)} ·{" "}
+                    {formatCurrency(item.attributes.purchaseCost)}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-xs font-medium uppercase shrink-0",
+                    STATUS_COLORS[status],
+                  )}
+                >
+                  {status}
+                  {daysLeft != null ? ` — ~${daysLeft}d` : ""}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       )}
 
-      {/* Critical alert bar */}
-      {!isLoading && criticalProjections.length > 0 && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          <strong>Critical stock level</strong> — running out soon:{" "}
-          {criticalProjections
-            .map(
-              (p) =>
-                p.item.attributes.foodProduct?.attributes.name ??
-                `Item #${p.item.id}`,
-            )
-            .join(", ")}
-        </Alert>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <p className="text-sm text-muted-foreground">
+            Page {page} of {totalPages} · {activeItems.length} items
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p - 1)}
+              disabled={page <= 1 || isLoading}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Prev
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= totalPages || isLoading}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       )}
 
-      {/* Stats */}
-      <StatsRow
-        products={products}
-        items={items}
-        projections={projections}
-        isLoading={isLoading}
-      />
-
-      {/* Tabs */}
-      <Tabs
-        value={activeTab}
-        onChange={(_, v: number) => setActiveTab(v)}
-        sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}
-      >
-        <Tab label="Inventory" />
-        <Tab
-          label={
-            openItems.length > 0
-              ? `Active (${openItems.length})`
-              : "Active Consumption"
-          }
-        />
-        <Tab label="Purchase History" />
-      </Tabs>
-
-      {/* Tab 1: Inventory */}
-      {activeTab === 0 && (
-        <InventoryTable
-          products={products}
-          projections={projections}
-          isLoading={isLoading}
-          onEdit={(product) => {
-            setEditProduct(product);
-            setAddProductOpen(true);
-          }}
-          onDelete={(product) => setDeleteProduct(product)}
-          onEditRates={(product) => setRatesProduct(product)}
-          onAddProduct={() => {
-            setEditProduct(null);
-            setAddProductOpen(true);
-          }}
-        />
-      )}
-
-      {/* Tab 2: Active Consumption */}
-      {activeTab === 1 && (
-        <Box>
-          {isLoading ? (
-            <Box display="flex" flexDirection="column" gap={2}>
-              {Array.from({ length: 3 }).map((_, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: skeleton
-                <Skeleton key={i} variant="rounded" height={240} />
-              ))}
-            </Box>
-          ) : openItems.length === 0 ? (
-            <EmptyState
-              title="No open bags"
-              description="Log a purchase and mark a bag as open to see active consumption tracking."
-              action={{
-                label: "Log Purchase",
-                onClick: () => setLogPurchaseOpen(true),
-              }}
-            />
-          ) : (
-            <Box display="flex" flexDirection="column" gap={2}>
-              {openItems.map((projItem) => {
-                const productForRates = products.find(
-                  (p) => p.id === projItem.item.attributes.foodProductId,
-                );
-                return (
-                  <ActiveConsumptionCard
-                    key={projItem.item.id}
-                    projectionItem={projItem}
-                    pets={pets}
-                    onAdjustRates={() =>
-                      setRatesProduct(productForRates ?? null)
-                    }
-                    onMarkFinished={() => setFinishItem(projItem.item)}
-                    onLogNewBag={() =>
-                      openLogNewBag(projItem.item.attributes.foodProductId)
-                    }
-                    isMarkingFinished={
-                      markFinished.isPending &&
-                      finishItem?.id === projItem.item.id
-                    }
-                  />
-                );
-              })}
-            </Box>
-          )}
-        </Box>
-      )}
-
-      {/* Tab 3: Purchase History */}
-      {activeTab === 2 && (
-        <PurchaseHistoryFeed items={items} isLoading={itemsLoading} />
-      )}
-
-      {/* ── Dialogs ── */}
-
-      <AddProductDialog
-        open={addProductOpen}
-        onClose={() => {
-          setAddProductOpen(false);
-          setEditProduct(null);
-        }}
-        onSubmit={handleProductSubmit}
-        isLoading={createProduct.isPending || updateProduct.isPending}
-        editProduct={editProduct}
-      />
-
-      <LogPurchaseDialog
-        open={logPurchaseOpen}
-        onClose={() => {
-          setLogPurchaseOpen(false);
-          setPreselectedProductId(null);
-        }}
-        onSubmit={handlePurchaseSubmit}
-        isLoading={logPurchase.isPending}
-        products={products}
-        preselectedProductId={preselectedProductId}
-      />
-
-      <EditConsumptionRatesDialog
-        open={ratesProduct != null}
-        onClose={() => setRatesProduct(null)}
-        product={ratesProduct}
-        pets={pets}
-        onUpsert={handleUpsertRate}
-        onDelete={handleDeleteRate}
-        isUpserting={upsertRate.isPending}
-        isDeleting={deleteRate.isPending}
-      />
-
-      <ConfirmDialog
-        open={deleteProduct != null}
-        title="Delete product?"
-        description={
-          deleteProduct
-            ? `Are you sure you want to delete "${deleteProduct.attributes.name}"? All stock history for this product will also be removed.`
-            : ""
-        }
-        confirmLabel="Delete"
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setDeleteProduct(null)}
-        isLoading={deleteProductMutation.isPending}
-      />
-
-      <ConfirmDialog
-        open={finishItem != null}
-        title="Mark bag as finished?"
-        description={
-          finishItem
-            ? `This will record that the bag of ${finishItem.attributes.foodProduct?.attributes.name ?? "this product"} has been fully used.`
-            : ""
-        }
-        confirmLabel="Mark Finished"
-        onConfirm={handleMarkFinished}
-        onCancel={() => setFinishItem(null)}
-        isLoading={markFinished.isPending}
-      />
-    </Box>
+      {/* Add Stock Item Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Stock Item</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>
+                Product Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                value={form.name}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, name: e.target.value }))
+                }
+                placeholder="e.g., Dog Kibble"
+                className="mt-1.5 bg-background"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Brand</Label>
+                <Input
+                  value={form.brand}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, brand: e.target.value }))
+                  }
+                  className="mt-1.5 bg-background"
+                />
+              </div>
+              <div>
+                <Label>Type</Label>
+                <Select
+                  value={form.type}
+                  onValueChange={(v) => setForm((p) => ({ ...p, type: v }))}
+                >
+                  <SelectTrigger className="mt-1.5 bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dry">Dry Food</SelectItem>
+                    <SelectItem value="wet">Wet Food</SelectItem>
+                    <SelectItem value="treat">Treat</SelectItem>
+                    <SelectItem value="supplement">Supplement</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>
+                  Cost (₱) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  type="number"
+                  value={form.cost}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, cost: e.target.value }))
+                  }
+                  className="mt-1.5 bg-background"
+                />
+              </div>
+              <div>
+                <Label>
+                  Purchase Date <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  type="date"
+                  value={form.purchasedAt}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, purchasedAt: e.target.value }))
+                  }
+                  className="mt-1.5 bg-background"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={handleAdd}
+              disabled={
+                !form.name ||
+                !form.purchasedAt ||
+                createProduct.isPending ||
+                logPurchase.isPending
+              }
+            >
+              {(createProduct.isPending || logPurchase.isPending) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Add Item
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

@@ -1,4 +1,30 @@
 /**
+ * Returns up to 2 uppercase initials from a display name.
+ * e.g. "Jane Doe" → "JD", "Alice" → "AL", "?" → "?"
+ */
+export function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+/**
+ * Formats a Philippine Peso amount. Returns "" for null/undefined/NaN.
+ * Accepts number or numeric string (e.g. from API decimal fields).
+ */
+export function formatCurrency(
+  amount: number | string | null | undefined,
+): string {
+  if (amount == null) return "";
+  const n = typeof amount === "string" ? parseFloat(amount) : amount;
+  if (Number.isNaN(n)) return "";
+  return `₱${n.toLocaleString("en-PH")}`;
+}
+
+/**
  * Formats a YYYY-MM-DD date string to short locale format (e.g. "Mar 20, 2026").
  * Returns "—" for null/undefined/empty input.
  */

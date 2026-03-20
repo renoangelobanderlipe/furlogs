@@ -1,30 +1,17 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Skeleton from "@mui/material/Skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function VaccinationCardSkeleton() {
   return (
-    <Box
-      sx={{
-        border: "1px solid",
-        borderColor: "divider",
-        borderRadius: 1,
-        p: 2,
-      }}
-    >
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        mb={1}
-      >
-        <Skeleton variant="text" width="60%" height={24} />
-        <Skeleton variant="rounded" width={80} height={20} />
-      </Box>
-      <Skeleton variant="text" width="40%" height={16} sx={{ mb: 1 }} />
-      <Skeleton variant="text" width="80%" height={16} />
-      <Skeleton variant="text" width="70%" height={16} />
-    </Box>
+    <div className="rounded-lg border border-border p-4">
+      <div className="mb-2 flex items-start justify-between">
+        <Skeleton className="h-5 w-3/5" />
+        <Skeleton className="h-5 w-20 rounded-full" />
+      </div>
+      <Skeleton className="mb-2 h-4 w-2/5" />
+      <Skeleton className="mb-1 h-4 w-4/5" />
+      <Skeleton className="h-4 w-3/4" />
+    </div>
   );
 }

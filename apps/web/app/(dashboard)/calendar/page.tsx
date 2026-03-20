@@ -1,236 +1,271 @@
 "use client";
 
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionPlugin from "@fullcalendar/interaction";
-import FullCalendar from "@fullcalendar/react";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import Box from "@mui/material/Box";
-import CircularProgress from "@mui/material/CircularProgress";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
-import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useCalendarEvents } from "@/hooks/api/useCalendar";
-import type { CalendarEvent } from "@/lib/api/calendar";
+import type { CalendarEvent, CalendarEventType } from "@/lib/api/calendar";
+import { cn } from "@/lib/utils";
 
-type DateRange = { start: string; end: string };
+const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
-function getInitialRange(): DateRange {
-  const now = new Date();
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+type DisplayType = "vet" | "vaccine" | "medication" | "stock";
+
+const TYPE_MAP: Record<CalendarEventType, DisplayType> = {
+  vet_visit: "vet",
+  vaccination: "vaccine",
+  medication: "medication",
+  stock_alert: "stock",
+};
+
+const TYPE_CONFIG: Record<
+  DisplayType,
+  { label: string; color: string; displayName: string }
+> = {
+  vet: { label: "Vet Visit", color: "bg-primary", displayName: "Vet Visit" },
+  vaccine: {
+    label: "Vaccination",
+    color: "bg-destructive",
+    displayName: "Vaccination",
+  },
+  medication: {
+    label: "Medication",
+    color: "bg-warning",
+    displayName: "Medication",
+  },
+  stock: {
+    label: "Stock Alert",
+    color: "bg-orange-500",
+    displayName: "Stock Alert",
+  },
+};
+
+function getRange(year: number, month: number) {
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
   return {
-    start: firstDay.toISOString().slice(0, 10),
-    end: lastDay.toISOString().slice(0, 10),
+    start: first.toISOString().slice(0, 10),
+    end: last.toISOString().slice(0, 10),
   };
 }
 
-const LEGEND_ITEMS: {
-  type: CalendarEvent["type"];
-  label: string;
-  color: string;
-}[] = [
-  { type: "vet_visit", label: "Vet Visit", color: "#2196f3" },
-  { type: "vaccination", label: "Vaccination", color: "#f44336" },
-  { type: "medication", label: "Medication", color: "#ff9800" },
-  { type: "stock_alert", label: "Stock Alert", color: "#ff5722" },
-];
-
 export default function CalendarPage() {
-  const theme = useTheme();
-  const router = useRouter();
-  const [range, setRange] = useState<DateRange>(getInitialRange);
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth());
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    null,
+  );
 
-  const { data: events = [], isFetching } = useCalendarEvents(range);
+  const range = getRange(year, month);
+  const { data: events = [] } = useCalendarEvents(range);
 
-  const fcEvents = events.map((e) => ({
-    id: e.id,
-    title: e.title,
-    start: e.start,
-    backgroundColor: e.color,
-    borderColor: e.color,
-    extendedProps: { url: e.url, type: e.type, petName: e.petName },
-  }));
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
+  const todayDay =
+    now.getFullYear() === year && now.getMonth() === month ? now.getDate() : -1;
+
+  // Group events by day number (parse date string directly to avoid TZ issues)
+  const eventsByDay = new Map<number, CalendarEvent[]>();
+  for (const event of events) {
+    const dayNum = parseInt(event.start.split("-")[2], 10);
+    const existing = eventsByDay.get(dayNum);
+    if (existing) {
+      existing.push(event);
+    } else {
+      eventsByDay.set(dayNum, [event]);
+    }
+  }
+
+  const prevMonth = () => {
+    if (month === 0) {
+      setMonth(11);
+      setYear((y) => y - 1);
+    } else {
+      setMonth((m) => m - 1);
+    }
+  };
+
+  const nextMonth = () => {
+    if (month === 11) {
+      setMonth(0);
+      setYear((y) => y + 1);
+    } else {
+      setMonth((m) => m + 1);
+    }
+  };
+
+  const goToday = () => {
+    setYear(now.getFullYear());
+    setMonth(now.getMonth());
+  };
+
+  // Build calendar cells
+  const cells = [];
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    cells.push(<div key={`e${i}`} className="h-24 md:h-28" />);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dayEvents = eventsByDay.get(d) ?? [];
+    const isToday = d === todayDay;
+    cells.push(
+      <div
+        key={d}
+        className={cn(
+          "h-24 md:h-28 rounded-lg border border-border p-1.5 text-xs transition-colors hover:border-primary/30",
+          isToday && "border-primary/50 bg-primary/5",
+        )}
+      >
+        <span
+          className={cn(
+            "inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium",
+            isToday && "bg-primary text-primary-foreground",
+          )}
+        >
+          {d}
+        </span>
+        <div className="mt-0.5 space-y-0.5">
+          {dayEvents.map((ev) => {
+            const displayType = TYPE_MAP[ev.type] ?? "vet";
+            return (
+              <button
+                key={ev.id}
+                type="button"
+                onClick={() => setSelectedEvent(ev)}
+                className={cn(
+                  "w-full truncate rounded px-1 py-0.5 text-[10px] font-medium text-primary-foreground",
+                  TYPE_CONFIG[displayType].color,
+                )}
+              >
+                {ev.title}
+              </button>
+            );
+          })}
+        </div>
+      </div>,
+    );
+  }
 
   return (
-    <Box sx={{ pb: 4 }}>
+    <div className="space-y-4 max-w-6xl mx-auto">
       {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={700}>
-          Calendar
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          All upcoming events, visits, and reminders in one place
-        </Typography>
-      </Box>
+      <div className="flex items-center justify-between animate-fade-in-up">
+        <h1 className="text-2xl font-bold tracking-tight">Calendar</h1>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={prevMonth}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium min-w-[130px] text-center">
+            {MONTH_NAMES[month]} {year}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={nextMonth}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={goToday}>
+            Today
+          </Button>
+        </div>
+      </div>
 
       {/* Legend */}
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 2,
-          mb: 2,
-        }}
-      >
-        {LEGEND_ITEMS.map((item) => (
-          <Box
-            key={item.type}
-            sx={{ display: "flex", alignItems: "center", gap: 0.75 }}
-          >
-            <Box
-              sx={{
-                width: 10,
-                height: 10,
-                borderRadius: "50%",
-                bgcolor: item.color,
-                flexShrink: 0,
-              }}
+      <div className="flex items-center gap-4 text-xs text-muted-foreground animate-fade-in-up">
+        {(
+          Object.entries(TYPE_CONFIG) as [
+            DisplayType,
+            (typeof TYPE_CONFIG)[DisplayType],
+          ][]
+        ).map(([, cfg]) => (
+          <span key={cfg.label} className="flex items-center gap-1.5">
+            <span
+              className={cn("inline-block h-2.5 w-2.5 rounded-sm", cfg.color)}
             />
-            <Typography variant="body2" color="text.secondary" fontWeight={500}>
-              {item.label}
-            </Typography>
-          </Box>
+            {cfg.label}
+          </span>
         ))}
-      </Box>
+      </div>
 
-      {/* Calendar */}
-      <Box
-        sx={{
-          position: "relative",
-          bgcolor: "background.paper",
-          borderRadius: 2,
-          border: "1px solid",
-          borderColor: "divider",
-          p: { xs: 1, sm: 2 },
-          "& .fc": {
-            color: theme.palette.text.primary,
-            fontFamily: theme.typography.fontFamily,
-          },
-          "& .fc-theme-standard td": {
-            borderColor: theme.palette.divider,
-          },
-          "& .fc-theme-standard th": {
-            borderColor: theme.palette.divider,
-          },
-          "& .fc-theme-standard .fc-scrollgrid": {
-            borderColor: theme.palette.divider,
-          },
-          "& .fc-col-header-cell": {
-            bgcolor: theme.palette.background.paper,
-          },
-          "& .fc-col-header-cell-cushion": {
-            color: theme.palette.text.secondary,
-            textDecoration: "none",
-          },
-          "& .fc-daygrid-day": {
-            bgcolor: theme.palette.background.paper,
-          },
-          "& .fc-timegrid-slot": {
-            bgcolor: theme.palette.background.paper,
-          },
-          "& .fc-day-today": {
-            bgcolor: `${theme.palette.primary.main}18 !important`,
-          },
-          "& .fc-daygrid-day-number": {
-            color: theme.palette.text.primary,
-            textDecoration: "none",
-          },
-          "& .fc-toolbar-title": {
-            color: theme.palette.text.primary,
-            fontSize: "1.1rem !important",
-            fontWeight: 600,
-          },
-          "& .fc-button-primary": {
-            bgcolor: `${theme.palette.primary.main} !important`,
-            borderColor: `${theme.palette.primary.main} !important`,
-            color: `${theme.palette.primary.contrastText} !important`,
-            "&:hover": {
-              bgcolor: `${theme.palette.primary.dark} !important`,
-              borderColor: `${theme.palette.primary.dark} !important`,
-            },
-            "&:not(:disabled):active": {
-              bgcolor: `${theme.palette.primary.dark} !important`,
-            },
-            "&:disabled": {
-              bgcolor: `${theme.palette.action.disabledBackground} !important`,
-              borderColor: `${theme.palette.action.disabledBackground} !important`,
-            },
-            "&.fc-button-active": {
-              bgcolor: `${theme.palette.primary.dark} !important`,
-              borderColor: `${theme.palette.primary.dark} !important`,
-            },
-          },
-          "& .fc-event": {
-            cursor: "pointer",
-            borderRadius: "4px",
-          },
-          "& .fc-event-title": {
-            fontWeight: 500,
-          },
-          "& .fc-list-event": {
-            cursor: "pointer",
-          },
-          "& .fc-list-day-cushion": {
-            bgcolor: `${theme.palette.background.default} !important`,
-          },
-          "& .fc-list-table": {
-            color: theme.palette.text.primary,
-          },
-          "& .fc-more-link": {
-            color: theme.palette.primary.main,
-          },
-          "& .fc-popover": {
-            bgcolor: theme.palette.background.paper,
-            borderColor: theme.palette.divider,
-            color: theme.palette.text.primary,
-          },
-          "& .fc-popover-header": {
-            bgcolor: theme.palette.background.default,
-          },
-        }}
+      {/* Grid */}
+      <div className="animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+        <div className="grid grid-cols-7 gap-px mb-px">
+          {DAYS.map((d) => (
+            <div
+              key={d}
+              className="py-2 text-center text-xs font-medium text-muted-foreground"
+            >
+              {d}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">{cells}</div>
+      </div>
+
+      {/* Event detail dialog */}
+      <Dialog
+        open={!!selectedEvent}
+        onOpenChange={(o) => !o && setSelectedEvent(null)}
       >
-        {isFetching && (
-          <Box
-            sx={{
-              position: "absolute",
-              top: 12,
-              right: 12,
-              zIndex: 10,
-            }}
-          >
-            <CircularProgress size={18} />
-          </Box>
-        )}
-        <FullCalendar
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek",
-          }}
-          height="auto"
-          events={fcEvents}
-          datesSet={(info) => {
-            setRange({
-              start: info.startStr.slice(0, 10),
-              end: info.endStr.slice(0, 10),
-            });
-          }}
-          eventClick={(info) => {
-            info.jsEvent.preventDefault();
-            const url = info.event.extendedProps.url as string | undefined;
-            if (url) {
-              router.push(url);
-            }
-          }}
-          dateClick={(info) => {
-            router.push(`/calendar?date=${info.dateStr}`);
-          }}
-          dayMaxEvents={3}
-        />
-      </Box>
-    </Box>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{selectedEvent?.title}</DialogTitle>
+          </DialogHeader>
+          {selectedEvent && (
+            <div className="space-y-2 text-sm">
+              {selectedEvent.petName && (
+                <p>
+                  <span className="text-muted-foreground">Pet:</span>{" "}
+                  {selectedEvent.petName}
+                </p>
+              )}
+              <p>
+                <span className="text-muted-foreground">Type:</span>{" "}
+                {TYPE_CONFIG[TYPE_MAP[selectedEvent.type] ?? "vet"].displayName}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Date:</span>{" "}
+                {new Date(`${selectedEvent.start}T00:00:00`).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  },
+                )}
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

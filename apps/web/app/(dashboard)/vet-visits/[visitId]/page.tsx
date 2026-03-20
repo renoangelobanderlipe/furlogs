@@ -1,17 +1,15 @@
 "use client";
 
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import Box from "@mui/material/Box";
-import Breadcrumbs from "@mui/material/Breadcrumbs";
-import CircularProgress from "@mui/material/CircularProgress";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import Link from "@mui/material/Link";
-import Typography from "@mui/material/Typography";
+import { ArrowLeft } from "lucide-react";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useRef, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { VisitCardSkeleton } from "@/components/vet-visits/VisitCardSkeleton";
 import { VisitDetailPanel } from "@/components/vet-visits/VisitDetailPanel";
@@ -72,14 +70,14 @@ export default function VetVisitDetailPage({ params }: PageProps) {
 
   if (isLoading) {
     return (
-      <Box>
-        <Box display="flex" gap={1} mb={3}>
+      <div>
+        <div className="mb-6">
           <VisitCardSkeleton />
-        </Box>
-        <Box display="flex" justifyContent="center" py={8}>
-          <CircularProgress />
-        </Box>
-      </Box>
+        </div>
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+        </div>
+      </div>
     );
   }
 
@@ -97,13 +95,13 @@ export default function VetVisitDetailPage({ params }: PageProps) {
   }
 
   return (
-    <Box>
+    <div>
       {/* Hidden file input for attachment upload */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*,application/pdf"
-        style={{ display: "none" }}
+        className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file) addAttachment.mutate({ id, file });
@@ -114,43 +112,26 @@ export default function VetVisitDetailPage({ params }: PageProps) {
       />
 
       {/* Breadcrumbs */}
-      <Box display="flex" alignItems="center" gap={1} mb={3}>
-        <Link
-          component={NextLink}
+      <div className="mb-6 flex items-center gap-2 text-sm">
+        <NextLink
           href="/vet-visits"
-          underline="hover"
-          color="text.secondary"
-          display="flex"
-          alignItems="center"
-          gap={0.5}
-          sx={{ fontSize: 14 }}
+          className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
         >
-          <ArrowBackIcon sx={{ fontSize: 16 }} />
+          <ArrowLeft className="h-4 w-4" />
           Vet Visits
-        </Link>
-        <Typography color="text.disabled">/</Typography>
-        <Breadcrumbs aria-label="breadcrumb">
-          <Typography
-            variant="body2"
-            color="text.primary"
-            noWrap
-            sx={{ maxWidth: 280 }}
-          >
-            {visit.attributes.reason}
-          </Typography>
-        </Breadcrumbs>
-      </Box>
+        </NextLink>
+        <span className="text-muted-foreground">/</span>
+        {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: breadcrumb label on span is intentional */}
+        <span
+          className="max-w-[280px] truncate text-foreground"
+          aria-label="breadcrumb"
+        >
+          {visit.attributes.reason}
+        </span>
+      </div>
 
       {/* Detail panel rendered inline (not in a drawer) on the detail page */}
-      <Box
-        sx={{
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 2,
-          overflow: "hidden",
-          maxWidth: 640,
-        }}
-      >
+      <div className="max-w-2xl overflow-hidden rounded-2xl border border-border">
         <VisitDetailPanel
           visit={visit}
           onClose={() => router.push("/vet-visits")}
@@ -168,17 +149,14 @@ export default function VetVisitDetailPage({ params }: PageProps) {
           }}
           isDeleting={deleteVisit.isPending}
         />
-      </Box>
+      </div>
 
       {/* Edit visit dialog */}
-      <Dialog
-        open={isEditDialogOpen}
-        onClose={() => setIsEditDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Edit vet visit</DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit vet visit</DialogTitle>
+          </DialogHeader>
           <VisitForm
             key={visit.id}
             onSuccess={handleEditSubmit}
@@ -202,6 +180,6 @@ export default function VetVisitDetailPage({ params }: PageProps) {
           />
         </DialogContent>
       </Dialog>
-    </Box>
+    </div>
   );
 }

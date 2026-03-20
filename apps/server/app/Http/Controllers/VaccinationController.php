@@ -37,12 +37,12 @@ class VaccinationController extends Controller
                 };
             })
             ->orderBy('administered_date', 'desc')
-            ->paginate(20);
+            ->paginate((int) $request->query('per_page', 5));
 
         return VaccinationResource::collection($vaccinations);
     }
 
-    public function show(Request $request, Vaccination $vaccination): VaccinationResource
+    public function show(Vaccination $vaccination): VaccinationResource
     {
         $this->authorize('view', $vaccination);
 

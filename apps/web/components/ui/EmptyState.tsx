@@ -1,9 +1,7 @@
 "use client";
 
-import PetsIcon from "@mui/icons-material/Pets";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
+import { PawPrint } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
   title: string;
@@ -19,34 +17,21 @@ export function EmptyState({
   icon,
 }: EmptyStateProps) {
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      textAlign="center"
-      py={8}
-      px={3}
-      gap={2}
-    >
-      <Box sx={{ color: "text.disabled", "& svg": { fontSize: 56 } }}>
-        {icon ?? <PetsIcon />}
-      </Box>
-      <Box>
-        <Typography variant="h6" fontWeight={600} gutterBottom>
-          {title}
-        </Typography>
+    <div className="flex flex-col items-center justify-center text-center py-16 px-6 gap-4">
+      <div className="text-muted-foreground/40 [&_svg]:h-14 [&_svg]:w-14">
+        {icon ?? <PawPrint />}
+      </div>
+      <div>
+        <h3 className="text-base font-semibold mb-1">{title}</h3>
         {description && (
-          <Typography variant="body2" color="text.secondary">
-            {description}
-          </Typography>
+          <p className="text-sm text-muted-foreground">{description}</p>
         )}
-      </Box>
+      </div>
       {action && (
-        <Button variant="contained" onClick={action.onClick} sx={{ mt: 1 }}>
+        <Button onClick={action.onClick} className="mt-1">
           {action.label}
         </Button>
       )}
-    </Box>
+    </div>
   );
 }

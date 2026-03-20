@@ -1,17 +1,27 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormHelperText from "@mui/material/FormHelperText";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import Switch from "@mui/material/Switch";
-import TextField from "@mui/material/TextField";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import type { Pet } from "@/lib/api/pets";
 import type { ReminderType } from "@/lib/api/reminders";
 import {
@@ -42,13 +52,7 @@ export function ReminderForm({
   onSuccess,
   onCancel,
 }: ReminderFormProps) {
-  const {
-    register,
-    control,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm<ReminderFormValues>({
+  const form = useForm<ReminderFormValues>({
     resolver: zodResolver(reminderSchema),
     defaultValues: {
       petId: initialValues?.petId ?? null,
@@ -61,162 +65,199 @@ export function ReminderForm({
     },
   });
 
-  const isRecurring = watch("isRecurring");
+  const isRecurring = form.watch("isRecurring");
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit(onSuccess)}
-      display="flex"
-      flexDirection="column"
-      gap={2.5}
-    >
-      {/* Pet selector */}
-      <Controller
-        name="petId"
-        control={control}
-        render={({ field }) => (
-          <FormControl fullWidth error={!!errors.petId}>
-            <InputLabel id="reminder-pet-label">Pet (optional)</InputLabel>
-            <Select
-              labelId="reminder-pet-label"
-              label="Pet (optional)"
-              value={
-                field.value !== null && field.value !== undefined
-                  ? String(field.value)
-                  : ""
-              }
-              onChange={(e) =>
-                field.onChange(
-                  e.target.value === "" ? null : Number(e.target.value),
-                )
-              }
-            >
-              <MenuItem value="">
-                <em>Household (no specific pet)</em>
-              </MenuItem>
-              {pets.map((pet) => (
-                <MenuItem key={pet.id} value={String(pet.id)}>
-                  {pet.attributes.name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.petId && (
-              <FormHelperText>{errors.petId.message}</FormHelperText>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSuccess)}
+        className="flex flex-col gap-5"
+      >
+        {/* Pet selector */}
+        <FormField
+          control={form.control}
+          name="petId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Pet (optional)</FormLabel>
+              <Select
+                value={
+                  field.value !== null && field.value !== undefined
+                    ? String(field.value)
+                    : ""
+                }
+                onValueChange={(v) =>
+                  field.onChange(v === "" ? null : Number(v))
+                }
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Household (no specific pet)" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="">
+                    <em>Household (no specific pet)</em>
+                  </SelectItem>
+                  {pets.map((pet) => (
+                    <SelectItem key={pet.id} value={String(pet.id)}>
+                      {pet.attributes.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Type selector */}
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Type</FormLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {REMINDER_TYPE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Title */}
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Title <span className="text-destructive">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Reminder title" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Description */}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description (optional)</FormLabel>
+              <FormControl>
+                <Textarea {...field} rows={2} placeholder="Optional details" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Due date */}
+        <FormField
+          control={form.control}
+          name="dueDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Due date <span className="text-destructive">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input {...field} type="date" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Recurring toggle */}
+        <FormField
+          control={form.control}
+          name="isRecurring"
+          render={({ field }) => (
+            <FormItem>
+              <div className="flex items-center gap-2">
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <Label
+                  className="cursor-pointer"
+                  onClick={() => field.onChange(!field.value)}
+                >
+                  Recurring reminder
+                </Label>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Recurrence days — only shown when isRecurring is true */}
+        {isRecurring && (
+          <FormField
+            control={form.control}
+            name="recurrenceDays"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Repeat every (days){" "}
+                  <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={365}
+                    placeholder="1–365 days"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? null : Number(e.target.value),
+                      )
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </FormControl>
-        )}
-      />
-
-      {/* Type selector */}
-      <Controller
-        name="type"
-        control={control}
-        render={({ field }) => (
-          <FormControl fullWidth error={!!errors.type}>
-            <InputLabel id="reminder-type-label">Type</InputLabel>
-            <Select
-              labelId="reminder-type-label"
-              label="Type"
-              value={field.value}
-              onChange={field.onChange}
-            >
-              {REMINDER_TYPE_OPTIONS.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.type && (
-              <FormHelperText>{errors.type.message}</FormHelperText>
-            )}
-          </FormControl>
-        )}
-      />
-
-      {/* Title */}
-      <TextField
-        label="Title"
-        {...register("title")}
-        error={!!errors.title}
-        helperText={errors.title?.message}
-        fullWidth
-        required
-      />
-
-      {/* Description */}
-      <TextField
-        label="Description (optional)"
-        {...register("description")}
-        error={!!errors.description}
-        helperText={errors.description?.message}
-        fullWidth
-        multiline
-        rows={2}
-      />
-
-      {/* Due date */}
-      <TextField
-        label="Due date"
-        type="date"
-        {...register("dueDate")}
-        error={!!errors.dueDate}
-        helperText={errors.dueDate?.message ?? "YYYY-MM-DD"}
-        fullWidth
-        required
-        slotProps={{ inputLabel: { shrink: true } }}
-      />
-
-      {/* Recurring toggle */}
-      <Controller
-        name="isRecurring"
-        control={control}
-        render={({ field }) => (
-          <FormControlLabel
-            control={
-              <Switch
-                checked={field.value}
-                onChange={(e) => field.onChange(e.target.checked)}
-              />
-            }
-            label="Recurring reminder"
           />
         )}
-      />
 
-      {/* Recurrence days — only shown when isRecurring is true */}
-      {isRecurring && (
-        <TextField
-          label="Repeat every (days)"
-          type="number"
-          {...register("recurrenceDays", { valueAsNumber: true })}
-          error={!!errors.recurrenceDays}
-          helperText={errors.recurrenceDays?.message ?? "1–365 days"}
-          fullWidth
-          required
-          inputProps={{ min: 1, max: 365 }}
-        />
-      )}
-
-      {/* Actions */}
-      <Box display="flex" gap={1.5} justifyContent="flex-end" pt={1}>
-        <Button
-          variant="outlined"
-          onClick={onCancel}
-          disabled={isLoading}
-          sx={{ minHeight: 44 }}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={isLoading}
-          sx={{ minHeight: 44 }}
-        >
-          {isLoading ? "Saving…" : "Save reminder"}
-        </Button>
-      </Box>
-    </Box>
+        {/* Actions */}
+        <div className="flex justify-end gap-3 pt-1">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="min-h-[44px]"
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading} className="min-h-[44px]">
+            {isLoading ? "Saving\u2026" : "Save reminder"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

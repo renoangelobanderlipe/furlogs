@@ -87,3 +87,7 @@ export const calendarKeys = {
   events: (filters?: CalendarFilters) =>
     [...calendarKeys.all, "events", filters] as const,
 };
+
+export const householdKeys = {
+  current: () => ["household", "current"] as const,
+};

@@ -1,17 +1,32 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Autocomplete from "@mui/material/Autocomplete";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
-
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { FoodProduct } from "@/lib/api/food-stock";
 import {
   type PurchaseFormValues,
@@ -35,13 +50,7 @@ export function LogPurchaseDialog({
   products,
   preselectedProductId,
 }: LogPurchaseDialogProps) {
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm<PurchaseFormValues>({
+  const form = useForm<PurchaseFormValues>({
     resolver: zodResolver(purchaseSchema),
     defaultValues: {
       purchasedAt: new Date().toISOString().slice(0, 10),
@@ -51,7 +60,7 @@ export function LogPurchaseDialog({
 
   useEffect(() => {
     if (open) {
-      reset({
+      form.reset({
         foodProductId: preselectedProductId ?? undefined,
         purchasedAt: new Date().toISOString().slice(0, 10),
         quantity: 1,
@@ -59,114 +68,169 @@ export function LogPurchaseDialog({
         purchaseSource: "",
       });
     }
-  }, [open, preselectedProductId, reset]);
+  }, [open, preselectedProductId, form]);
 
   const handleClose = () => {
     if (!isLoading) onClose();
   };
 
+  const getProductLabel = (product: FoodProduct): string => {
+    const brand = product.attributes.brand;
+    return brand
+      ? `${product.attributes.name} (${brand})`
+      : product.attributes.name;
+  };
+
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Log Purchase</DialogTitle>
-      <DialogContent sx={{ pt: 2 }}>
-        <Stack spacing={2} sx={{ mt: 0.5 }}>
-          <Controller
-            name="foodProductId"
-            control={control}
-            render={({ field }) => (
-              <Autocomplete
-                options={products}
-                getOptionLabel={(opt) => {
-                  const brand = opt.attributes.brand;
-                  return brand
-                    ? `${opt.attributes.name} (${brand})`
-                    : opt.attributes.name;
-                }}
-                value={products.find((p) => p.id === field.value) ?? null}
-                onChange={(_, newValue) => {
-                  field.onChange(newValue?.id ?? null);
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Food Product"
-                    error={!!errors.foodProductId}
-                    helperText={errors.foodProductId?.message}
-                    required
-                    size="small"
-                  />
-                )}
-                size="small"
-                isOptionEqualToValue={(opt, val) => opt.id === val.id}
-              />
-            )}
-          />
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) handleClose();
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Log Purchase</DialogTitle>
+        </DialogHeader>
 
-          <TextField
-            {...register("purchasedAt")}
-            label="Purchase Date"
-            type="date"
-            error={!!errors.purchasedAt}
-            helperText={errors.purchasedAt?.message}
-            fullWidth
-            required
-            size="small"
-            InputLabelProps={{ shrink: true }}
-          />
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col gap-4"
+          >
+            <FormField
+              control={form.control}
+              name="foodProductId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Food Product <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <Select
+                    value={field.value ? String(field.value) : ""}
+                    onValueChange={(v) => field.onChange(v ? Number(v) : null)}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a product" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {products.map((product) => (
+                        <SelectItem key={product.id} value={String(product.id)}>
+                          {getProductLabel(product)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <TextField
-            {...register("quantity", {
-              setValueAs: (v) =>
-                v === "" || v == null ? undefined : Number(v),
-            })}
-            label="Quantity"
-            type="number"
-            error={!!errors.quantity}
-            helperText={errors.quantity?.message ?? "Number of units purchased"}
-            fullWidth
-            size="small"
-            inputProps={{ min: 1, step: 1 }}
-          />
+            <FormField
+              control={form.control}
+              name="purchasedAt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Purchase Date <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} type="date" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <TextField
-            {...register("purchaseCost", {
-              setValueAs: (v) =>
-                v === "" || v == null ? undefined : Number(v),
-            })}
-            label="Total Cost"
-            type="number"
-            error={!!errors.purchaseCost}
-            helperText={errors.purchaseCost?.message}
-            fullWidth
-            size="small"
-            inputProps={{ min: 0, step: 0.01 }}
-          />
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Quantity</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      step={1}
+                      placeholder="Number of units purchased"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === ""
+                            ? undefined
+                            : Number(e.target.value),
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <TextField
-            {...register("purchaseSource")}
-            label="Purchase Source"
-            error={!!errors.purchaseSource}
-            helperText={
-              errors.purchaseSource?.message ??
-              "e.g. Petco, Amazon, Local store"
-            }
-            fullWidth
-            size="small"
-          />
-        </Stack>
+            <FormField
+              control={form.control}
+              name="purchaseCost"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Total Cost</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      placeholder="Optional"
+                      value={field.value ?? ""}
+                      onChange={(e) =>
+                        field.onChange(
+                          e.target.value === ""
+                            ? undefined
+                            : Number(e.target.value),
+                        )
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="purchaseSource"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Purchase Source</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="e.g. Petco, Amazon, Local store"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Logging\u2026" : "Log Purchase"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleClose} disabled={isLoading}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSubmit(onSubmit)}
-          variant="contained"
-          disabled={isLoading}
-        >
-          {isLoading ? "Logging…" : "Log Purchase"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

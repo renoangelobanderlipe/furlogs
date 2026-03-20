@@ -1,24 +1,21 @@
 "use client";
 
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import DoneIcon from "@mui/icons-material/Done";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import SnoozeIcon from "@mui/icons-material/Snooze";
-import Accordion from "@mui/material/Accordion";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import Skeleton from "@mui/material/Skeleton";
-import { useTheme } from "@mui/material/styles";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
-import { useState } from "react";
+import * as AccordionPrimitive from "@radix-ui/react-accordion";
+import { Check, ChevronDown, Clock, MoreVertical } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useCompleteReminder,
   useDismissReminder,
@@ -26,15 +23,16 @@ import {
 } from "@/hooks/api/useReminders";
 import type { Reminder, ReminderUrgency } from "@/lib/api/reminders";
 import { formatRelativeDueDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
-function getUrgencyColor(urgency: ReminderUrgency): string {
+function getUrgencyClass(urgency: ReminderUrgency): string {
   switch (urgency) {
     case "high":
-      return "error.main";
+      return "bg-destructive";
     case "medium":
-      return "warning.main";
+      return "bg-yellow-500";
     case "low":
-      return "success.main";
+      return "bg-green-500";
   }
 }
 
@@ -43,64 +41,46 @@ interface ReminderItemMenuProps {
 }
 
 function ReminderItemMenu({ reminderId }: ReminderItemMenuProps) {
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const complete = useCompleteReminder();
   const snooze = useSnoozeReminder();
   const dismiss = useDismissReminder();
 
-  const handleClose = () => setAnchorEl(null);
-
   return (
-    <>
-      <IconButton
-        size="small"
-        onClick={(e) => {
-          e.stopPropagation();
-          setAnchorEl(e.currentTarget);
-        }}
-        aria-label="More actions"
-        sx={{ minWidth: 36, minHeight: 36 }}
-      >
-        <MoreVertIcon fontSize="small" />
-      </IconButton>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleClose}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <MenuItem
-          onClick={() => {
-            complete.mutate(reminderId);
-            handleClose();
-          }}
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          onClick={(e) => e.stopPropagation()}
+          aria-label="More actions"
+          className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <MoreVertical className="h-4 w-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuItem
+          onClick={() => complete.mutate(reminderId)}
           disabled={complete.isPending}
         >
-          <DoneIcon fontSize="small" sx={{ mr: 1.5 }} />
+          <Check className="mr-2 h-4 w-4" />
           Mark complete
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            snooze.mutate({ id: reminderId, snoozeDays: 1 });
-            handleClose();
-          }}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => snooze.mutate({ id: reminderId, snoozeDays: 1 })}
           disabled={snooze.isPending}
         >
-          <SnoozeIcon fontSize="small" sx={{ mr: 1.5 }} />
+          <Clock className="mr-2 h-4 w-4" />
           Snooze 1 day
-        </MenuItem>
-        <MenuItem
-          onClick={() => {
-            dismiss.mutate(reminderId);
-            handleClose();
-          }}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => dismiss.mutate(reminderId)}
           disabled={dismiss.isPending}
         >
-          <AccessTimeIcon fontSize="small" sx={{ mr: 1.5 }} />
+          <Clock className="mr-2 h-4 w-4" />
           Dismiss
-        </MenuItem>
-      </Menu>
-    </>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -109,129 +89,110 @@ interface ReminderItemProps {
 }
 
 function ReminderItem({ reminder }: ReminderItemProps) {
-  const theme = useTheme();
   const { attributes } = reminder;
   const dueDateLabel = formatRelativeDueDate(attributes.dueDate);
   const isOverdue = dueDateLabel === "Overdue";
-  const urgencyColor = getUrgencyColor(attributes.urgency);
 
   return (
-    <Accordion
-      disableGutters
-      elevation={0}
-      sx={{
-        border: `1px solid ${theme.palette.divider}`,
-        borderRadius: "8px !important",
-        mb: 1,
-        "&:before": { display: "none" },
-        "&.Mui-expanded": { mb: 1 },
-      }}
+    <AccordionItem
+      value={String(reminder.id)}
+      className="mb-2 rounded-lg border border-border px-0 last:mb-0"
     >
-      <AccordionSummary
-        sx={{
-          px: 2,
-          minHeight: 56,
-          "& .MuiAccordionSummary-content": {
-            alignItems: "center",
-            gap: 1.5,
-            my: 1,
-          },
-        }}
-      >
-        {/* Urgency dot */}
-        <Tooltip title={`${attributes.urgency} urgency`}>
-          <Box
-            sx={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              bgcolor: urgencyColor,
-              flexShrink: 0,
-            }}
-          />
-        </Tooltip>
-
-        {/* Title & pet */}
-        <Box flexGrow={1} minWidth={0}>
-          <Typography
-            variant="body2"
-            fontWeight={600}
-            noWrap
-            sx={{
-              textDecoration:
-                attributes.status === "completed" ? "line-through" : "none",
-              color:
-                attributes.status === "completed"
-                  ? "text.disabled"
-                  : "text.primary",
-            }}
+      {/* Use asChild so the header renders as a div (not h3), giving us a flat flex row */}
+      <AccordionPrimitive.Header asChild>
+        <div className="flex items-center pr-2">
+          <AccordionPrimitive.Trigger
+            className={cn(
+              "flex flex-1 items-center gap-3 px-4 min-h-[56px] text-left font-medium transition-all",
+              "hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "[&[data-state=open]>svg:last-child]:rotate-180",
+            )}
           >
-            {attributes.title}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap>
-            {attributes.petName ?? "Household"}
-          </Typography>
-        </Box>
+            {/* Urgency dot */}
+            <span
+              title={`${attributes.urgency} urgency`}
+              className={cn(
+                "h-2.5 w-2.5 flex-shrink-0 rounded-full",
+                getUrgencyClass(attributes.urgency),
+              )}
+            />
 
-        {/* Due date */}
-        <Chip
-          label={dueDateLabel}
-          size="small"
-          color={isOverdue ? "error" : "default"}
-          variant={isOverdue ? "filled" : "outlined"}
-          sx={{ minHeight: 24, flexShrink: 0 }}
-        />
+            {/* Title & pet */}
+            <div className="min-w-0 flex-1">
+              <p
+                className={cn(
+                  "truncate text-sm font-semibold",
+                  attributes.status === "completed"
+                    ? "text-muted-foreground line-through"
+                    : "text-foreground",
+                )}
+              >
+                {attributes.title}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {attributes.petName ?? "Household"}
+              </p>
+            </div>
 
-        {attributes.status === "completed" && (
-          <CheckCircleIcon
-            fontSize="small"
-            sx={{ color: "success.main", flexShrink: 0 }}
-          />
-        )}
+            {/* Due date badge */}
+            <Badge
+              variant={isOverdue ? "destructive" : "outline"}
+              className="flex-shrink-0 text-xs"
+            >
+              {dueDateLabel}
+            </Badge>
 
-        <ReminderItemMenu reminderId={reminder.id} />
-      </AccordionSummary>
+            {attributes.status === "completed" && (
+              <Check className="h-4 w-4 flex-shrink-0 text-green-500" />
+            )}
 
-      <AccordionDetails sx={{ px: 2, pb: 2 }}>
-        <Box display="flex" flexDirection="column" gap={0.5}>
+            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+          </AccordionPrimitive.Trigger>
+
+          <ReminderItemMenu reminderId={reminder.id} />
+        </div>
+      </AccordionPrimitive.Header>
+
+      <AccordionContent className="px-4 pb-3">
+        <div className="flex flex-col gap-1">
           {attributes.description && (
-            <Typography variant="body2" color="text.secondary">
+            <p className="text-sm text-muted-foreground">
               {attributes.description}
-            </Typography>
+            </p>
           )}
-          <Box display="flex" gap={2} flexWrap="wrap">
-            <Typography variant="caption" color="text.disabled">
+          <div className="flex flex-wrap gap-4">
+            <span className="text-xs text-muted-foreground/70">
               Type: {attributes.type?.replaceAll("_", " ")}
-            </Typography>
-            <Typography variant="caption" color="text.disabled">
+            </span>
+            <span className="text-xs text-muted-foreground/70">
               Due:{" "}
               {new Date(attributes.dueDate).toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
                 year: "numeric",
               })}
-            </Typography>
+            </span>
             {attributes.isRecurring && attributes.recurrenceDays && (
-              <Typography variant="caption" color="text.disabled">
+              <span className="text-xs text-muted-foreground/70">
                 Repeats every {attributes.recurrenceDays} day
                 {attributes.recurrenceDays === 1 ? "" : "s"}
-              </Typography>
+              </span>
             )}
-          </Box>
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+          </div>
+        </div>
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 
 export function ReminderListSkeleton() {
   return (
-    <Box>
+    <div>
       {Array.from({ length: 4 }).map((_, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
-        <Skeleton key={i} variant="rounded" height={56} sx={{ mb: 1 }} />
+        <Skeleton key={i} className="mb-2 h-14 rounded-lg" />
       ))}
-    </Box>
+    </div>
   );
 }
 
@@ -259,7 +220,7 @@ export function ReminderList({
       <EmptyState
         title={emptyTitle}
         description={emptyDescription}
-        icon={<AccessTimeIcon />}
+        icon={<Clock />}
         action={
           onAddClick
             ? { label: "Add reminder", onClick: onAddClick }
@@ -270,10 +231,10 @@ export function ReminderList({
   }
 
   return (
-    <Box>
+    <Accordion type="multiple" className="w-full">
       {reminders.map((reminder) => (
         <ReminderItem key={reminder.id} reminder={reminder} />
       ))}
-    </Box>
+    </Accordion>
   );
 }

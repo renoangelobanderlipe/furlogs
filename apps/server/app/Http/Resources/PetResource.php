@@ -32,6 +32,7 @@ class PetResource extends JsonResource
                 'isNeutered' => $pet->is_neutered,
                 'size' => $pet->size?->value,
                 'notes' => $pet->notes,
+                'latestWeightKg' => $pet->latestWeight?->weight_kg,
                 'avatarUrl' => $pet->getFirstMediaUrl('avatar', 'card') ?: null,
                 'thumbUrl' => $pet->getFirstMediaUrl('avatar', 'thumb') ?: null,
                 'createdAt' => $pet->created_at->toISOString(),

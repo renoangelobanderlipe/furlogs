@@ -21,12 +21,14 @@ export function proxy(request: NextRequest) {
     "/pets",
     "/vet-visits",
     "/vaccinations",
+    "/medications",
     "/stock",
     "/calendar",
     "/spending",
     "/weight-history",
     "/household",
     "/notifications",
+    "/settings",
   ];
   if (
     dashboardRoutes.some((r) => pathname === r || pathname.startsWith(`${r}/`))

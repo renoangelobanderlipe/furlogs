@@ -1,10 +1,9 @@
 "use client";
 
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
+import { Upload } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface FileUploaderProps {
   value?: File | null;
@@ -13,6 +12,8 @@ interface FileUploaderProps {
   maxSizeMB?: number;
   preview?: string | null;
 }
+
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export function FileUploader({
   value,
@@ -35,8 +36,6 @@ export function FileUploader({
     setPreviewUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [value, preview]);
-
-  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
   const handleFile = (file: File) => {
     setError(null);
@@ -72,82 +71,63 @@ export function FileUploader({
   const handleDragLeave = () => setIsDragging(false);
 
   return (
-    <Box>
-      <Box
-        component="button"
+    <div>
+      <button
         type="button"
         onClick={() => inputRef.current?.click()}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        sx={{
-          border: "2px dashed",
-          borderColor: isDragging ? "primary.main" : "divider",
-          borderRadius: 2,
-          p: 3,
-          cursor: "pointer",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 1.5,
-          transition: "border-color 0.2s",
-          "&:hover": { borderColor: "primary.main" },
-          bgcolor: isDragging ? "action.hover" : "transparent",
-          minHeight: 120,
-          justifyContent: "center",
-          width: "100%",
-          background: "none",
-        }}
         aria-label="Upload photo"
+        className={cn(
+          "w-full min-h-[120px] rounded-lg border-2 border-dashed transition-colors cursor-pointer",
+          "flex flex-col items-center justify-center gap-3 p-6",
+          isDragging
+            ? "border-primary bg-primary/5"
+            : "border-border hover:border-primary",
+        )}
       >
         {previewUrl ? (
           <>
-            <Avatar
+            <Image
               src={previewUrl}
-              sx={{ width: 72, height: 72 }}
-              variant="rounded"
+              alt="Preview"
+              width={64}
+              height={64}
+              unoptimized
+              className="h-16 w-16 rounded-lg object-cover"
             />
-            <Typography variant="body2" color="text.secondary">
+            <p className="text-sm text-muted-foreground">
               {value
                 ? `${value.name} (${(value.size / (1024 * 1024)).toFixed(1)}MB)`
                 : "Current photo"}
-            </Typography>
-            <Typography variant="caption" color="text.disabled">
+            </p>
+            <p className="text-xs text-muted-foreground/60">
               Click or drag to replace
-            </Typography>
+            </p>
           </>
         ) : (
           <>
-            <CloudUploadIcon sx={{ fontSize: 40, color: "text.disabled" }} />
-            <Box textAlign="center">
-              <Typography variant="body2" fontWeight={500}>
-                Click or drag to upload
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
+            <Upload className="h-10 w-10 text-muted-foreground/40" />
+            <div className="text-center">
+              <p className="text-sm font-medium">Click or drag to upload</p>
+              <p className="text-xs text-muted-foreground">
                 JPEG, PNG, WEBP — up to {maxSizeMB}MB
-              </Typography>
-            </Box>
+              </p>
+            </div>
           </>
         )}
-      </Box>
+      </button>
 
-      {error && (
-        <Typography
-          variant="caption"
-          color="error"
-          sx={{ mt: 0.5, display: "block" }}
-        >
-          {error}
-        </Typography>
-      )}
+      {error && <p className="text-xs text-destructive mt-1">{error}</p>}
 
       <input
         ref={inputRef}
         type="file"
         accept={accept}
-        style={{ display: "none" }}
+        className="hidden"
         onChange={handleInputChange}
       />
-    </Box>
+    </div>
   );
 }

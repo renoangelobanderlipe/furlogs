@@ -1,9 +1,5 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Skeleton from "@mui/material/Skeleton";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
 import {
   CartesianGrid,
   Line,
@@ -14,6 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePetWeights } from "@/hooks/api/usePetWeights";
 
 interface PetWeightChartProps {
@@ -28,18 +25,15 @@ function formatDate(dateStr: string): string {
 }
 
 export function PetWeightChart({ petId }: PetWeightChartProps) {
-  const theme = useTheme();
   const { data, isLoading, isError } = usePetWeights(petId);
 
   if (isLoading) {
-    return <Skeleton variant="rounded" height={240} />;
+    return <Skeleton className="h-60 w-full rounded-xl" />;
   }
 
   if (isError) {
     return (
-      <Typography variant="body2" color="error">
-        Failed to load weight history.
-      </Typography>
+      <p className="text-sm text-destructive">Failed to load weight history.</p>
     );
   }
 
@@ -66,24 +60,22 @@ export function PetWeightChart({ petId }: PetWeightChartProps) {
     }));
 
   return (
-    <Box>
-      <Typography variant="subtitle2" fontWeight={600} mb={2}>
-        Weight History
-      </Typography>
+    <div>
+      <p className="text-sm font-semibold mb-3">Weight History</p>
       <ResponsiveContainer width="100%" height={240}>
         <LineChart
           data={chartData}
           margin={{ top: 4, right: 16, bottom: 4, left: 0 }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="date"
-            tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
-            tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
+            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
             tickLine={false}
             axisLine={false}
             unit=" kg"
@@ -91,23 +83,23 @@ export function PetWeightChart({ petId }: PetWeightChartProps) {
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: theme.palette.background.paper,
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: theme.shape.borderRadius,
-              color: theme.palette.text.primary,
+              backgroundColor: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border))",
+              borderRadius: "8px",
+              color: "hsl(var(--foreground))",
             }}
             formatter={(value) => [`${value} kg`, "Weight"]}
           />
           <Line
             type="monotone"
             dataKey="weight"
-            stroke={theme.palette.primary.main}
+            stroke="hsl(var(--primary))"
             strokeWidth={2}
-            dot={{ fill: theme.palette.primary.main, r: 4 }}
+            dot={{ fill: "hsl(var(--primary))", r: 4 }}
             activeDot={{ r: 6 }}
           />
         </LineChart>
       </ResponsiveContainer>
-    </Box>
+    </div>
   );
 }

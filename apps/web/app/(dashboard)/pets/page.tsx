@@ -1,230 +1,522 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/Add";
-import PetsIcon from "@mui/icons-material/Pets";
-import SearchIcon from "@mui/icons-material/Search";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardActionArea from "@mui/material/CardActionArea";
-import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import Grid from "@mui/material/Grid";
-import InputAdornment from "@mui/material/InputAdornment";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, PawPrint, PlusCircle, Upload, X } from "lucide-react";
+import Image from "next/image";
+import { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { Controller, useForm } from "react-hook-form";
 import { PetCard } from "@/components/pets/PetCard";
 import { PetCardSkeleton } from "@/components/pets/PetCardSkeleton";
-import { PetForm } from "@/components/pets/PetForm";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { useCreatePet, usePets } from "@/hooks/api/usePets";
-import type { PetFormValues } from "@/lib/validation/pet.schema";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useCreatePet, usePets, useUploadPetAvatar } from "@/hooks/api/usePets";
+import type { Pet } from "@/lib/api/pets";
+import { petEndpoints } from "@/lib/api/pets";
+import { SPECIES_EMOJI } from "@/lib/constants";
+import {
+  type PetFormValues,
+  petSchema,
+  SEX_OPTIONS,
+  SIZE_OPTIONS,
+  SPECIES_OPTIONS,
+} from "@/lib/validation/pet.schema";
 
-function useDebounced<T>(value: T, delay = 300): T {
-  const [debounced, setDebounced] = useState<T>(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return debounced;
+function formatAge(birthday: string | null, age: number | null): string {
+  if (age !== null) return age === 1 ? "1 year" : `${age} years`;
+  if (!birthday) return "—";
+  const birth = new Date(birthday);
+  const now = new Date();
+  const totalMonths =
+    (now.getFullYear() - birth.getFullYear()) * 12 +
+    (now.getMonth() - birth.getMonth());
+  if (totalMonths < 12)
+    return totalMonths <= 1 ? "1 month" : `${totalMonths} months`;
+  const yr = Math.floor(totalMonths / 12);
+  return yr === 1 ? "1 year" : `${yr} years`;
 }
 
-type SpeciesFilter = "all" | "dog" | "cat";
-
 export default function PetsPage() {
-  const router = useRouter();
-  const [search, setSearch] = useState("");
-  const [speciesFilter, setSpeciesFilter] = useState<SpeciesFilter>("all");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewPet, setViewPet] = useState<Pet | null>(null);
+  const [latestWeight, setLatestWeight] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  const debouncedSearch = useDebounced(search);
-
-  const filters = {
-    ...(debouncedSearch ? { search: debouncedSearch } : {}),
-    ...(speciesFilter !== "all" ? { species: speciesFilter } : {}),
-  };
-
-  const { data, isLoading } = usePets(filters);
+  const { data, isLoading } = usePets();
   const createPet = useCreatePet();
+  const uploadAvatar = useUploadPetAvatar();
+
+  const onDrop = useCallback((accepted: File[]) => {
+    const file = accepted[0];
+    if (!file) return;
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "image/jpeg": [], "image/png": [], "image/webp": [] },
+    maxFiles: 1,
+    maxSize: 5 * 1024 * 1024, // 5 MB
+  });
+
+  const clearAvatar = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+    setAvatarFile(null);
+    setAvatarPreview(null);
+  };
 
   const pets = data?.data ?? [];
 
-  const handleSubmit = (values: PetFormValues) => {
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<PetFormValues>({
+    resolver: zodResolver(petSchema),
+    defaultValues: {
+      name: "",
+      species: undefined,
+      breed: "",
+      sex: undefined,
+      birthday: "",
+      isNeutered: false,
+      size: undefined,
+      notes: "",
+    },
+  });
+
+  const isNeuteredValue = watch("isNeutered");
+
+  const handleClose = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      reset();
+      setLatestWeight("");
+      if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+      setAvatarFile(null);
+      setAvatarPreview(null);
+    }
+  };
+
+  const onSubmit = (values: PetFormValues) => {
     createPet.mutate(values, {
-      onSuccess: () => {
-        setIsAddDialogOpen(false);
+      onSuccess: (pet) => {
+        const today = new Date().toISOString().split("T")[0];
+        const w = parseFloat(latestWeight);
+        if (!Number.isNaN(w) && w > 0) {
+          petEndpoints
+            .recordWeight(pet.id, { weightKg: w, recordedAt: today })
+            .catch(() => {});
+        }
+        if (avatarFile) {
+          uploadAvatar.mutate({ id: pet.id, file: avatarFile });
+        }
+        setDialogOpen(false);
+        reset();
+        setLatestWeight("");
+        if (avatarPreview) URL.revokeObjectURL(avatarPreview);
+        setAvatarFile(null);
+        setAvatarPreview(null);
       },
     });
   };
 
-  const speciesChips: { label: string; value: SpeciesFilter }[] = [
-    { label: "All", value: "all" },
-    { label: "Dogs", value: "dog" },
-    { label: "Cats", value: "cat" },
-  ];
-
   return (
-    <Box>
-      {/* Page header */}
-      <Box
-        display="flex"
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        flexDirection={{ xs: "column", sm: "row" }}
-        gap={2}
-        mb={3}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={700}>
-            My Pets
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Manage your pet profiles
-          </Typography>
-        </Box>
-        <Box flexGrow={1} />
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setIsAddDialogOpen(true)}
-          sx={{ minHeight: 48 }}
-        >
-          Add pet
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between animate-fade-in-up">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">My Pets</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {pets.length} {pets.length === 1 ? "pet" : "pets"} in your household
+          </p>
+        </div>
+        <Button size="sm" onClick={() => setDialogOpen(true)}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Pet
         </Button>
-      </Box>
-
-      {/* Filters */}
-      <Box
-        display="flex"
-        flexDirection={{ xs: "column", sm: "row" }}
-        gap={2}
-        mb={3}
-      >
-        <TextField
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search pets…"
-          size="small"
-          sx={{ maxWidth: 320 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
-          }}
-          inputProps={{ "aria-label": "Search pets" }}
-        />
-        <Box display="flex" gap={1} alignItems="center">
-          {speciesChips.map((chip) => (
-            <Chip
-              key={chip.value}
-              label={chip.label}
-              onClick={() => setSpeciesFilter(chip.value)}
-              color={speciesFilter === chip.value ? "primary" : "default"}
-              variant={speciesFilter === chip.value ? "filled" : "outlined"}
-              sx={{ minHeight: 36 }}
-            />
-          ))}
-        </Box>
-      </Box>
+      </div>
 
       {/* Grid */}
       {isLoading ? (
-        <Grid container spacing={2}>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: skeleton list has no stable id
-            <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-              <PetCardSkeleton />
-            </Grid>
+            // biome-ignore lint/suspicious/noArrayIndexKey: skeleton list
+            <PetCardSkeleton key={i} />
           ))}
-        </Grid>
+        </div>
       ) : pets.length === 0 ? (
-        <EmptyState
-          title="No pets found"
-          description={
-            search || speciesFilter !== "all"
-              ? "Try adjusting your search or filters."
-              : "Add your first pet to get started."
-          }
-          action={
-            search || speciesFilter !== "all"
-              ? undefined
-              : {
-                  label: "Add your first pet",
-                  onClick: () => setIsAddDialogOpen(true),
-                }
-          }
-          icon={<PetsIcon />}
-        />
+        <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in-up">
+          <PawPrint className="h-12 w-12 text-muted-foreground/40 mb-4" />
+          <h2 className="text-lg font-semibold">No pets yet</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Add your first pet to get started
+          </p>
+          <Button
+            size="sm"
+            className="mt-4"
+            onClick={() => setDialogOpen(true)}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Pet
+          </Button>
+        </div>
       ) : (
-        <Grid container spacing={2}>
-          {pets.map((pet) => (
-            <Grid key={pet.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <PetCard
-                pet={pet}
-                onClick={() => router.push(`/pets/${pet.id}`)}
-              />
-            </Grid>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {pets.map((pet, i) => (
+            <PetCard
+              key={pet.id}
+              pet={pet}
+              animationIndex={i}
+              onViewProfile={() => setViewPet(pet)}
+            />
           ))}
-          {/* Add pet card */}
-          <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card
-              variant="outlined"
-              sx={{
-                height: "100%",
-                minHeight: 120,
-                display: "flex",
-                border: "2px dashed",
-                borderColor: "divider",
-              }}
-            >
-              <CardActionArea
-                onClick={() => setIsAddDialogOpen(true)}
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 1,
-                  p: 3,
-                }}
-              >
-                <CardContent sx={{ textAlign: "center", p: 0 }}>
-                  <AddIcon
-                    sx={{ fontSize: 32, color: "text.disabled", mb: 0.5 }}
-                  />
-                  <Typography variant="body2" color="text.secondary">
-                    Add another pet
-                  </Typography>
-                </CardContent>
-              </CardActionArea>
-            </Card>
-          </Grid>
-        </Grid>
+        </div>
       )}
 
-      {/* Add pet dialog */}
-      <Dialog
-        open={isAddDialogOpen}
-        onClose={() => setIsAddDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Add a new pet</DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
-          <PetForm
-            onSubmit={handleSubmit}
-            isLoading={createPet.isPending}
-            submitLabel="Add pet"
-          />
+      {/* View Pet Dialog */}
+      <Dialog open={!!viewPet} onOpenChange={(o) => !o && setViewPet(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="text-2xl">
+                {SPECIES_EMOJI[viewPet?.attributes.species ?? ""] ?? "🐾"}
+              </span>
+              {viewPet?.attributes.name}
+            </DialogTitle>
+          </DialogHeader>
+          {viewPet && (
+            <div className="space-y-3 py-2">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-xs text-muted-foreground">Species</p>
+                  <p className="font-medium capitalize">
+                    {viewPet.attributes.species}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Breed</p>
+                  <p className="font-medium">
+                    {viewPet.attributes.breed || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Sex</p>
+                  <p className="font-medium capitalize">
+                    {viewPet.attributes.sex}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Age</p>
+                  <p className="font-medium">
+                    {formatAge(
+                      viewPet.attributes.birthday,
+                      viewPet.attributes.age,
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Weight</p>
+                  <p className="font-medium">
+                    {viewPet.attributes.latestWeightKg != null
+                      ? `${viewPet.attributes.latestWeightKg} kg`
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Size</p>
+                  <p className="font-medium capitalize">
+                    {viewPet.attributes.size || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Neutered</p>
+                  <p className="font-medium">
+                    {viewPet.attributes.isNeutered ? "Yes" : "No"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Birthday</p>
+                  <p className="font-medium">
+                    {viewPet.attributes.birthday || "—"}
+                  </p>
+                </div>
+              </div>
+              {viewPet.attributes.notes && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Notes</p>
+                  <p className="text-sm mt-1">{viewPet.attributes.notes}</p>
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
-    </Box>
+
+      {/* Add Pet Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Pet</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <div className="space-y-4 py-2">
+              {/* Photo upload */}
+              <div className="flex items-center justify-center">
+                <div className="relative">
+                  <div
+                    {...getRootProps()}
+                    className={`flex h-20 w-20 flex-col items-center justify-center rounded-full border-2 border-dashed bg-muted/30 text-muted-foreground transition-colors cursor-pointer overflow-hidden
+                      ${isDragActive ? "border-primary text-primary bg-primary/5" : "border-border hover:border-primary/50 hover:text-primary"}`}
+                  >
+                    <input {...getInputProps()} />
+                    {avatarPreview ? (
+                      <Image
+                        src={avatarPreview}
+                        alt="Preview"
+                        width={80}
+                        height={80}
+                        unoptimized
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <>
+                        <Upload className="h-5 w-5" />
+                        <span className="text-[9px] mt-0.5">
+                          {isDragActive ? "Drop" : "Photo"}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  {avatarPreview && (
+                    <button
+                      type="button"
+                      onClick={clearAvatar}
+                      className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Name */}
+              <div>
+                <Label>
+                  Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  {...register("name")}
+                  placeholder="e.g., Biscuit"
+                  className="mt-1.5 bg-background"
+                />
+                {errors.name && (
+                  <p className="text-xs text-destructive mt-1">
+                    {errors.name.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Species + Sex */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>
+                    Species <span className="text-destructive">*</span>
+                  </Label>
+                  <Controller
+                    name="species"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value ?? ""}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="mt-1.5 bg-background">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SPECIES_OPTIONS.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>
+                              {SPECIES_EMOJI[s.value]} {s.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.species && (
+                    <p className="text-xs text-destructive mt-1">
+                      {errors.species.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label>
+                    Sex <span className="text-destructive">*</span>
+                  </Label>
+                  <Controller
+                    name="sex"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value ?? ""}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="mt-1.5 bg-background">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SEX_OPTIONS.map((s) => (
+                            <SelectItem key={s.value} value={s.value}>
+                              {s.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.sex && (
+                    <p className="text-xs text-destructive mt-1">
+                      {errors.sex.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Breed */}
+              <div>
+                <Label>Breed</Label>
+                <Input
+                  {...register("breed")}
+                  placeholder="e.g., Golden Retriever"
+                  className="mt-1.5 bg-background"
+                />
+              </div>
+
+              {/* Birthday + Weight */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Birthday</Label>
+                  <Input
+                    type="date"
+                    {...register("birthday")}
+                    className="mt-1.5 bg-background"
+                  />
+                  {errors.birthday && (
+                    <p className="text-xs text-destructive mt-1">
+                      {errors.birthday.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label>Weight (kg)</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={latestWeight}
+                    onChange={(e) => setLatestWeight(e.target.value)}
+                    placeholder="0.0"
+                    className="mt-1.5 bg-background"
+                  />
+                </div>
+              </div>
+
+              {/* Size */}
+              <div>
+                <Label>Size</Label>
+                <Controller
+                  name="size"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value ?? ""}
+                      onValueChange={(v) => field.onChange(v || undefined)}
+                    >
+                      <SelectTrigger className="mt-1.5 bg-background">
+                        <SelectValue placeholder="Select size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SIZE_OPTIONS.map((s) => (
+                          <SelectItem
+                            key={s.value}
+                            value={s.value}
+                            className="capitalize"
+                          >
+                            {s.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+
+              {/* Neutered Switch */}
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="isNeutered"
+                  checked={isNeuteredValue}
+                  onCheckedChange={(v) => setValue("isNeutered", v)}
+                />
+                <Label htmlFor="isNeutered">Is Neutered / Spayed</Label>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <Label>Notes</Label>
+                <Textarea
+                  {...register("notes")}
+                  placeholder="Any allergies, special needs..."
+                  className="mt-1.5 bg-background"
+                  rows={3}
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="mt-4">
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button
+                type="submit"
+                disabled={createPet.isPending || uploadAvatar.isPending}
+              >
+                {(createPet.isPending || uploadAvatar.isPending) && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Add Pet
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

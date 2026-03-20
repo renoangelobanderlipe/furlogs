@@ -1,19 +1,9 @@
 "use client";
 
-import AttachFileIcon from "@mui/icons-material/AttachFile";
-import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardActionArea from "@mui/material/CardActionArea";
-import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
-import Typography from "@mui/material/Typography";
-import {
-  type VetVisit,
-  VISIT_TYPE_COLOR,
-  VISIT_TYPE_LABEL,
-} from "@/lib/api/vet-visits";
+import { Paperclip, Stethoscope } from "lucide-react";
+import { type VetVisit, VISIT_TYPE_LABEL } from "@/lib/api/vet-visits";
 import { formatShortDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 interface VisitCardProps {
   visit: VetVisit;
@@ -22,6 +12,13 @@ interface VisitCardProps {
   onToggleSelect?: (id: number) => void;
   selectable?: boolean;
 }
+
+const VISIT_TYPE_CLASS: Record<string, string> = {
+  checkup: "border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  treatment: "border-warning/30 bg-warning/10 text-warning",
+  vaccine: "border-success/30 bg-success/10 text-success",
+  emergency: "border-destructive/30 bg-destructive/10 text-destructive",
+};
 
 function formatCost(cost: string | null): string | null {
   if (!cost) return null;
@@ -53,93 +50,61 @@ export function VisitCard({
   };
 
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        outline: selected ? "2px solid" : "none",
-        outlineColor: selected ? "primary.main" : "transparent",
-      }}
+    <div
+      className={cn(
+        "rounded-xl border bg-card h-full flex flex-col",
+        selected ? "border-primary ring-2 ring-primary/20" : "border-border",
+      )}
     >
-      <CardActionArea
+      <button
+        type="button"
         onClick={handleClick}
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "stretch",
-        }}
+        className="flex-1 text-left p-4 rounded-xl transition-colors hover:bg-accent"
       >
-        <CardContent sx={{ flexGrow: 1, pb: 1.5 }}>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="flex-start"
-            mb={1}
+        <div className="flex items-start justify-between mb-2">
+          <span
+            className={cn(
+              "inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold",
+              VISIT_TYPE_CLASS[visitType] ??
+                "border-border bg-muted text-muted-foreground",
+            )}
           >
-            <Chip
-              label={VISIT_TYPE_LABEL[visitType]}
-              color={VISIT_TYPE_COLOR[visitType]}
-              size="small"
-              variant="filled"
-            />
-            <Typography variant="caption" color="text.secondary">
-              {formatShortDate(visitDate)}
-            </Typography>
-          </Box>
+            {VISIT_TYPE_LABEL[visitType]}
+          </span>
+          <span className="text-xs text-muted-foreground shrink-0 ml-2">
+            {formatShortDate(visitDate)}
+          </span>
+        </div>
 
-          <Typography
-            variant="body1"
-            fontWeight={600}
-            sx={{
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              mb: 1,
-              lineHeight: 1.4,
-            }}
-          >
-            {reason}
-          </Typography>
+        <p className="text-sm font-semibold leading-snug mb-2 line-clamp-2">
+          {reason}
+        </p>
 
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-            mt="auto"
-          >
-            <Box display="flex" alignItems="center" gap={0.5}>
-              <LocalHospitalIcon
-                sx={{ fontSize: 14, color: "text.disabled" }}
-              />
-              <Typography variant="caption" color="text.secondary">
-                {visit.attributes.vetName ?? "Vet visit"}
-              </Typography>
-            </Box>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <Stethoscope className="h-3.5 w-3.5 text-muted-foreground/50" />
+            <span className="text-xs text-muted-foreground">
+              {visit.attributes.vetName ?? "Vet visit"}
+            </span>
+          </div>
 
-            <Box display="flex" alignItems="center" gap={1}>
-              {formattedCost && (
-                <Typography variant="caption" color="text.secondary">
-                  {formattedCost}
-                </Typography>
-              )}
-              {attachmentCount > 0 && (
-                <Box display="flex" alignItems="center" gap={0.25}>
-                  <AttachFileIcon
-                    sx={{ fontSize: 12, color: "text.disabled" }}
-                  />
-                  <Typography variant="caption" color="text.disabled">
-                    {attachmentCount}
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-          </Box>
-        </CardContent>
-      </CardActionArea>
-    </Card>
+          <div className="flex items-center gap-2">
+            {formattedCost && (
+              <span className="text-xs text-muted-foreground">
+                {formattedCost}
+              </span>
+            )}
+            {attachmentCount > 0 && (
+              <div className="flex items-center gap-0.5">
+                <Paperclip className="h-3 w-3 text-muted-foreground/50" />
+                <span className="text-xs text-muted-foreground/50">
+                  {attachmentCount}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </button>
+    </div>
   );
 }

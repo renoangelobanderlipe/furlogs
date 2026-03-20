@@ -15,6 +15,7 @@ use App\Http\Controllers\MedicationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PetController;
 use App\Http\Controllers\PetWeightController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\VaccinationController;
 use App\Http\Controllers\VetClinicController;
@@ -64,6 +65,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         return $request->user()->load('currentHousehold');
     })->name('user');
 
+    // User profile
+    Route::get('user/notification-preferences', [ProfileController::class, 'notificationPreferences'])->name('user.notification-preferences.show');
+    Route::patch('user/notification-preferences', [ProfileController::class, 'updateNotificationPreferences'])->name('user.notification-preferences.update');
+    Route::patch('user', [ProfileController::class, 'update'])->name('user.update');
+    Route::patch('user/password', [ProfileController::class, 'changePassword'])->name('user.password');
+
     // Dashboard
     Route::get('dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');
 
@@ -72,6 +79,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Onboarding
     Route::post('households', [HouseholdController::class, 'store'])->name('households.store');
+
+    // Household management
+    Route::get('households/current', [HouseholdController::class, 'current'])->name('households.current');
+    Route::patch('households/{household}', [HouseholdController::class, 'update'])->name('households.update');
+    Route::post('households/{household}/invite', [HouseholdController::class, 'invite'])->name('households.invite');
+    Route::delete('households/{household}/members/{user}', [HouseholdController::class, 'removeMember'])->name('households.members.remove');
 
     // Pets
     Route::apiResource('pets', PetController::class);

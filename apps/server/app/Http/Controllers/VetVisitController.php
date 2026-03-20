@@ -36,7 +36,7 @@ class VetVisitController extends Controller
                 ),
             )
             ->orderBy('visit_date', 'desc')
-            ->paginate(20);
+            ->paginate((int) $request->query('per_page', 5));
 
         return VetVisitResource::collection($visits);
     }
@@ -129,7 +129,7 @@ class VetVisitController extends Controller
             'data' => [
                 'ytdVisits' => $ytdVisits,
                 'ytdSpend' => (float) $ytdSpend,
-                'lastVisitDate' => $lastVisit?->toDateString(),
+                'lastVisitDate' => $lastVisit,
                 'topClinic' => $topClinic,
             ],
         ]);

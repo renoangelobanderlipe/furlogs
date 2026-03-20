@@ -29,6 +29,7 @@ import {
   useUpdateProfile,
 } from "@/hooks/api/useProfile";
 import { useToast } from "@/hooks/use-toast";
+import { getInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -97,12 +98,7 @@ function SettingsPageContent() {
   const currentMembership = household?.members.find((m) => m.id === user?.id);
   const isOwner = currentMembership?.role === "owner";
 
-  const initials = (profileName || user?.name || "?")
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const initials = getInitials(profileName || user?.name || "?");
 
   const saveHousehold = (e: React.FormEvent) => {
     e.preventDefault();

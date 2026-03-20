@@ -1,4 +1,17 @@
 /**
+ * Returns up to 2 uppercase initials from a display name.
+ * e.g. "Jane Doe" → "JD", "Alice" → "AL", "?" → "?"
+ */
+export function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+/**
  * Formats a Philippine Peso amount. Returns "" for null/undefined/NaN.
  * Accepts number or numeric string (e.g. from API decimal fields).
  */

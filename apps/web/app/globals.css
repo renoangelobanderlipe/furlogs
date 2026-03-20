@@ -84,6 +84,87 @@
   }
 }
 
+/* ── Color presets ──────────────────────────────────────────── */
+/* teal is the default — explicit rule resets overrides when switching back */
+[data-preset="teal"] {
+  --primary: 174 80% 40%;
+  --primary-foreground: 0 0% 100%;
+  --ring: 174 80% 40%;
+  --sidebar-primary: 174 80% 40%;
+  --sidebar-ring: 174 80% 40%;
+}
+[data-preset="blue"] {
+  --primary: 217 91% 60%;
+  --ring: 217 91% 60%;
+  --sidebar-primary: 217 91% 60%;
+  --sidebar-ring: 217 91% 60%;
+}
+[data-preset="purple"] {
+  --primary: 262 83% 67%;
+  --ring: 262 83% 67%;
+  --sidebar-primary: 262 83% 67%;
+  --sidebar-ring: 262 83% 67%;
+}
+[data-preset="amber"] {
+  --primary: 38 92% 50%;
+  --primary-foreground: 0 0% 10%;
+  --ring: 38 92% 50%;
+  --sidebar-primary: 38 92% 50%;
+  --sidebar-ring: 38 92% 50%;
+}
+[data-preset="orange"] {
+  --primary: 25 95% 53%;
+  --primary-foreground: 0 0% 10%;
+  --ring: 25 95% 53%;
+  --sidebar-primary: 25 95% 53%;
+  --sidebar-ring: 25 95% 53%;
+}
+[data-preset="red"] {
+  --primary: 0 84% 60%;
+  --ring: 0 84% 60%;
+  --sidebar-primary: 0 84% 60%;
+  --sidebar-ring: 0 84% 60%;
+}
+
+/* ── High contrast ──────────────────────────────────────────── */
+[data-contrast="high"] {
+  --border: 214 20% 60%;
+  --muted-foreground: 215 16% 30%;
+}
+[data-contrast="high"].dark {
+  --border: 228 20% 45%;
+  --muted-foreground: 215 16% 78%;
+  --foreground: 0 0% 100%;
+}
+
+/* ── Color scheme: sidebar integrate ────────────────────────── */
+[data-color-scheme="integrate"] {
+  --sidebar-background: var(--background);
+  --sidebar-border: var(--border);
+}
+
+/* ── Compact mode — reduces overall UI density ───────────────── */
+/* Topbar shrinks from h-14 (3.5rem) to h-10 (2.5rem) */
+[data-compact="true"] header.topbar {
+  height: 2.5rem;
+  min-height: 2.5rem;
+}
+/* Sidebar nav items get tighter vertical padding */
+[data-compact="true"] aside nav a {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+}
+/* Cards and panels get reduced padding */
+[data-compact="true"] [data-compact-card] {
+  padding: 0.75rem;
+}
+/* Popover / dropdown content tighter */
+[data-compact="true"] [data-radix-popper-content-wrapper] [role="menu"],
+[data-compact="true"] [data-radix-popper-content-wrapper] [role="listbox"] {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;

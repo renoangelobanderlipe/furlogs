@@ -34,6 +34,8 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
 import { PetFilterToggle } from "@/components/pets/PetFilterToggle";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -368,12 +370,15 @@ export default function DashboardLayout({
             )}
             <Box flexGrow={1} />
             <PetFilterToggle />
+            <NotificationBell />
           </Toolbar>
         </AppBar>
 
         {/* Page content */}
         <Box sx={{ flexGrow: 1, p: { xs: 2, md: 3 } }}>{children}</Box>
       </Box>
+
+      <NotificationDropdown />
 
       {/* Mobile bottom navigation */}
       {isMobile && (

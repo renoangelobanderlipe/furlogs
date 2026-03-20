@@ -1,5 +1,7 @@
 import type { MedicationFilters } from "@/lib/api/medications";
+import type { NotificationFilters } from "@/lib/api/notifications";
 import type { PetFilters } from "@/lib/api/pets";
+import type { ReminderFilters } from "@/lib/api/reminders";
 import type { VaccinationFilters } from "@/lib/api/vaccinations";
 import type { VetVisitFilters } from "@/lib/api/vet-visits";
 
@@ -54,4 +56,20 @@ export const medicationKeys = {
     [...medicationKeys.lists(), filters] as const,
   details: () => [...medicationKeys.all, "detail"] as const,
   detail: (id: number) => [...medicationKeys.details(), id] as const,
+};
+
+export const notificationKeys = {
+  all: ["notifications"] as const,
+  lists: () => [...notificationKeys.all, "list"] as const,
+  list: (filters?: NotificationFilters) =>
+    [...notificationKeys.lists(), { filters }] as const,
+  unreadCount: () => [...notificationKeys.all, "unread-count"] as const,
+};
+
+export const reminderKeys = {
+  all: ["reminders"] as const,
+  lists: () => [...reminderKeys.all, "list"] as const,
+  list: (filters?: ReminderFilters) =>
+    [...reminderKeys.lists(), { filters }] as const,
+  detail: (id: number) => [...reminderKeys.all, "detail", id] as const,
 };

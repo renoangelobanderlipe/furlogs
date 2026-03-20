@@ -12,3 +12,23 @@ export function formatShortDate(dateStr: string | null | undefined): string {
     year: "numeric",
   });
 }
+
+/**
+ * Formats a YYYY-MM-DD due date as a relative label:
+ * "Overdue", "Today", "Tomorrow", or short date (e.g. "Mar 24").
+ */
+export function formatRelativeDueDate(dueDate: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [year, month, day] = dueDate.split("-");
+  const due = new Date(Number(year), Number(month) - 1, Number(day));
+  due.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round((due.getTime() - today.getTime()) / 86_400_000);
+
+  if (diffDays < 0) return "Overdue";
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Tomorrow";
+  return due.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}

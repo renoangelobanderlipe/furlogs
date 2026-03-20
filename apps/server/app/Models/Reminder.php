@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property bool $is_recurring
  * @property int|null $recurrence_days
  * @property ReminderStatus $status
+ * @property Carbon|null $last_notified_at
  * @property int|null $source_id
  * @property string|null $source_type
  * @property Carbon $created_at
@@ -33,7 +34,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  */
 #[Fillable([
     'household_id', 'pet_id', 'type', 'title', 'description',
-    'due_date', 'is_recurring', 'recurrence_days', 'status',
+    'due_date', 'is_recurring', 'recurrence_days', 'status', 'last_notified_at',
     'source_id', 'source_type',
 ])]
 class Reminder extends Model
@@ -51,6 +52,7 @@ class Reminder extends Model
             'status' => ReminderStatus::class,
             'due_date' => 'date',
             'is_recurring' => 'boolean',
+            'last_notified_at' => 'datetime',
         ];
     }
 
@@ -70,5 +72,20 @@ class Reminder extends Model
     public function source(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /**
+     * Calculate urgency based on days until due date.
+     * high = ≤3 days, medium = ≤7 days, low = beyond 7 days.
+     */
+    public function urgency(): string
+    {
+        $daysUntilDue = (int) now()->startOfDay()->diffInDays($this->due_date, false);
+
+        return match (true) {
+            $daysUntilDue <= 3 => 'high',
+            $daysUntilDue <= 7 => 'medium',
+            default => 'low',
+        };
     }
 }

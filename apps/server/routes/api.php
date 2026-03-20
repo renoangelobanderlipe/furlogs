@@ -10,8 +10,10 @@ use App\Http\Controllers\FoodProductController;
 use App\Http\Controllers\FoodStockItemController;
 use App\Http\Controllers\HouseholdController;
 use App\Http\Controllers\MedicationController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PetController;
 use App\Http\Controllers\PetWeightController;
+use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\VaccinationController;
 use App\Http\Controllers\VetClinicController;
 use App\Http\Controllers\VetVisitAttachmentController;
@@ -95,4 +97,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Medications
     Route::apiResource('medications', MedicationController::class);
+
+    // Reminders
+    Route::apiResource('reminders', ReminderController::class);
+    Route::patch('reminders/{reminder}/complete', [ReminderController::class, 'complete'])->name('reminders.complete');
+    Route::patch('reminders/{reminder}/snooze', [ReminderController::class, 'snooze'])->name('reminders.snooze');
+    Route::patch('reminders/{reminder}/dismiss', [ReminderController::class, 'dismiss'])->name('reminders.dismiss');
+
+    // Notifications — static routes must be before {notification} to avoid route conflict
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::post('notifications/mark-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('notifications/{notification}', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
 });

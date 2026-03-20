@@ -26,7 +26,7 @@ class LogBagCompletion
         }
 
         $actualDuration = ($item->opened_at !== null && $item->finished_at !== null)
-            ? (int) $item->opened_at->diffInDays($item->finished_at)
+            ? max(1, (int) $item->opened_at->diffInDays($item->finished_at))
             : 1;
 
         $unitWeightGrams = $product->unit_weight_grams ?? 0;

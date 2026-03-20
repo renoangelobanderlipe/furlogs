@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('food_stock_item_id')->constrained()->cascadeOnDelete();
             $table->integer('actual_duration_days');
             $table->integer('actual_daily_rate_grams');
-            $table->decimal('estimated_vs_actual_diff', 5, 2);
+            $table->decimal('estimated_vs_actual_diff', 10, 2);
             $table->timestamps();
         });
     }

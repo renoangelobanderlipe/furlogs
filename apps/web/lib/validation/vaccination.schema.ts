@@ -1,0 +1,40 @@
+import { z } from "zod";
+
+export const vaccinationSchema = z.object({
+  petId: z.number({ required_error: "Pet is required" }).positive(),
+  clinicId: z.number().positive().optional(),
+  vaccineName: z
+    .string()
+    .min(1, "Vaccine name is required")
+    .max(255, "Vaccine name is too long"),
+  administeredDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be a valid date (YYYY-MM-DD)"),
+  nextDueDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be a valid date (YYYY-MM-DD)")
+    .optional()
+    .or(z.literal("")),
+  vetName: z
+    .string()
+    .max(255, "Vet name is too long")
+    .optional()
+    .or(z.literal("")),
+  batchNumber: z
+    .string()
+    .max(100, "Batch number is too long")
+    .optional()
+    .or(z.literal("")),
+  notes: z
+    .string()
+    .max(5000, "Notes are too long")
+    .optional()
+    .or(z.literal("")),
+});
+
+export const vaccinationUpdateSchema = vaccinationSchema.partial();
+
+export type VaccinationFormValues = z.infer<typeof vaccinationSchema>;
+export type VaccinationUpdateFormValues = z.infer<
+  typeof vaccinationUpdateSchema
+>;

@@ -1,31 +1,26 @@
 "use client";
 
-import AttachFileIcon from "@mui/icons-material/AttachFile";
-import CloseIcon from "@mui/icons-material/Close";
-import DeleteIcon from "@mui/icons-material/Delete";
-import DownloadIcon from "@mui/icons-material/Download";
-import EditIcon from "@mui/icons-material/Edit";
-import ImageIcon from "@mui/icons-material/Image";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import UploadFileIcon from "@mui/icons-material/UploadFile";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import Typography from "@mui/material/Typography";
+import {
+  Download,
+  FileText,
+  Image,
+  Paperclip,
+  Pencil,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Separator } from "@/components/ui/separator";
 import {
   type VetVisit,
-  type VetVisitAttachment,
   VISIT_TYPE_COLOR,
   VISIT_TYPE_LABEL,
 } from "@/lib/api/vet-visits";
+import { cn } from "@/lib/utils";
 
 interface VisitDetailPanelProps {
   visit: VetVisit;
@@ -36,6 +31,15 @@ interface VisitDetailPanelProps {
   onClose: () => void;
   isDeleting?: boolean;
 }
+
+const VISIT_TYPE_BADGE_CLASS: Record<string, string> = {
+  info: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/20",
+  warning:
+    "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
+  success:
+    "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/20",
+  error: "bg-destructive/15 text-destructive border-destructive/20",
+};
 
 function formatDate(dateStr: string): string {
   const [year, month, day] = dateStr.split("-");
@@ -56,12 +60,12 @@ function formatFileSize(bytes: number): string {
 
 function AttachmentIcon({ mimeType }: { mimeType: string }) {
   if (mimeType === "application/pdf") {
-    return <PictureAsPdfIcon color="error" />;
+    return <FileText className="h-5 w-5 text-destructive" />;
   }
   if (mimeType.startsWith("image/")) {
-    return <ImageIcon color="primary" />;
+    return <Image className="h-5 w-5 text-primary" />;
   }
-  return <AttachFileIcon color="action" />;
+  return <Paperclip className="h-5 w-5 text-muted-foreground" />;
 }
 
 interface DetailRowProps {
@@ -72,21 +76,12 @@ interface DetailRowProps {
 function DetailRow({ label, value }: DetailRowProps) {
   if (!value) return null;
   return (
-    <Box mb={2}>
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        textTransform="uppercase"
-        letterSpacing={0.5}
-        display="block"
-        mb={0.25}
-      >
+    <div className="mb-4">
+      <p className="mb-0.5 block text-[11px] uppercase tracking-wide text-muted-foreground">
         {label}
-      </Typography>
-      <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-        {value}
-      </Typography>
-    </Box>
+      </p>
+      <p className="whitespace-pre-wrap text-sm">{value}</p>
+    </div>
   );
 }
 
@@ -113,10 +108,7 @@ export function VisitDetailPanel({
     vetName,
   } = visit.attributes;
 
-  const attachments =
-    (visit.relationships?.attachments?.data as
-      | VetVisitAttachment[]
-      | undefined) ?? [];
+  const attachments = visit.relationships?.attachments ?? [];
 
   const formattedCost = cost
     ? new Intl.NumberFormat("en-US", {
@@ -125,41 +117,32 @@ export function VisitDetailPanel({
       }).format(Number.parseFloat(cost))
     : null;
 
+  const visitTypeColor = VISIT_TYPE_COLOR[visitType];
+
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <div className="flex h-full flex-col">
       {/* Header */}
-      <Box
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        px={3}
-        py={2}
-        sx={{ borderBottom: "1px solid", borderColor: "divider" }}
-      >
-        <Box display="flex" alignItems="center" gap={1.5}>
-          <Chip
-            label={VISIT_TYPE_LABEL[visitType]}
-            color={VISIT_TYPE_COLOR[visitType]}
-            size="small"
-          />
-          <Typography variant="subtitle1" fontWeight={700}>
-            {reason}
-          </Typography>
-        </Box>
-        <IconButton size="small" onClick={onClose} aria-label="Close panel">
-          <CloseIcon />
-        </IconButton>
-      </Box>
+      <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <div className="flex items-center gap-3">
+          <Badge
+            className={cn("text-xs", VISIT_TYPE_BADGE_CLASS[visitTypeColor])}
+          >
+            {VISIT_TYPE_LABEL[visitType]}
+          </Badge>
+          <h2 className="text-sm font-bold">{reason}</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close panel"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
 
       {/* Body */}
-      <Box
-        sx={{
-          flexGrow: 1,
-          overflowY: "auto",
-          px: 3,
-          py: 2,
-        }}
-      >
+      <div className="flex-1 overflow-y-auto px-6 py-4">
         <DetailRow label="Visit date" value={formatDate(visitDate)} />
         {vetName && <DetailRow label="Veterinarian" value={vetName} />}
         {formattedCost && <DetailRow label="Cost" value={formattedCost} />}
@@ -170,116 +153,91 @@ export function VisitDetailPanel({
           <DetailRow label="Follow-up date" value={formatDate(followUpDate)} />
         )}
 
-        {(diagnosis || treatment || notes) && <Divider sx={{ my: 2 }} />}
+        {(diagnosis || treatment || notes) && <Separator className="my-4" />}
 
         <DetailRow label="Diagnosis" value={diagnosis} />
         <DetailRow label="Treatment" value={treatment} />
         <DetailRow label="Notes" value={notes} />
 
         {/* Attachments */}
-        <Divider sx={{ my: 2 }} />
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="space-between"
-          mb={1}
-        >
-          <Typography variant="subtitle2" fontWeight={600}>
+        <Separator className="my-4" />
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-sm font-semibold">
             Attachments ({attachments.length})
-          </Typography>
+          </h3>
           <Button
-            size="small"
-            startIcon={<UploadFileIcon />}
+            size="sm"
+            variant="ghost"
             onClick={onAddAttachment}
-            sx={{ minHeight: 32 }}
+            className="h-8 gap-1.5 text-xs"
           >
+            <Upload className="h-3.5 w-3.5" />
             Add file
           </Button>
-        </Box>
+        </div>
 
         {attachments.length === 0 ? (
-          <Typography variant="body2" color="text.disabled" fontStyle="italic">
-            No attachments
-          </Typography>
+          <p className="text-sm italic text-muted-foreground">No attachments</p>
         ) : (
-          <List dense disablePadding>
+          <div className="flex flex-col gap-2">
             {attachments.map((attachment) => (
-              <ListItem
+              <div
                 key={attachment.id}
-                disablePadding
-                sx={{
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 1,
-                  mb: 0.75,
-                  px: 1,
-                }}
-                secondaryAction={
-                  <Box display="flex" gap={0.5}>
-                    <IconButton
-                      size="small"
-                      component="a"
-                      href={attachment.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Download ${attachment.name}`}
-                    >
-                      <DownloadIcon fontSize="small" />
-                    </IconButton>
-                    {onRemoveAttachment && (
-                      <IconButton
-                        size="small"
-                        onClick={() => onRemoveAttachment(attachment.id)}
-                        aria-label={`Remove ${attachment.name}`}
-                        color="error"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    )}
-                  </Box>
-                }
+                className="flex items-center gap-2 rounded-md border border-border px-3 py-2"
               >
-                <ListItemIcon sx={{ minWidth: 36 }}>
-                  <AttachmentIcon mimeType={attachment.mimeType} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={attachment.name}
-                  secondary={formatFileSize(attachment.size)}
-                  primaryTypographyProps={{ variant: "body2", noWrap: true }}
-                  secondaryTypographyProps={{ variant: "caption" }}
-                />
-              </ListItem>
+                <AttachmentIcon mimeType={attachment.mimeType} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm">{attachment.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatFileSize(attachment.size)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <a
+                    href={attachment.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Download ${attachment.name}`}
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <Download className="h-4 w-4" />
+                  </a>
+                  {onRemoveAttachment && (
+                    <button
+                      type="button"
+                      onClick={() => onRemoveAttachment(attachment.id)}
+                      aria-label={`Remove ${attachment.name}`}
+                      className="flex h-8 w-8 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
             ))}
-          </List>
+          </div>
         )}
-      </Box>
+      </div>
 
       {/* Footer actions */}
-      <Box
-        display="flex"
-        gap={1}
-        px={3}
-        py={2}
-        sx={{ borderTop: "1px solid", borderColor: "divider" }}
-      >
+      <div className="flex gap-2 border-t border-border px-6 py-4">
         <Button
-          variant="outlined"
-          startIcon={<EditIcon />}
+          variant="outline"
           onClick={onEdit}
-          sx={{ flexGrow: 1, minHeight: 48 }}
+          className="min-h-[48px] flex-1 gap-2"
         >
+          <Pencil className="h-4 w-4" />
           Edit
         </Button>
         <Button
-          variant="outlined"
-          color="error"
-          startIcon={<DeleteIcon />}
+          variant="outline"
           onClick={() => setConfirmDeleteOpen(true)}
-          sx={{ flexGrow: 1, minHeight: 48 }}
+          className="min-h-[48px] flex-1 gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
+          <Trash2 className="h-4 w-4" />
           Delete
         </Button>
-      </Box>
+      </div>
 
       <ConfirmDialog
         open={confirmDeleteOpen}
@@ -293,6 +251,6 @@ export function VisitDetailPanel({
         onCancel={() => setConfirmDeleteOpen(false)}
         isLoading={isDeleting}
       />
-    </Box>
+    </div>
   );
 }

@@ -1,34 +1,32 @@
 "use client";
 
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CakeIcon from "@mui/icons-material/Cake";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import FemaleIcon from "@mui/icons-material/Female";
-import MaleIcon from "@mui/icons-material/Male";
-import MonitorWeightIcon from "@mui/icons-material/MonitorWeight";
-import PetsIcon from "@mui/icons-material/Pets";
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import Breadcrumbs from "@mui/material/Breadcrumbs";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import Divider from "@mui/material/Divider";
-import Grid from "@mui/material/Grid";
-import IconButton from "@mui/material/IconButton";
-import Link from "@mui/material/Link";
-import Skeleton from "@mui/material/Skeleton";
-import Typography from "@mui/material/Typography";
+import {
+  ArrowLeft,
+  Cake,
+  PawPrint,
+  Pencil,
+  Scale,
+  Trash2,
+  User,
+} from "lucide-react";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useState } from "react";
 import { PetForm } from "@/components/pets/PetForm";
 import { PetWeightChart } from "@/components/pets/PetWeightChart";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { StatCard } from "@/components/ui/StatCard";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useDeletePet, usePet, useUpdatePet } from "@/hooks/api/usePets";
 import type { PetFormValues } from "@/lib/validation/pet.schema";
 
@@ -66,37 +64,38 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
 
   if (isLoading) {
     return (
-      <Box>
-        <Skeleton variant="text" width={240} height={28} sx={{ mb: 2 }} />
-        <Box display="flex" gap={3} mb={4} alignItems="center">
-          <Skeleton variant="circular" width={96} height={96} />
-          <Box>
-            <Skeleton variant="text" width={180} height={40} />
-            <Skeleton variant="text" width={120} height={24} />
-          </Box>
-        </Box>
-        <Grid container spacing={2}>
+      <div>
+        <Skeleton className="mb-4 h-5 w-60" />
+        <div className="mb-6 flex items-center gap-6">
+          <Skeleton className="h-24 w-24 rounded-full" />
+          <div>
+            <Skeleton className="mb-1 h-9 w-44" />
+            <Skeleton className="h-5 w-28" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: skeleton list
-            <Grid key={i} size={{ xs: 6, md: 3 }}>
-              <Skeleton variant="rounded" height={80} />
-            </Grid>
+            <Skeleton key={i} className="h-20 rounded-xl" />
           ))}
-        </Grid>
-      </Box>
+        </div>
+      </div>
     );
   }
 
   if (isError || !pet) {
     return (
-      <Box textAlign="center" py={8}>
-        <Typography variant="h6" color="error" gutterBottom>
+      <div className="py-16 text-center">
+        <h2 className="mb-3 text-lg font-semibold text-destructive">
           Pet not found
-        </Typography>
-        <Button component={NextLink} href="/pets" startIcon={<ArrowBackIcon />}>
-          Back to pets
+        </h2>
+        <Button asChild variant="outline" className="gap-2">
+          <NextLink href="/pets">
+            <ArrowLeft className="h-4 w-4" />
+            Back to pets
+          </NextLink>
         </Button>
-      </Box>
+      </div>
     );
   }
 
@@ -125,168 +124,128 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
     : "—";
 
   return (
-    <Box>
+    <div>
       {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 2 }}>
-        <Link component={NextLink} href="/" underline="hover" color="inherit">
+      <nav
+        aria-label="breadcrumb"
+        className="mb-4 flex items-center gap-2 text-sm text-muted-foreground"
+      >
+        <NextLink href="/" className="hover:text-foreground">
           Dashboard
-        </Link>
-        <Link
-          component={NextLink}
-          href="/pets"
-          underline="hover"
-          color="inherit"
-        >
+        </NextLink>
+        <span>/</span>
+        <NextLink href="/pets" className="hover:text-foreground">
           Pets
-        </Link>
-        <Typography color="text.primary">{name}</Typography>
-      </Breadcrumbs>
+        </NextLink>
+        <span>/</span>
+        <span className="text-foreground">{name}</span>
+      </nav>
 
       {/* Back button */}
-      <Button
-        component={NextLink}
-        href="/pets"
-        startIcon={<ArrowBackIcon />}
-        sx={{ mb: 3 }}
-        size="small"
-      >
-        Back to pets
+      <Button asChild variant="ghost" size="sm" className="mb-4 gap-2">
+        <NextLink href="/pets">
+          <ArrowLeft className="h-4 w-4" />
+          Back to pets
+        </NextLink>
       </Button>
 
       {/* Hero section */}
-      <Box
-        display="flex"
-        flexDirection={{ xs: "column", sm: "row" }}
-        gap={3}
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        mb={4}
-      >
-        <Avatar
-          src={avatarUrl ?? undefined}
-          sx={{
-            width: 96,
-            height: 96,
-            fontSize: 48,
-            bgcolor: "action.hover",
-          }}
-        >
-          {!avatarUrl && (species === "dog" ? "🐶" : "🐱")}
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+        <Avatar className="h-24 w-24 text-4xl">
+          {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
+          <AvatarFallback className="text-3xl">
+            {!avatarUrl && (species === "dog" ? "🐶" : "🐱")}
+          </AvatarFallback>
         </Avatar>
 
-        <Box flexGrow={1}>
-          <Typography variant="h4" fontWeight={800} gutterBottom>
+        <div className="flex-1">
+          <h1 className="mb-1 text-3xl font-extrabold tracking-tight">
             {name}
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
+          </h1>
+          <p className="text-muted-foreground">
             {[species.charAt(0).toUpperCase() + species.slice(1), breed]
               .filter(Boolean)
               .join(" · ")}
-          </Typography>
-          <Box display="flex" gap={1} mt={1} flexWrap="wrap">
-            <Chip
-              icon={sex === "male" ? <MaleIcon /> : <FemaleIcon />}
-              label={sex.charAt(0).toUpperCase() + sex.slice(1)}
-              size="small"
-              variant="outlined"
-            />
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <Badge variant="outline">
+              {sex.charAt(0).toUpperCase() + sex.slice(1)}
+            </Badge>
             {isNeutered && (
-              <Chip
-                label="Neutered"
-                size="small"
-                variant="outlined"
-                color="info"
-              />
+              <Badge
+                variant="outline"
+                className="border-blue-500/20 text-blue-600 dark:text-blue-400"
+              >
+                Neutered
+              </Badge>
             )}
             {size && (
-              <Chip
-                label={size.charAt(0).toUpperCase() + size.slice(1)}
-                size="small"
-                variant="outlined"
-                color="secondary"
-              />
+              <Badge variant="outline">
+                {size.charAt(0).toUpperCase() + size.slice(1)}
+              </Badge>
             )}
-          </Box>
-        </Box>
+          </div>
+        </div>
 
-        <Box display="flex" gap={1}>
-          <IconButton
+        <div className="flex gap-2">
+          <button
+            type="button"
             onClick={() => setIsEditDialogOpen(true)}
             aria-label="Edit pet"
-            sx={{ minWidth: 48, minHeight: 48 }}
+            className="flex h-12 w-12 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
-            <EditIcon />
-          </IconButton>
-          {/* TODO: hide for non-owners once role is exposed on GET /api/user — backend returns 403 in the meantime */}
-          <IconButton
+            <Pencil className="h-5 w-5" />
+          </button>
+          {/* TODO: hide for non-owners once role is exposed on GET /api/user */}
+          <button
+            type="button"
             onClick={() => setIsDeleteDialogOpen(true)}
             aria-label="Delete pet"
-            color="error"
-            sx={{ minWidth: 48, minHeight: 48 }}
+            className="flex h-12 w-12 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
           >
-            <DeleteIcon />
-          </IconButton>
-        </Box>
-      </Box>
+            <Trash2 className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
 
       {/* Info stats */}
-      <Grid container spacing={2} mb={4}>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <StatCard label="Age" value={ageDisplay} icon={<PetsIcon />} />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <StatCard
-            label="Birthday"
-            value={birthdayDisplay}
-            icon={<CakeIcon />}
-          />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <StatCard
-            label="Sex"
-            value={sex.charAt(0).toUpperCase() + sex.slice(1)}
-            icon={sex === "male" ? <MaleIcon /> : <FemaleIcon />}
-          />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
-          <StatCard
-            label="Size"
-            value={size ? size.charAt(0).toUpperCase() + size.slice(1) : "—"}
-            icon={<MonitorWeightIcon />}
-          />
-        </Grid>
-      </Grid>
+      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <StatCard label="Age" value={ageDisplay} icon={<PawPrint />} />
+        <StatCard label="Birthday" value={birthdayDisplay} icon={<Cake />} />
+        <StatCard
+          label="Sex"
+          value={sex.charAt(0).toUpperCase() + sex.slice(1)}
+          icon={<User />}
+        />
+        <StatCard
+          label="Size"
+          value={size ? size.charAt(0).toUpperCase() + size.slice(1) : "—"}
+          icon={<Scale />}
+        />
+      </div>
 
       {/* Notes */}
       {notes && (
-        <Box mb={4}>
-          <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-            Notes
-          </Typography>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ whiteSpace: "pre-wrap" }}
-          >
+        <div className="mb-6">
+          <h2 className="mb-1 text-sm font-semibold">Notes</h2>
+          <p className="whitespace-pre-wrap text-sm text-muted-foreground">
             {notes}
-          </Typography>
-          <Divider sx={{ mt: 3 }} />
-        </Box>
+          </p>
+          <Separator className="mt-4" />
+        </div>
       )}
 
       {/* Weight chart */}
-      <Box mb={4}>
+      <div className="mb-6">
         <PetWeightChart petId={id} />
-      </Box>
+      </div>
 
       {/* Edit dialog */}
-      <Dialog
-        open={isEditDialogOpen}
-        onClose={() => setIsEditDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Edit {name}</DialogTitle>
-        <DialogContent sx={{ pt: 1 }}>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit {name}</DialogTitle>
+          </DialogHeader>
           <PetForm
             defaultValues={{
               name,
@@ -315,6 +274,6 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
         onCancel={() => setIsDeleteDialogOpen(false)}
         isLoading={deletePet.isPending}
       />
-    </Box>
+    </div>
   );
 }

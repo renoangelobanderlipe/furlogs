@@ -1,121 +1,103 @@
 "use client";
 
-import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardActionArea from "@mui/material/CardActionArea";
-import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
-import Typography from "@mui/material/Typography";
 import type { Pet } from "@/lib/api/pets";
+import { SPECIES_EMOJI } from "@/lib/constants";
+
+function formatAge(birthday: string | null, age: number | null): string {
+  if (age !== null) return age === 1 ? "1 year" : `${age} years`;
+  if (!birthday) return "—";
+  const birth = new Date(birthday);
+  const now = new Date();
+  const totalMonths =
+    (now.getFullYear() - birth.getFullYear()) * 12 +
+    (now.getMonth() - birth.getMonth());
+  if (totalMonths < 12)
+    return totalMonths <= 1 ? "1 month" : `${totalMonths} months`;
+  const yr = Math.floor(totalMonths / 12);
+  return yr === 1 ? "1 year" : `${yr} years`;
+}
 
 interface PetCardProps {
   pet: Pet;
-  onClick?: () => void;
+  animationIndex?: number;
+  onViewProfile: () => void;
 }
 
-function getSpeciesEmoji(species: string): string {
-  return species === "dog" ? "🐶" : "🐱";
-}
-
-function formatAge(birthday: string | null, age: number | null): string {
-  if (age !== null) {
-    return age === 1 ? "1 year" : `${age} years`;
-  }
-  if (!birthday) return "—";
-  return "—";
-}
-
-export function PetCard({ pet, onClick }: PetCardProps) {
-  const { name, species, breed, sex, birthday, age, size, thumbUrl } =
-    pet.attributes;
-  const ageStr = formatAge(birthday, age);
+export function PetCard({
+  pet,
+  animationIndex = 0,
+  onViewProfile,
+}: PetCardProps) {
+  const {
+    name,
+    species,
+    sex,
+    breed,
+    birthday,
+    age,
+    size,
+    latestWeightKg,
+    thumbUrl,
+  } = pet.attributes;
 
   return (
-    <Card
-      variant="outlined"
-      sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+    <div
+      className="group rounded-lg border border-border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 animate-fade-in-up cursor-pointer active:scale-[0.98]"
+      style={{ animationDelay: `${animationIndex * 80}ms` }}
     >
-      <CardActionArea
-        onClick={onClick}
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "stretch",
-        }}
+      <div className="flex items-center gap-4 mb-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl shrink-0 overflow-hidden">
+          {thumbUrl ? (
+            // biome-ignore lint/performance/noImgElement: external storage URL, next/image requires domain allowlist config
+            <img
+              src={thumbUrl}
+              alt={name}
+              className="h-14 w-14 object-cover rounded-full"
+            />
+          ) : (
+            (SPECIES_EMOJI[species] ?? "🐾")
+          )}
+        </div>
+        <div className="min-w-0">
+          <h3 className="font-semibold text-lg truncate">{name}</h3>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium capitalize">
+              {species}
+            </span>
+            <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium capitalize">
+              {sex}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <p className="text-xs text-muted-foreground">Age</p>
+          <p className="font-medium">{formatAge(birthday, age)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Weight</p>
+          <p className="font-medium">
+            {latestWeightKg != null ? `${latestWeightKg} kg` : "—"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Breed</p>
+          <p className="font-medium truncate">{breed || "—"}</p>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Size</p>
+          <p className="font-medium capitalize">{size || "—"}</p>
+        </div>
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full mt-4 group-hover:border-primary/40 group-hover:text-primary transition-colors"
+        onClick={onViewProfile}
       >
-        <CardContent sx={{ flexGrow: 1 }}>
-          <Box display="flex" gap={2} alignItems="flex-start">
-            <Avatar
-              src={thumbUrl ?? undefined}
-              sx={{
-                width: 56,
-                height: 56,
-                fontSize: 28,
-                bgcolor: "action.hover",
-                flexShrink: 0,
-              }}
-            >
-              {!thumbUrl && getSpeciesEmoji(species)}
-            </Avatar>
-
-            <Box flexGrow={1} minWidth={0}>
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                noWrap
-                sx={{ lineHeight: 1.3 }}
-              >
-                {name}
-              </Typography>
-              {breed ? (
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  noWrap
-                  sx={{ mb: 1 }}
-                >
-                  {breed}
-                </Typography>
-              ) : (
-                <Typography
-                  variant="body2"
-                  color="text.disabled"
-                  sx={{ mb: 1 }}
-                >
-                  {species.charAt(0).toUpperCase() + species.slice(1)}
-                </Typography>
-              )}
-
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                display="block"
-                mb={1}
-              >
-                {ageStr}
-              </Typography>
-
-              <Box display="flex" gap={0.5} flexWrap="wrap">
-                <Chip
-                  label={sex.charAt(0).toUpperCase() + sex.slice(1)}
-                  size="small"
-                  variant="outlined"
-                />
-                {size && (
-                  <Chip
-                    label={size.charAt(0).toUpperCase() + size.slice(1)}
-                    size="small"
-                    variant="outlined"
-                    color="secondary"
-                  />
-                )}
-              </Box>
-            </Box>
-          </Box>
-        </CardContent>
-      </CardActionArea>
-    </Card>
+        View Profile
+      </Button>
+    </div>
   );
 }

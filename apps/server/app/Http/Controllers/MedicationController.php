@@ -27,12 +27,12 @@ class MedicationController extends Controller
             ->when($request->integer('pet_id'), fn ($q, $petId) => $q->where('pet_id', $petId))
             ->when($request->integer('vet_visit_id'), fn ($q, $visitId) => $q->where('vet_visit_id', $visitId))
             ->orderBy('start_date', 'desc')
-            ->paginate(20);
+            ->paginate((int) $request->query('per_page', 5));
 
         return MedicationResource::collection($medications);
     }
 
-    public function show(Request $request, Medication $medication): MedicationResource
+    public function show(Medication $medication): MedicationResource
     {
         $this->authorize('view', $medication);
 

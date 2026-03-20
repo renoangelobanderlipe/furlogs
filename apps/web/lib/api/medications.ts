@@ -17,12 +17,13 @@ export interface MedicationFilters {
   petId?: number;
   vetVisitId?: number;
   page?: number;
+  per_page?: number;
 }
 
 export const medicationEndpoints = {
   list: (filters?: MedicationFilters) =>
     apiClient.get<PaginatedResponse<Medication>>("/api/medications", {
-      params: filters,
+      params: { ...filters, include: "pet" },
     }),
 
   get: (id: number) =>

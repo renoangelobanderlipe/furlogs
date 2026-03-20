@@ -1,23 +1,28 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardActionArea from "@mui/material/CardActionArea";
-import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
-import Typography from "@mui/material/Typography";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   VACCINATION_STATUS_COLOR,
   VACCINATION_STATUS_LABEL,
   type Vaccination,
 } from "@/lib/api/vaccinations";
 import { formatShortDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 interface VaccinationCardProps {
   vaccination: Vaccination;
   petName?: string;
   onClick?: () => void;
 }
+
+const STATUS_BADGE_CLASS: Record<string, string> = {
+  success:
+    "bg-green-500/15 text-green-700 dark:text-green-400 border-green-500/20",
+  warning:
+    "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
+  error: "bg-destructive/15 text-destructive border-destructive/20",
+};
 
 export function VaccinationCard({
   vaccination,
@@ -27,92 +32,62 @@ export function VaccinationCard({
   const { vaccineName, administeredDate, nextDueDate, vetName, status } =
     vaccination.attributes;
 
+  const statusColor = status ? VACCINATION_STATUS_COLOR[status] : null;
+  const statusLabel = status ? VACCINATION_STATUS_LABEL[status] : null;
+
   return (
     <Card
-      variant="outlined"
-      sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+      className={cn(
+        "flex h-full flex-col",
+        onClick && "cursor-pointer transition-colors hover:bg-accent/30",
+      )}
+      onClick={onClick}
     >
-      <CardActionArea
-        onClick={onClick}
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "stretch",
-        }}
-      >
-        <CardContent sx={{ flexGrow: 1 }}>
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="flex-start"
-            mb={1}
-          >
-            <Typography variant="body1" fontWeight={700} noWrap sx={{ mr: 1 }}>
-              {vaccineName}
-            </Typography>
-            {status && (
-              <Chip
-                label={VACCINATION_STATUS_LABEL[status]}
-                color={VACCINATION_STATUS_COLOR[status]}
-                size="small"
-                variant="filled"
-                sx={{ flexShrink: 0 }}
-              />
-            )}
-          </Box>
-
-          {petName && (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              display="block"
-              mb={1}
+      <CardContent className="flex flex-1 flex-col p-4">
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <p className="truncate text-sm font-bold">{vaccineName}</p>
+          {status && statusColor && statusLabel && (
+            <Badge
+              className={cn(
+                "flex-shrink-0 text-xs",
+                STATUS_BADGE_CLASS[statusColor],
+              )}
             >
-              {petName}
-            </Typography>
+              {statusLabel}
+            </Badge>
           )}
+        </div>
 
-          <Box display="flex" flexDirection="column" gap={0.5}>
-            <Box display="flex" justifyContent="space-between">
-              <Typography variant="caption" color="text.secondary">
-                Administered
-              </Typography>
-              <Typography variant="caption">
-                {formatShortDate(administeredDate)}
-              </Typography>
-            </Box>
-            <Box display="flex" justifyContent="space-between">
-              <Typography variant="caption" color="text.secondary">
-                Next due
-              </Typography>
-              <Typography
-                variant="caption"
-                color={
-                  status === "overdue"
-                    ? "error.main"
-                    : status === "due_soon"
-                      ? "warning.main"
-                      : "text.primary"
-                }
-              >
-                {formatShortDate(nextDueDate)}
-              </Typography>
-            </Box>
-          </Box>
+        {petName && (
+          <p className="mb-2 block text-xs text-muted-foreground">{petName}</p>
+        )}
 
-          {vetName && (
-            <Typography
-              variant="caption"
-              color="text.disabled"
-              display="block"
-              mt={1}
+        <div className="flex flex-col gap-1">
+          <div className="flex justify-between">
+            <span className="text-xs text-muted-foreground">Administered</span>
+            <span className="text-xs">{formatShortDate(administeredDate)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-xs text-muted-foreground">Next due</span>
+            <span
+              className={cn(
+                "text-xs",
+                status === "overdue"
+                  ? "text-destructive"
+                  : status === "due_soon"
+                    ? "text-yellow-600 dark:text-yellow-400"
+                    : "text-foreground",
+              )}
             >
-              Dr. {vetName}
-            </Typography>
-          )}
-        </CardContent>
-      </CardActionArea>
+              {formatShortDate(nextDueDate)}
+            </span>
+          </div>
+        </div>
+
+        {vetName && (
+          <p className="mt-2 text-xs text-muted-foreground/70">Dr. {vetName}</p>
+        )}
+      </CardContent>
     </Card>
   );
 }

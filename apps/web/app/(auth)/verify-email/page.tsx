@@ -1,13 +1,10 @@
 "use client";
 
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Typography from "@mui/material/Typography";
+import { CheckCircle, Loader2, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { authEndpoints } from "@/lib/api/endpoints";
 
 export default function VerifyEmailPage() {
@@ -28,32 +25,36 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <Card sx={{ width: "100%", maxWidth: 480 }}>
-      <CardContent sx={{ p: 4, textAlign: "center" }}>
-        <Box fontSize="3rem" mb={2}>
-          📬
-        </Box>
-        <Typography variant="h5" fontWeight={700} mb={1}>
-          Verify your email
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mb={3}>
+    <Card className="w-full max-w-md animate-fade-in-up">
+      <CardContent className="p-6 text-center">
+        <div className="mb-4 flex justify-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <Mail className="h-8 w-8 text-primary" />
+          </div>
+        </div>
+        <h1 className="text-2xl font-bold mb-2">Verify your email</h1>
+        <p className="text-sm text-muted-foreground mb-6">
           We&apos;ve sent a verification link to your email address. Click the
           link to activate your account before continuing.
-        </Typography>
+        </p>
 
         {resent && (
-          <Alert severity="success" sx={{ mb: 2, textAlign: "left" }}>
-            A new verification link has been sent to your email.
-          </Alert>
+          <div className="mb-4 flex items-center gap-2 rounded-md bg-success/10 border border-success/30 px-3 py-2 text-left">
+            <CheckCircle className="h-4 w-4 text-success shrink-0" />
+            <p className="text-sm text-success">
+              A new verification link has been sent to your email.
+            </p>
+          </div>
         )}
 
         <Button
-          variant="outlined"
-          fullWidth
+          variant="outline"
+          className="w-full"
           onClick={handleResend}
           disabled={isSending || resent}
         >
-          {isSending ? "Sending…" : "Resend verification email"}
+          {isSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSending ? "Sending..." : "Resend verification email"}
         </Button>
       </CardContent>
     </Card>

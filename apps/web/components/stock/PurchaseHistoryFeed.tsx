@@ -1,28 +1,38 @@
 "use client";
 
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
-import Skeleton from "@mui/material/Skeleton";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-
+import { CheckCircle2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { FoodStockItem, StockStatus } from "@/lib/api/food-stock";
+import { formatCurrency } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 interface PurchaseHistoryFeedProps {
   items: FoodStockItem[];
   isLoading: boolean;
 }
 
-const STATUS_CHIP_MAP: Record<
+const STATUS_BADGE_MAP: Record<
   StockStatus,
-  { label: string; color: "default" | "success" | "warning" | "info" }
+  { label: string; className: string }
 > = {
-  sealed: { label: "Sealed", color: "info" },
-  open: { label: "Open", color: "warning" },
-  finished: { label: "Finished", color: "success" },
+  sealed: {
+    label: "Sealed",
+    className:
+      "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
+  },
+  open: {
+    label: "Open",
+    className:
+      "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
+  },
+  finished: {
+    label: "Finished",
+    className:
+      "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
+  },
 };
 
 function formatDate(dateStr: string): string {
@@ -33,117 +43,91 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "PHP",
-  }).format(amount);
-}
-
 interface HistoryItemRowProps {
   item: FoodStockItem;
 }
 
 function HistoryItemRow({ item }: HistoryItemRowProps) {
   const attr = item.attributes;
-  const product = attr.foodProduct;
-  const statusConfig = STATUS_CHIP_MAP[attr.status];
+  const product = item.relationships?.foodProduct;
+  const statusConfig = STATUS_BADGE_MAP[attr.status];
 
   return (
-    <Box>
-      <Box
-        display="flex"
-        alignItems="flex-start"
-        gap={2}
-        py={1.5}
-        flexWrap={{ xs: "wrap", sm: "nowrap" }}
-      >
+    <div>
+      <div className="flex flex-wrap items-start gap-3 py-3 sm:flex-nowrap">
         {/* Date column */}
-        <Box sx={{ minWidth: 90, flexShrink: 0 }}>
-          <Typography variant="caption" color="text.secondary">
+        <div className="w-24 flex-shrink-0">
+          <p className="text-xs text-muted-foreground">
             {formatDate(attr.purchasedAt)}
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
         {/* Main content */}
-        <Box flexGrow={1}>
-          <Box
-            display="flex"
-            alignItems="center"
-            gap={1}
-            flexWrap="wrap"
-            mb={0.25}
-          >
-            <Typography variant="body2" fontWeight={600}>
+        <div className="flex-1 min-w-0">
+          <div className="mb-0.5 flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold">
               {product?.attributes.name ?? `Product #${attr.foodProductId}`}
-            </Typography>
+            </p>
             {product?.attributes.brand && (
-              <Typography variant="caption" color="text.secondary">
+              <span className="text-xs text-muted-foreground">
                 — {product.attributes.brand}
-              </Typography>
+              </span>
             )}
             {attr.quantity > 1 && (
-              <Chip
-                label={`×${attr.quantity}`}
-                size="small"
-                variant="outlined"
-              />
+              <Badge variant="outline" className="text-xs">
+                &times;{attr.quantity}
+              </Badge>
             )}
-          </Box>
+          </div>
 
-          <Box display="flex" gap={2} flexWrap="wrap">
+          <div className="flex flex-wrap gap-4">
             {attr.purchaseCost != null && (
-              <Typography variant="caption" color="text.secondary">
+              <span className="text-xs text-muted-foreground">
                 Cost: {formatCurrency(attr.purchaseCost)}
-              </Typography>
+              </span>
             )}
             {attr.purchaseSource && (
-              <Typography variant="caption" color="text.secondary">
+              <span className="text-xs text-muted-foreground">
                 From: {attr.purchaseSource}
-              </Typography>
+              </span>
             )}
             {attr.finishedAt && attr.openedAt && (
-              <Box display="flex" alignItems="center" gap={0.5}>
-                <CheckCircleIcon sx={{ fontSize: 14, color: "success.main" }} />
-                <Typography variant="caption" color="success.main">
-                  Finished {formatDate(attr.finishedAt)}
-                </Typography>
-              </Box>
+              <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Finished {formatDate(attr.finishedAt)}
+              </span>
             )}
-          </Box>
-        </Box>
+          </div>
+        </div>
 
         {/* Status badge */}
-        <Box sx={{ flexShrink: 0 }}>
-          <Chip
-            label={statusConfig.label}
-            color={statusConfig.color}
-            size="small"
-            variant="outlined"
-          />
-        </Box>
-      </Box>
-      <Divider />
-    </Box>
+        <div className="flex-shrink-0">
+          <Badge className={cn("text-xs", statusConfig.className)}>
+            {statusConfig.label}
+          </Badge>
+        </div>
+      </div>
+      <Separator />
+    </div>
   );
 }
 
 function SkeletonRows() {
   return (
-    <Stack>
+    <div>
       {Array.from({ length: 5 }).map((_, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: skeleton has no stable id
-        <Box key={i} py={1.5}>
-          <Box display="flex" gap={2} mb={0.5}>
-            <Skeleton variant="text" width={80} />
-            <Skeleton variant="text" width={160} />
-            <Skeleton variant="rounded" width={60} height={20} />
-          </Box>
-          <Skeleton variant="text" width={200} />
-          <Divider sx={{ mt: 1.5 }} />
-        </Box>
+        <div key={i} className="py-3">
+          <div className="mb-1 flex gap-3">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </div>
+          <Skeleton className="h-4 w-48" />
+          <Separator className="mt-3" />
+        </div>
       ))}
-    </Stack>
+    </div>
   );
 }
 
@@ -164,7 +148,6 @@ export function PurchaseHistoryFeed({
     );
   }
 
-  // Sort chronologically descending
   const sorted = [...items].sort(
     (a, b) =>
       new Date(b.attributes.purchasedAt).getTime() -
@@ -172,11 +155,11 @@ export function PurchaseHistoryFeed({
   );
 
   return (
-    <Box>
-      <Divider />
+    <div>
+      <Separator />
       {sorted.map((item) => (
         <HistoryItemRow key={item.id} item={item} />
       ))}
-    </Box>
+    </div>
   );
 }

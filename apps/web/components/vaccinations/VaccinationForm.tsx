@@ -1,15 +1,25 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import FormControl from "@mui/material/FormControl";
-import FormHelperText from "@mui/material/FormHelperText";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import TextField from "@mui/material/TextField";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { usePets } from "@/hooks/api/usePets";
 import {
   type VaccinationFormValues,
@@ -32,12 +42,7 @@ export function VaccinationForm({
   const { data: petsData } = usePets();
   const pets = petsData?.data ?? [];
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm<VaccinationFormValues>({
+  const form = useForm<VaccinationFormValues>({
     resolver: zodResolver(vaccinationSchema),
     defaultValues: {
       vaccineName: "",
@@ -51,115 +56,157 @@ export function VaccinationForm({
   });
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      display="flex"
-      flexDirection="column"
-      gap={2.5}
-    >
-      <Controller
-        name="petId"
-        control={control}
-        render={({ field }) => (
-          <FormControl fullWidth error={!!errors.petId} required>
-            <InputLabel id="vax-pet-label">Pet</InputLabel>
-            <Select
-              {...field}
-              value={field.value ?? ""}
-              labelId="vax-pet-label"
-              label="Pet"
-              onChange={(e) => field.onChange(Number(e.target.value))}
-            >
-              {pets.map((pet) => (
-                <MenuItem key={pet.id} value={pet.id}>
-                  {pet.attributes.name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.petId && (
-              <FormHelperText>{errors.petId.message}</FormHelperText>
-            )}
-          </FormControl>
-        )}
-      />
-
-      <TextField
-        {...register("vaccineName")}
-        label="Vaccine name"
-        fullWidth
-        required
-        error={!!errors.vaccineName}
-        helperText={errors.vaccineName?.message}
-        inputProps={{ "aria-label": "Vaccine name" }}
-      />
-
-      <TextField
-        {...register("administeredDate")}
-        label="Administered date"
-        type="date"
-        fullWidth
-        required
-        InputLabelProps={{ shrink: true }}
-        error={!!errors.administeredDate}
-        helperText={errors.administeredDate?.message}
-        inputProps={{ "aria-label": "Administered date" }}
-      />
-
-      <TextField
-        {...register("nextDueDate")}
-        label="Next due date"
-        type="date"
-        fullWidth
-        InputLabelProps={{ shrink: true }}
-        error={!!errors.nextDueDate}
-        helperText={errors.nextDueDate?.message ?? "Optional"}
-        inputProps={{ "aria-label": "Next due date" }}
-      />
-
-      <TextField
-        {...register("vetName")}
-        label="Veterinarian name"
-        fullWidth
-        placeholder="Optional"
-        error={!!errors.vetName}
-        helperText={errors.vetName?.message}
-        inputProps={{ "aria-label": "Veterinarian name" }}
-      />
-
-      <TextField
-        {...register("batchNumber")}
-        label="Batch number"
-        fullWidth
-        placeholder="Optional"
-        error={!!errors.batchNumber}
-        helperText={errors.batchNumber?.message}
-        inputProps={{ "aria-label": "Batch number" }}
-      />
-
-      <TextField
-        {...register("notes")}
-        label="Notes"
-        fullWidth
-        multiline
-        rows={3}
-        placeholder="Optional"
-        error={!!errors.notes}
-        helperText={errors.notes?.message}
-        inputProps={{ "aria-label": "Notes" }}
-      />
-
-      <Button
-        type="submit"
-        variant="contained"
-        size="large"
-        fullWidth
-        disabled={isLoading}
-        sx={{ minHeight: 48 }}
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        noValidate
+        className="flex flex-col gap-5"
       >
-        {isLoading ? "Saving…" : submitLabel}
-      </Button>
-    </Box>
+        <FormField
+          control={form.control}
+          name="petId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Pet <span className="text-destructive">*</span>
+              </FormLabel>
+              <Select
+                value={field.value ? String(field.value) : ""}
+                onValueChange={(v) => field.onChange(Number(v))}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a pet" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {pets.map((pet) => (
+                    <SelectItem key={pet.id} value={String(pet.id)}>
+                      {pet.attributes.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="vaccineName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Vaccine name <span className="text-destructive">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input {...field} aria-label="Vaccine name" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="administeredDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Administered date <span className="text-destructive">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input {...field} type="date" aria-label="Administered date" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="nextDueDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Next due date</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  type="date"
+                  aria-label="Next due date"
+                  placeholder="Optional"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="vetName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Veterinarian name</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  aria-label="Veterinarian name"
+                  placeholder="Optional"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="batchNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Batch number</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  aria-label="Batch number"
+                  placeholder="Optional"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="notes"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Notes</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  rows={3}
+                  aria-label="Notes"
+                  placeholder="Optional"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full min-h-[48px]"
+          disabled={isLoading}
+        >
+          {isLoading ? "Saving\u2026" : submitLabel}
+        </Button>
+      </form>
+    </Form>
   );
 }

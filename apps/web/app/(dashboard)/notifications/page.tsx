@@ -1,22 +1,18 @@
 "use client";
 
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
-import MedicationIcon from "@mui/icons-material/Medication";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import VaccinesIcon from "@mui/icons-material/Vaccines";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import Skeleton from "@mui/material/Skeleton";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
+import {
+  Bell,
+  CheckCheck,
+  Hospital,
+  Package,
+  Pill,
+  Syringe,
+} from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   useMarkAllRead,
   useMarkRead,
@@ -26,20 +22,21 @@ import type {
   AppNotification,
   NotificationType,
 } from "@/lib/api/notifications";
+import { cn } from "@/lib/utils";
 
 function getNotificationIcon(type: NotificationType) {
   switch (type) {
     case "vaccination_reminder":
-      return <VaccinesIcon />;
+      return <Syringe className="h-5 w-5" />;
     case "medication_reminder":
-      return <MedicationIcon />;
+      return <Pill className="h-5 w-5" />;
     case "vet_follow_up":
-      return <LocalHospitalIcon />;
+      return <Hospital className="h-5 w-5" />;
     case "low_stock":
     case "critical_stock":
-      return <InventoryIcon />;
+      return <Package className="h-5 w-5" />;
     default:
-      return <NotificationsNoneIcon />;
+      return <Bell className="h-5 w-5" />;
   }
 }
 
@@ -54,68 +51,53 @@ function formatDate(dateStr: string): string {
 }
 
 function NotificationRow({ notification }: { notification: AppNotification }) {
-  const theme = useTheme();
   const markRead = useMarkRead();
   const isUnread = notification.readAt === null;
 
   return (
-    <ListItem
-      alignItems="flex-start"
-      sx={{
-        borderLeft: isUnread
-          ? `4px solid ${theme.palette.primary.main}`
-          : "4px solid transparent",
-        bgcolor: isUnread ? "action.hover" : "transparent",
-        borderRadius: 1,
-        mb: 0.5,
-        cursor: isUnread ? "pointer" : "default",
-        gap: 1.5,
-      }}
+    <button
+      type="button"
+      className={cn(
+        "flex w-full items-start gap-3 rounded-lg border-l-4 px-4 py-3 text-left transition-colors",
+        isUnread
+          ? "cursor-pointer border-primary bg-accent/50 hover:bg-accent"
+          : "cursor-default border-transparent",
+      )}
       onClick={() => {
         if (isUnread) {
           markRead.mutate(notification.id);
         }
       }}
     >
-      <ListItemIcon
-        sx={{
-          minWidth: 44,
-          mt: 0.5,
-          color: isUnread ? "primary.main" : "text.secondary",
-        }}
+      <span
+        className={cn(
+          "mt-0.5 shrink-0",
+          isUnread ? "text-primary" : "text-muted-foreground",
+        )}
       >
         {getNotificationIcon(notification.data.type)}
-      </ListItemIcon>
-      <Box flexGrow={1} minWidth={0}>
-        <Typography variant="body1" fontWeight={isUnread ? 600 : 400}>
+      </span>
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn("text-sm", isUnread ? "font-semibold" : "font-normal")}
+        >
           {notification.data.title}
-        </Typography>
-        <Box display="flex" alignItems="center" gap={1} mt={0.25}>
-          <Typography variant="caption" color="text.disabled">
+        </p>
+        <div className="mt-0.5 flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
             {formatDate(notification.createdAt)}
-          </Typography>
+          </span>
           {notification.data.pet_name && (
-            <Chip
-              label={notification.data.pet_name}
-              size="small"
-              sx={{ height: 18, fontSize: 10 }}
-            />
+            <Badge variant="outline" className="h-[18px] px-1.5 text-[10px]">
+              {notification.data.pet_name}
+            </Badge>
           )}
-        </Box>
-      </Box>
+        </div>
+      </div>
       {isUnread && (
-        <Box
-          sx={{
-            width: 8,
-            height: 8,
-            borderRadius: "50%",
-            bgcolor: "primary.main",
-            mt: 1.5,
-            flexShrink: 0,
-          }}
-        />
+        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
       )}
-    </ListItem>
+    </button>
   );
 }
 
@@ -139,59 +121,63 @@ export default function NotificationsPage() {
   };
 
   return (
-    <Box>
+    <div>
       {/* Header */}
-      <Box
-        display="flex"
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        flexDirection={{ xs: "column", sm: "row" }}
-        gap={2}
-        mb={3}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={700}>
-            Notifications
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
+          <p className="text-sm text-muted-foreground">
             Stay up to date with your pet care reminders
-          </Typography>
-        </Box>
-        <Box flexGrow={1} />
+          </p>
+        </div>
+        <div className="flex-1" />
         <Button
-          variant="outlined"
-          startIcon={<CheckCircleOutlineIcon />}
+          variant="outline"
           onClick={handleMarkAllRead}
           disabled={unreadCount === 0 || markAllRead.isPending}
-          sx={{ minHeight: 48 }}
+          className="min-h-[48px] gap-2"
         >
+          <CheckCheck className="h-4 w-4" />
           Mark all read
         </Button>
-      </Box>
+      </div>
 
       {/* Filter tabs */}
-      <Box display="flex" gap={1} mb={2}>
-        <Chip
-          label="All"
+      <div className="mb-4 flex gap-2">
+        <button
+          type="button"
           onClick={() => setTab("all")}
-          color={tab === "all" ? "primary" : "default"}
-          variant={tab === "all" ? "filled" : "outlined"}
-        />
-        <Chip
-          label={`Unread${unreadCount > 0 ? ` (${unreadCount})` : ""}`}
+          className={cn(
+            "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+            tab === "all"
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+          )}
+        >
+          All
+        </button>
+        <button
+          type="button"
           onClick={() => setTab("unread")}
-          color={tab === "unread" ? "primary" : "default"}
-          variant={tab === "unread" ? "filled" : "outlined"}
-        />
-      </Box>
+          className={cn(
+            "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+            tab === "unread"
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+          )}
+        >
+          {`Unread${unreadCount > 0 ? ` (${unreadCount})` : ""}`}
+        </button>
+      </div>
 
       {/* Content */}
       {isLoading ? (
-        <Box>
+        <div className="flex flex-col gap-2">
           {Array.from({ length: 5 }).map((_, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholder
-            <Skeleton key={i} variant="rounded" height={72} sx={{ mb: 1 }} />
+            <Skeleton key={i} className="h-[72px] rounded-lg" />
           ))}
-        </Box>
+        </div>
       ) : notifications.length === 0 ? (
         <EmptyState
           title={
@@ -202,18 +188,18 @@ export default function NotificationsPage() {
               ? "All caught up!"
               : "Notifications about your pets will appear here."
           }
-          icon={<NotificationsNoneIcon />}
+          icon={<Bell />}
         />
       ) : (
-        <List disablePadding>
+        <div className="flex flex-col gap-1">
           {notifications.map((notification) => (
             <NotificationRow
               key={notification.id}
               notification={notification}
             />
           ))}
-        </List>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

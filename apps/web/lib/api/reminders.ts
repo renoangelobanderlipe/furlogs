@@ -39,6 +39,7 @@ export interface ReminderFilters {
   petId?: number;
   type?: ReminderType;
   page?: number;
+  per_page?: number;
 }
 
 export const reminderEndpoints = {

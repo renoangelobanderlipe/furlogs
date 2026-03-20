@@ -82,21 +82,27 @@ export const petEndpoints = {
       `/api/pets/${id}?include=weights`,
     ),
 
-  create: (data: PetFormValues) =>
-    apiClient.post<SingleResourceResponse<Pet>>("/api/pets", data),
+  create: ({ isNeutered, ...rest }: PetFormValues) =>
+    apiClient.post<SingleResourceResponse<Pet>>("/api/pets", {
+      ...rest,
+      is_neutered: isNeutered,
+    }),
 
-  update: (id: number, data: PetUpdateFormValues) =>
-    apiClient.patch<SingleResourceResponse<Pet>>(`/api/pets/${id}`, data),
+  update: (id: number, { isNeutered, ...rest }: PetUpdateFormValues) =>
+    apiClient.patch<SingleResourceResponse<Pet>>(`/api/pets/${id}`, {
+      ...rest,
+      ...(isNeutered !== undefined ? { is_neutered: isNeutered } : {}),
+    }),
 
   delete: (id: number) => apiClient.delete(`/api/pets/${id}`),
 
   listWeights: (petId: number) =>
     apiClient.get<WeightListResponse>(`/api/pets/${petId}/weights`),
 
-  recordWeight: (petId: number, data: WeightFormValues) =>
+  recordWeight: (petId: number, { weightKg, recordedAt }: WeightFormValues) =>
     apiClient.post<SingleResourceResponse<PetWeight>>(
       `/api/pets/${petId}/weights`,
-      data,
+      { weight_kg: weightKg, recorded_at: recordedAt },
     ),
 
   uploadAvatar: (petId: number, file: File) => {

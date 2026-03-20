@@ -1,24 +1,18 @@
 "use client";
 
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
-import MedicationIcon from "@mui/icons-material/Medication";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import VaccinesIcon from "@mui/icons-material/Vaccines";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import Divider from "@mui/material/Divider";
-import List from "@mui/material/List";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import Popover from "@mui/material/Popover";
-import { useTheme } from "@mui/material/styles";
-import Typography from "@mui/material/Typography";
+import {
+  Bell,
+  CheckCircle2,
+  Hospital,
+  Package,
+  Pill,
+  Syringe,
+} from "lucide-react";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import {
   useMarkAllRead,
   useMarkRead,
@@ -28,21 +22,22 @@ import type {
   AppNotification,
   NotificationType,
 } from "@/lib/api/notifications";
+import { cn } from "@/lib/utils";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 
 function getNotificationIcon(type: NotificationType) {
   switch (type) {
     case "vaccination_reminder":
-      return <VaccinesIcon fontSize="small" />;
+      return <Syringe className="h-4 w-4" />;
     case "medication_reminder":
-      return <MedicationIcon fontSize="small" />;
+      return <Pill className="h-4 w-4" />;
     case "vet_follow_up":
-      return <LocalHospitalIcon fontSize="small" />;
+      return <Hospital className="h-4 w-4" />;
     case "low_stock":
     case "critical_stock":
-      return <InventoryIcon fontSize="small" />;
+      return <Package className="h-4 w-4" />;
     default:
-      return <NotificationsNoneIcon fontSize="small" />;
+      return <Bell className="h-4 w-4" />;
   }
 }
 
@@ -84,7 +79,6 @@ interface NotificationItemProps {
 }
 
 function NotificationItem({ notification, onClose }: NotificationItemProps) {
-  const theme = useTheme();
   const router = useRouter();
   const markRead = useMarkRead();
   const isUnread = notification.readAt === null;
@@ -99,51 +93,42 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
   };
 
   return (
-    <ListItemButton
+    <button
+      type="button"
       onClick={handleClick}
-      sx={{
-        px: 2,
-        py: 1.25,
-        alignItems: "flex-start",
-        borderLeft: isUnread
-          ? `3px solid ${theme.palette.primary.main}`
-          : "3px solid transparent",
-        bgcolor: isUnread ? "action.hover" : "transparent",
-        "&:hover": { bgcolor: "action.selected" },
-      }}
+      className={cn(
+        "flex w-full items-start gap-2 px-3 py-2.5 text-left transition-colors hover:bg-accent/50",
+        isUnread
+          ? "border-l-2 border-l-primary bg-primary/5"
+          : "border-l-2 border-l-transparent",
+      )}
     >
-      <ListItemIcon
-        sx={{
-          minWidth: 36,
-          mt: 0.25,
-          color: isUnread ? "primary.main" : "text.secondary",
-        }}
+      <span
+        className={cn(
+          "mt-0.5 flex-shrink-0",
+          isUnread ? "text-primary" : "text-muted-foreground",
+        )}
       >
         {getNotificationIcon(notification.data.type)}
-      </ListItemIcon>
-      <ListItemText
-        primary={
-          <Typography
-            variant="body2"
-            fontWeight={isUnread ? 600 : 400}
-            sx={{ lineHeight: 1.4 }}
-          >
-            {notification.data.title}
-          </Typography>
-        }
-        secondary={
-          <Typography variant="caption" color="text.disabled">
-            {formatRelativeTime(notification.createdAt)}
-          </Typography>
-        }
-        disableTypography
-      />
-    </ListItemButton>
+      </span>
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            "text-sm leading-snug",
+            isUnread ? "font-semibold" : "font-normal",
+          )}
+        >
+          {notification.data.title}
+        </p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {formatRelativeTime(notification.createdAt)}
+        </p>
+      </div>
+    </button>
   );
 }
 
 export function NotificationDropdown() {
-  const theme = useTheme();
   const { anchorEl, closeBell } = useNotificationStore();
   const bellOpen = anchorEl !== null;
   const { data, isLoading } = useNotifications(undefined, {
@@ -161,105 +146,84 @@ export function NotificationDropdown() {
     markAllRead.mutate(unreadIds.length > 0 ? unreadIds : undefined);
   };
 
+  // Position the popover relative to anchorEl using a controlled Popover
   return (
     <Popover
       open={bellOpen}
-      anchorEl={anchorEl}
-      onClose={closeBell}
-      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
-      slotProps={{
-        paper: {
-          sx: {
-            width: 360,
-            maxWidth: "100vw",
-            borderRadius: 2,
-            border: `1px solid ${theme.palette.divider}`,
-          },
-        },
+      onOpenChange={(open) => {
+        if (!open) closeBell();
       }}
     >
-      {/* Header */}
-      <Box
-        sx={{
-          px: 2,
-          py: 1.5,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <Typography variant="subtitle1" fontWeight={700}>
-          Notifications
-        </Typography>
-        <Button
-          size="small"
-          startIcon={<CheckCircleOutlineIcon />}
-          onClick={handleMarkAllRead}
-          disabled={unreadCount === 0 || markAllRead.isPending}
-          sx={{ minHeight: 32, textTransform: "none" }}
-        >
-          Mark all read
-        </Button>
-      </Box>
-
-      <Divider />
-
-      {/* Body */}
-      <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
-        {isLoading ? (
-          <Box
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            py={4}
+      {/* Trigger is the NotificationBell component rendered separately; we
+          use a hidden span as an anchor so the popover can attach */}
+      <span
+        style={
+          anchorEl
+            ? {
+                position: "fixed",
+                top: anchorEl.getBoundingClientRect().bottom,
+                left: anchorEl.getBoundingClientRect().right,
+                width: 0,
+                height: 0,
+              }
+            : undefined
+        }
+      />
+      <PopoverContent align="end" className="w-80 p-0" sideOffset={8}>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
+          <h3 className="text-sm font-semibold">Notifications</h3>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleMarkAllRead}
+            disabled={unreadCount === 0 || markAllRead.isPending}
+            className="h-7 gap-1.5 text-xs"
           >
-            <CircularProgress size={24} />
-          </Box>
-        ) : notifications.length === 0 ? (
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            py={5}
-            gap={1}
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Mark all read
+          </Button>
+        </div>
+
+        {/* Body */}
+        <div className="max-h-96 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
+            </div>
+          ) : notifications.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-10">
+              <Bell className="h-8 w-8 text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">No notifications</p>
+            </div>
+          ) : (
+            <div>
+              {notifications.map((notification, index) => (
+                <div key={notification.id}>
+                  <NotificationItem
+                    notification={notification}
+                    onClose={closeBell}
+                  />
+                  {index < notifications.length - 1 && <Separator />}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <Separator />
+
+        {/* Footer */}
+        <div className="px-3 py-2 text-center">
+          <NextLink
+            href="/notifications"
+            onClick={closeBell}
+            className="text-xs text-primary hover:underline"
           >
-            <NotificationsNoneIcon
-              sx={{ fontSize: 40, color: "text.disabled" }}
-            />
-            <Typography variant="body2" color="text.secondary">
-              No notifications
-            </Typography>
-          </Box>
-        ) : (
-          <List disablePadding>
-            {notifications.map((notification, index) => (
-              <Box key={notification.id}>
-                <NotificationItem
-                  notification={notification}
-                  onClose={closeBell}
-                />
-                {index < notifications.length - 1 && <Divider component="li" />}
-              </Box>
-            ))}
-          </List>
-        )}
-      </Box>
-
-      <Divider />
-
-      {/* Footer */}
-      <Box sx={{ px: 2, py: 1, textAlign: "center" }}>
-        <Button
-          component={NextLink}
-          href="/notifications"
-          size="small"
-          onClick={closeBell}
-          sx={{ textTransform: "none" }}
-        >
-          View all notifications
-        </Button>
-      </Box>
+            View all notifications
+          </NextLink>
+        </div>
+      </PopoverContent>
     </Popover>
   );
 }

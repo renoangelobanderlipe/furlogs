@@ -23,19 +23,17 @@ class VaccinationResource extends JsonResource
             ? (int) now()->diffInDays($vaccination->next_due_date, false)
             : null;
 
-        $status = null;
-        if ($daysUntilDue !== null) {
-            $status = match (true) {
-                $daysUntilDue < 0 => 'overdue',
-                $daysUntilDue <= 30 => 'due_soon',
-                default => 'up_to_date',
-            };
-        }
+        $status = $daysUntilDue !== null ? match (true) {
+            $daysUntilDue < 0 => 'overdue',
+            $daysUntilDue <= 30 => 'due_soon',
+            default => 'up_to_date',
+        } : null;
 
         return [
             'id' => $vaccination->id,
             'type' => 'vaccinations',
             'attributes' => [
+                'petId' => $vaccination->pet_id,
                 'vaccineName' => $vaccination->vaccine_name,
                 'administeredDate' => $vaccination->administered_date->toDateString(),
                 'nextDueDate' => $vaccination->next_due_date?->toDateString(),

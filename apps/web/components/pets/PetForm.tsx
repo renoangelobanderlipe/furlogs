@@ -1,17 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
-import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormHelperText from "@mui/material/FormHelperText";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import TextField from "@mui/material/TextField";
+import { Loader2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import {
   type PetFormValues,
   petSchema,
@@ -54,152 +57,183 @@ export function PetForm({
   });
 
   return (
-    <Box
-      component="form"
+    <form
       onSubmit={handleSubmit(onSubmit)}
       noValidate
-      display="flex"
-      flexDirection="column"
-      gap={2.5}
+      className="flex flex-col gap-5"
     >
-      <TextField
-        {...register("name")}
-        label="Pet name"
-        fullWidth
-        required
-        error={!!errors.name}
-        helperText={errors.name?.message}
-        inputProps={{ "aria-label": "Pet name" }}
-      />
-
-      <Controller
-        name="species"
-        control={control}
-        render={({ field }) => (
-          <FormControl fullWidth error={!!errors.species} required>
-            <InputLabel id="species-label">Species</InputLabel>
-            <Select {...field} labelId="species-label" label="Species">
-              {SPECIES_OPTIONS.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.species && (
-              <FormHelperText>{errors.species.message}</FormHelperText>
-            )}
-          </FormControl>
+      {/* Name */}
+      <div className="space-y-1.5">
+        <Label htmlFor="name">
+          Pet name <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          {...register("name")}
+          id="name"
+          placeholder="Buddy"
+          aria-label="Pet name"
+          className="bg-card"
+        />
+        {errors.name && (
+          <p className="text-xs text-destructive">{errors.name.message}</p>
         )}
-      />
+      </div>
 
-      <TextField
-        {...register("breed")}
-        label="Breed"
-        fullWidth
-        placeholder="Optional"
-        error={!!errors.breed}
-        helperText={errors.breed?.message}
-        inputProps={{ "aria-label": "Breed" }}
-      />
-
-      <Controller
-        name="sex"
-        control={control}
-        render={({ field }) => (
-          <FormControl fullWidth error={!!errors.sex} required>
-            <InputLabel id="sex-label">Sex</InputLabel>
-            <Select {...field} labelId="sex-label" label="Sex">
-              {SEX_OPTIONS.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </MenuItem>
-              ))}
+      {/* Species */}
+      <div className="space-y-1.5">
+        <Label htmlFor="species">
+          Species <span className="text-destructive">*</span>
+        </Label>
+        <Controller
+          name="species"
+          control={control}
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger id="species" className="bg-card">
+                <SelectValue placeholder="Select species" />
+              </SelectTrigger>
+              <SelectContent>
+                {SPECIES_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
-            {errors.sex && (
-              <FormHelperText>{errors.sex.message}</FormHelperText>
-            )}
-          </FormControl>
+          )}
+        />
+        {errors.species && (
+          <p className="text-xs text-destructive">{errors.species.message}</p>
         )}
-      />
+      </div>
 
-      <TextField
-        {...register("birthday")}
-        label="Birthday"
-        type="date"
-        fullWidth
-        InputLabelProps={{ shrink: true }}
-        error={!!errors.birthday}
-        helperText={errors.birthday?.message}
-        inputProps={{ "aria-label": "Birthday" }}
-      />
+      {/* Breed */}
+      <div className="space-y-1.5">
+        <Label htmlFor="breed">Breed</Label>
+        <Input
+          {...register("breed")}
+          id="breed"
+          placeholder="Optional"
+          aria-label="Breed"
+          className="bg-card"
+        />
+        {errors.breed && (
+          <p className="text-xs text-destructive">{errors.breed.message}</p>
+        )}
+      </div>
 
+      {/* Sex */}
+      <div className="space-y-1.5">
+        <Label htmlFor="sex">
+          Sex <span className="text-destructive">*</span>
+        </Label>
+        <Controller
+          name="sex"
+          control={control}
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger id="sex" className="bg-card">
+                <SelectValue placeholder="Select sex" />
+              </SelectTrigger>
+              <SelectContent>
+                {SEX_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {errors.sex && (
+          <p className="text-xs text-destructive">{errors.sex.message}</p>
+        )}
+      </div>
+
+      {/* Birthday */}
+      <div className="space-y-1.5">
+        <Label htmlFor="birthday">Birthday</Label>
+        <Input
+          {...register("birthday")}
+          id="birthday"
+          type="date"
+          aria-label="Birthday"
+          className="bg-card"
+        />
+        {errors.birthday && (
+          <p className="text-xs text-destructive">{errors.birthday.message}</p>
+        )}
+      </div>
+
+      {/* Neutered */}
       <Controller
         name="isNeutered"
         control={control}
         render={({ field }) => (
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={field.value}
-                onChange={field.onChange}
-                inputProps={{ "aria-label": "Neutered / spayed" }}
-              />
-            }
-            label="Neutered / Spayed"
-          />
+          <div className="flex items-center gap-2.5">
+            <Checkbox
+              id="isNeutered"
+              checked={field.value}
+              onCheckedChange={(checked) => field.onChange(!!checked)}
+              aria-label="Neutered / spayed"
+            />
+            <Label htmlFor="isNeutered" className="cursor-pointer font-normal">
+              Neutered / Spayed
+            </Label>
+          </div>
         )}
       />
 
-      <Controller
-        name="size"
-        control={control}
-        render={({ field }) => (
-          <FormControl fullWidth error={!!errors.size}>
-            <InputLabel id="size-label">Size</InputLabel>
+      {/* Size */}
+      <div className="space-y-1.5">
+        <Label htmlFor="size">Size</Label>
+        <Controller
+          name="size"
+          control={control}
+          render={({ field }) => (
             <Select
-              {...field}
               value={field.value ?? ""}
-              labelId="size-label"
-              label="Size"
-              displayEmpty
+              onValueChange={(v) => field.onChange(v || undefined)}
             >
-              <MenuItem value="">
-                <em>Not specified</em>
-              </MenuItem>
-              {SIZE_OPTIONS.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </MenuItem>
-              ))}
+              <SelectTrigger id="size" className="bg-card">
+                <SelectValue placeholder="Not specified" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Not specified</SelectItem>
+                {SIZE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
-            {errors.size && (
-              <FormHelperText>{errors.size.message}</FormHelperText>
-            )}
-          </FormControl>
+          )}
+        />
+        {errors.size && (
+          <p className="text-xs text-destructive">{errors.size.message}</p>
         )}
-      />
+      </div>
 
-      <TextField
-        {...register("notes")}
-        label="Notes"
-        fullWidth
-        multiline
-        rows={3}
-        placeholder="Any additional notes about your pet…"
-        error={!!errors.notes}
-        helperText={errors.notes?.message}
-        inputProps={{ "aria-label": "Notes" }}
-      />
+      {/* Notes */}
+      <div className="space-y-1.5">
+        <Label htmlFor="notes">Notes</Label>
+        <Textarea
+          {...register("notes")}
+          id="notes"
+          rows={3}
+          placeholder="Any additional notes about your pet…"
+          aria-label="Notes"
+          className="bg-card resize-none"
+        />
+        {errors.notes && (
+          <p className="text-xs text-destructive">{errors.notes.message}</p>
+        )}
+      </div>
 
-      <Button
-        type="submit"
-        variant="contained"
-        size="large"
-        fullWidth
-        disabled={isLoading}
-      >
+      <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         {isLoading ? "Saving…" : submitLabel}
       </Button>
-    </Box>
+    </form>
   );
 }

@@ -61,9 +61,9 @@ export interface VetVisit {
   type: "vet-visits";
   attributes: VetVisitAttributes;
   relationships?: {
-    pet?: { data: Pet };
-    medications?: { data: Medication[] };
-    attachments?: { data: VetVisitAttachment[] };
+    pet?: Pet;
+    medications?: Medication[];
+    attachments?: VetVisitAttachment[];
   };
 }
 
@@ -74,12 +74,16 @@ export interface MedicationAttributes {
   startDate: string | null;
   endDate: string | null;
   notes: string | null;
+  isActive: boolean;
 }
 
 export interface Medication {
   id: number;
   type: "medications";
   attributes: MedicationAttributes;
+  relationships?: {
+    pet?: Pet;
+  };
 }
 
 export interface VetVisitPayload {
@@ -117,6 +121,7 @@ export interface VetVisitFilters {
   visitType?: string;
   search?: string;
   page?: number;
+  per_page?: number;
 }
 
 export const vetVisitEndpoints = {

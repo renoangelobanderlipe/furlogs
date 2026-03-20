@@ -10,15 +10,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main
-      style={{
-        minHeight: "100dvh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "1.5rem",
-      }}
-    >
+    <main className="min-h-dvh flex items-center justify-center p-6 bg-background">
       {children}
     </main>
   );

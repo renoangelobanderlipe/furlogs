@@ -1,25 +1,40 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import Autocomplete from "@mui/material/Autocomplete";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import Stack from "@mui/material/Stack";
-import TextField from "@mui/material/TextField";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
+import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
+import { useForm } from "react-hook-form";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { FoodProduct } from "@/lib/api/food-stock";
 import type { Pet } from "@/lib/api/pets";
 import {
@@ -50,32 +65,25 @@ export function EditConsumptionRatesDialog({
 }: EditConsumptionRatesDialogProps) {
   const [showAddForm, setShowAddForm] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm<ConsumptionRateFormValues>({
+  const form = useForm<ConsumptionRateFormValues>({
     resolver: zodResolver(consumptionRateSchema),
   });
 
   const existingRates = product?.attributes.consumptionRates ?? [];
-
   const assignedPetIds = new Set(existingRates.map((r) => r.petId));
   const availablePets = pets.filter((p) => !assignedPetIds.has(p.id));
 
   const handleAdd = (values: ConsumptionRateFormValues) => {
     if (!product) return;
     onUpsert(product.id, values);
-    reset();
+    form.reset();
     setShowAddForm(false);
   };
 
   const handleClose = () => {
     if (!isUpserting && !isDeleting) {
       setShowAddForm(false);
-      reset();
+      form.reset();
       onClose();
     }
   };
@@ -86,151 +94,184 @@ export function EditConsumptionRatesDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        Consumption Rates
-        {product && (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            component="span"
-            sx={{ ml: 1 }}
-          >
-            — {product.attributes.name}
-          </Typography>
-        )}
-      </DialogTitle>
-      <DialogContent sx={{ pt: 1 }}>
-        {existingRates.length === 0 && !showAddForm ? (
-          <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-            No consumption rates set. Add one to enable stock projections.
-          </Typography>
-        ) : (
-          <Stack spacing={1} sx={{ mb: 2 }}>
-            {existingRates.map((rate) => (
-              <Box
-                key={rate.petId}
-                display="flex"
-                alignItems="center"
-                gap={1.5}
-                sx={{
-                  p: 1.5,
-                  borderRadius: 1,
-                  bgcolor: "action.hover",
-                }}
-              >
-                <Chip label={getPetName(rate.petId)} size="small" />
-                <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                  {rate.dailyAmountGrams}g / day
-                </Typography>
-                <Tooltip title="Remove rate">
-                  <IconButton
-                    size="small"
-                    onClick={() => {
-                      if (product) onDelete(product.id, rate.petId);
-                    }}
-                    disabled={isDeleting}
-                    color="error"
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            ))}
-          </Stack>
-        )}
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) handleClose();
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            Consumption Rates
+            {product && (
+              <span className="ml-1 text-sm font-normal text-muted-foreground">
+                — {product.attributes.name}
+              </span>
+            )}
+          </DialogTitle>
+        </DialogHeader>
 
-        {showAddForm && (
-          <>
-            <Divider sx={{ mb: 2 }} />
-            <Typography variant="subtitle2" gutterBottom>
-              Add Consumption Rate
-            </Typography>
-            <Stack spacing={2}>
-              <Controller
-                name="petId"
-                control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    options={availablePets}
-                    getOptionLabel={(opt) => opt.attributes.name}
-                    value={
-                      availablePets.find((p) => p.id === field.value) ?? null
-                    }
-                    onChange={(_, newValue) => {
-                      field.onChange(newValue?.id ?? null);
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Pet"
-                        error={!!errors.petId}
-                        helperText={errors.petId?.message}
-                        required
-                        size="small"
-                      />
+        <div className="flex flex-col gap-3">
+          {existingRates.length === 0 && !showAddForm ? (
+            <p className="py-4 text-sm text-muted-foreground">
+              No consumption rates set. Add one to enable stock projections.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {existingRates.map((rate) => (
+                <div
+                  key={rate.petId}
+                  className="flex items-center gap-3 rounded-md bg-accent/50 px-3 py-2"
+                >
+                  <Badge variant="secondary">{getPetName(rate.petId)}</Badge>
+                  <p className="flex-1 text-sm">
+                    {rate.dailyAmountGrams}g / day
+                  </p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (product) onDelete(product.id, rate.petId);
+                        }}
+                        disabled={isDeleting}
+                        aria-label="Remove rate"
+                        className="flex h-8 w-8 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Remove rate</TooltipContent>
+                  </Tooltip>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {showAddForm && (
+            <>
+              <Separator />
+              <p className="text-sm font-semibold">Add Consumption Rate</p>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleAdd)}
+                  className="flex flex-col gap-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="petId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Pet <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <Select
+                          value={field.value ? String(field.value) : ""}
+                          onValueChange={(v) =>
+                            field.onChange(v ? Number(v) : null)
+                          }
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a pet" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {availablePets.length === 0 ? (
+                              <SelectItem value="" disabled>
+                                All pets already assigned
+                              </SelectItem>
+                            ) : (
+                              availablePets.map((pet) => (
+                                <SelectItem key={pet.id} value={String(pet.id)}>
+                                  {pet.attributes.name}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                    size="small"
-                    isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                    noOptionsText="All pets already assigned"
                   />
-                )}
-              />
 
-              <TextField
-                {...register("dailyAmountGrams", {
-                  setValueAs: (v) =>
-                    v === "" || v == null ? undefined : Number(v),
-                })}
-                label="Daily Amount (grams)"
-                type="number"
-                error={!!errors.dailyAmountGrams}
-                helperText={errors.dailyAmountGrams?.message}
-                required
-                size="small"
-                inputProps={{ min: 1, step: 1 }}
-              />
+                  <FormField
+                    control={form.control}
+                    name="dailyAmountGrams"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Daily Amount (grams){" "}
+                          <span className="text-destructive">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={1}
+                            step={1}
+                            placeholder="Amount in grams"
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value === ""
+                                  ? undefined
+                                  : Number(e.target.value),
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-              <Box display="flex" gap={1} justifyContent="flex-end">
-                <Button
-                  size="small"
-                  onClick={() => {
-                    setShowAddForm(false);
-                    reset();
-                  }}
-                  disabled={isUpserting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="small"
-                  variant="contained"
-                  onClick={handleSubmit(handleAdd)}
-                  disabled={isUpserting}
-                >
-                  {isUpserting ? "Saving…" : "Save Rate"}
-                </Button>
-              </Box>
-            </Stack>
-          </>
-        )}
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setShowAddForm(false);
+                        form.reset();
+                      }}
+                      disabled={isUpserting}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" size="sm" disabled={isUpserting}>
+                      {isUpserting ? "Saving\u2026" : "Save Rate"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </>
+          )}
 
-        {!showAddForm && availablePets.length > 0 && (
+          {!showAddForm && availablePets.length > 0 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAddForm(true)}
+              className="mt-1 self-start gap-1.5"
+            >
+              <Plus className="h-4 w-4" />
+              Add Rate
+            </Button>
+          )}
+        </div>
+
+        <DialogFooter>
           <Button
-            startIcon={<AddIcon />}
-            size="small"
-            onClick={() => setShowAddForm(true)}
-            sx={{ mt: 1 }}
+            type="button"
+            onClick={handleClose}
+            disabled={isUpserting || isDeleting}
           >
-            Add Rate
+            Done
           </Button>
-        )}
+        </DialogFooter>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleClose} disabled={isUpserting || isDeleting}>
-          Done
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

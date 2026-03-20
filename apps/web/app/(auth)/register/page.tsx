@@ -1,19 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Link from "@mui/material/Link";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
+import { Loader2, PawPrint } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { authEndpoints } from "@/lib/api/endpoints";
 import {
   type RegisterFormValues,
@@ -61,92 +58,113 @@ export default function RegisterPage() {
   };
 
   return (
-    <Card sx={{ width: "100%", maxWidth: 440 }}>
-      <CardContent sx={{ p: 4 }}>
-        <Typography variant="h5" fontWeight={700} mb={0.5}>
-          Create your account
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mb={3}>
-          Start tracking your pets&apos; care with FurLog
-        </Typography>
+    <Card className="w-full max-w-sm animate-fade-in-up">
+      <CardContent className="p-6">
+        <div className="mb-6 flex flex-col items-center gap-2">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <PawPrint className="h-6 w-6 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Create your account
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Start tracking your pets&apos; care with FurLog
+          </p>
+        </div>
 
         {serverError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {serverError}
-          </Alert>
+          <div className="mb-4 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2">
+            <p className="text-sm text-destructive">{serverError}</p>
+          </div>
         )}
 
-        <Box
-          component="form"
+        <form
           onSubmit={handleSubmit(onSubmit)}
           noValidate
-          display="flex"
-          flexDirection="column"
-          gap={2}
+          className="space-y-4"
         >
-          <TextField
-            {...register("name")}
-            label="Full name"
-            autoComplete="name"
-            fullWidth
-            error={!!errors.name}
-            helperText={errors.name?.message}
-          />
+          <div className="space-y-1.5">
+            <Label htmlFor="name">Full name</Label>
+            <Input
+              {...register("name")}
+              id="name"
+              autoComplete="name"
+              placeholder="Jane Smith"
+              className="bg-card"
+            />
+            {errors.name && (
+              <p className="text-xs text-destructive">{errors.name.message}</p>
+            )}
+          </div>
 
-          <TextField
-            {...register("email")}
-            label="Email address"
-            type="email"
-            autoComplete="email"
-            fullWidth
-            error={!!errors.email}
-            helperText={errors.email?.message}
-          />
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email address</Label>
+            <Input
+              {...register("email")}
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="bg-card"
+            />
+            {errors.email && (
+              <p className="text-xs text-destructive">{errors.email.message}</p>
+            )}
+          </div>
 
-          <TextField
-            {...register("password")}
-            label="Password"
-            type="password"
-            autoComplete="new-password"
-            fullWidth
-            error={!!errors.password}
-            helperText={
-              errors.password?.message ?? "Min 8 chars, 1 uppercase, 1 number"
-            }
-          />
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              {...register("password")}
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              className="bg-card"
+            />
+            {errors.password ? (
+              <p className="text-xs text-destructive">
+                {errors.password.message}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Min 8 chars, 1 uppercase, 1 number
+              </p>
+            )}
+          </div>
 
-          <TextField
-            {...register("password_confirmation")}
-            label="Confirm password"
-            type="password"
-            autoComplete="new-password"
-            fullWidth
-            error={!!errors.password_confirmation}
-            helperText={errors.password_confirmation?.message}
-          />
+          <div className="space-y-1.5">
+            <Label htmlFor="password_confirmation">Confirm password</Label>
+            <Input
+              {...register("password_confirmation")}
+              id="password_confirmation"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              className="bg-card"
+            />
+            {errors.password_confirmation && (
+              <p className="text-xs text-destructive">
+                {errors.password_confirmation.message}
+              </p>
+            )}
+          </div>
 
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            size="large"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Creating account…" : "Create account"}
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting ? "Creating account..." : "Create account"}
           </Button>
-        </Box>
+        </form>
 
-        <Typography
-          variant="body2"
-          textAlign="center"
-          mt={3}
-          color="text.secondary"
-        >
+        <p className="mt-5 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link component={NextLink} href="/login" underline="hover">
+          <Link
+            href="/login"
+            className="font-medium text-primary hover:underline"
+          >
             Sign in
           </Link>
-        </Typography>
+        </p>
       </CardContent>
     </Card>
   );

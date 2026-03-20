@@ -1,21 +1,17 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Link from "@mui/material/Link";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
+import { Eye, EyeOff, Loader2, PawPrint } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { authEndpoints } from "@/lib/api/endpoints";
 import {
   type LoginFormValues,
@@ -27,15 +23,20 @@ export default function LoginPage() {
   const router = useRouter();
   const fetchUser = useAuthStore((s) => s.fetchUser);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setValue,
+    watch,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "", remember: false },
   });
+
+  const remember = watch("remember");
 
   const onSubmit = async (values: LoginFormValues) => {
     setServerError(null);
@@ -61,92 +62,111 @@ export default function LoginPage() {
   };
 
   return (
-    <Card sx={{ width: "100%", maxWidth: 440 }}>
-      <CardContent sx={{ p: 4 }}>
-        <Typography variant="h5" fontWeight={700} mb={0.5}>
-          Welcome back
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mb={3}>
-          Sign in to your FurLog account
-        </Typography>
+    <Card className="w-full max-w-sm animate-fade-in-up">
+      <CardContent className="p-6">
+        <div className="mb-6 flex flex-col items-center gap-2">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+            <PawPrint className="h-6 w-6 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+          <p className="text-sm text-muted-foreground">
+            Sign in to your FurLog account
+          </p>
+        </div>
 
         {serverError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {serverError}
-          </Alert>
+          <div className="mb-4 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2">
+            <p className="text-sm text-destructive">{serverError}</p>
+          </div>
         )}
 
-        <Box
-          component="form"
+        <form
           onSubmit={handleSubmit(onSubmit)}
           noValidate
-          display="flex"
-          flexDirection="column"
-          gap={2}
+          className="space-y-4"
         >
-          <TextField
-            {...register("email")}
-            label="Email address"
-            type="email"
-            autoComplete="email"
-            fullWidth
-            error={!!errors.email}
-            helperText={errors.email?.message}
-            inputProps={{ "aria-label": "Email address" }}
-          />
-
-          <TextField
-            {...register("password")}
-            label="Password"
-            type="password"
-            autoComplete="current-password"
-            fullWidth
-            error={!!errors.password}
-            helperText={errors.password?.message}
-            inputProps={{ "aria-label": "Password" }}
-          />
-
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <FormControlLabel
-              control={<Checkbox {...register("remember")} size="small" />}
-              label={<Typography variant="body2">Remember me</Typography>}
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email address</Label>
+            <Input
+              {...register("email")}
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="bg-card"
             />
+            {errors.email && (
+              <p className="text-xs text-destructive">{errors.email.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Password</Label>
+            <div className="relative">
+              <Input
+                {...register("password")}
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                className="bg-card pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-xs text-destructive">
+                {errors.password.message}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember"
+                checked={remember}
+                onCheckedChange={(checked) => setValue("remember", !!checked)}
+              />
+              <Label
+                htmlFor="remember"
+                className="text-sm font-normal text-muted-foreground cursor-pointer"
+              >
+                Remember me
+              </Label>
+            </div>
             <Link
-              component={NextLink}
               href="/forgot-password"
-              variant="body2"
-              underline="hover"
+              className="text-sm text-primary hover:underline"
             >
               Forgot password?
             </Link>
-          </Box>
+          </div>
 
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            size="large"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Signing in…" : "Sign in"}
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting ? "Signing in..." : "Sign in"}
           </Button>
-        </Box>
+        </form>
 
-        <Typography
-          variant="body2"
-          textAlign="center"
-          mt={3}
-          color="text.secondary"
-        >
+        <p className="mt-5 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
-          <Link component={NextLink} href="/register" underline="hover">
-            Create one
+          <Link
+            href="/register"
+            className="font-medium text-primary hover:underline"
+          >
+            Sign up
           </Link>
-        </Typography>
+        </p>
       </CardContent>
     </Card>
   );

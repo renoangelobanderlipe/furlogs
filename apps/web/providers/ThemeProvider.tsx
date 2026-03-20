@@ -1,25 +1,10 @@
 "use client";
 
-import CssBaseline from "@mui/material/CssBaseline";
-import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
-import { useThemeStore } from "@/stores/useThemeStore";
-import { darkTheme, lightTheme } from "@/theme";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+import type { ComponentProps } from "react";
 
-interface ThemeProviderProps {
-  children: React.ReactNode;
-}
+type ThemeProviderProps = ComponentProps<typeof NextThemesProvider>;
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-  const mode = useThemeStore((s) => s.mode);
-  const theme = mode === "light" ? lightTheme : darkTheme;
-
-  return (
-    <AppRouterCacheProvider>
-      <MuiThemeProvider theme={theme}>
-        <CssBaseline />
-        {children}
-      </MuiThemeProvider>
-    </AppRouterCacheProvider>
-  );
+export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
+  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
 }

@@ -1,30 +1,20 @@
 "use client";
 
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Skeleton from "@mui/material/Skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function VisitCardSkeleton() {
   return (
-    <Card variant="outlined" sx={{ height: "100%" }}>
-      <CardContent>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={1}
-        >
-          <Skeleton variant="rounded" width={80} height={24} />
-          <Skeleton variant="text" width={90} />
-        </Box>
-        <Skeleton variant="text" width="90%" height={24} />
-        <Skeleton variant="text" width="65%" height={24} sx={{ mb: 1.5 }} />
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Skeleton variant="text" width={80} />
-          <Skeleton variant="text" width={50} />
-        </Box>
-      </CardContent>
-    </Card>
+    <div className="rounded-xl border border-border bg-card p-4 h-full">
+      <div className="flex items-center justify-between mb-2">
+        <Skeleton className="h-5 w-20 rounded-full" />
+        <Skeleton className="h-4 w-20" />
+      </div>
+      <Skeleton className="h-4 w-[90%] mb-1" />
+      <Skeleton className="h-4 w-[65%] mb-3" />
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-3.5 w-20" />
+        <Skeleton className="h-3.5 w-12" />
+      </div>
+    </div>
   );
 }

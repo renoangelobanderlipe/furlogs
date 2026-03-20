@@ -47,6 +47,7 @@ export interface VaccinationFilters {
   petId?: number;
   status?: VaccinationStatus;
   page?: number;
+  per_page?: number;
 }
 
 export const vaccinationEndpoints = {

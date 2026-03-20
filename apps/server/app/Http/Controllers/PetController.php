@@ -20,13 +20,15 @@ class PetController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
+        $this->authorize('viewAny', Pet::class);
+
         $pets = Pet::query()
             ->with('latestWeight')
             ->when($request->query('species'), fn ($q, $s) => $q->where('species', $s))
             // PostgreSQL only — do not switch DB driver without updating this operator
             ->when($request->query('search'), fn ($q, $s) => $q->where('name', 'ilike', "%{$s}%"))
             ->orderBy('name')
-            ->paginate(20);
+            ->paginate((int) $request->query('per_page', 20));
 
         return PetResource::collection($pets);
     }
@@ -34,6 +36,8 @@ class PetController extends Controller
     public function show(Request $request, Pet $pet): PetResource
     {
         $this->authorize('view', $pet);
+
+        $pet->loadMissing('latestWeight');
 
         if ($request->query('include') === 'weights') {
             $pet->load('weights');
@@ -45,6 +49,7 @@ class PetController extends Controller
     public function store(StorePetRequest $request): JsonResponse
     {
         $pet = $this->petService->create($request->validated());
+        $pet->loadMissing('latestWeight');
 
         return (new PetResource($pet))->response()->setStatusCode(201);
     }
@@ -52,6 +57,7 @@ class PetController extends Controller
     public function update(UpdatePetRequest $request, Pet $pet): PetResource
     {
         $pet = $this->petService->update($pet, $request->validated());
+        $pet->loadMissing('latestWeight');
 
         return new PetResource($pet);
     }
@@ -66,10 +72,12 @@ class PetController extends Controller
 
         $this->petService->uploadAvatar($pet, $request->file('avatar'));
 
-        return response()->json(new PetResource($pet->fresh()), 200);
+        $freshPet = $pet->fresh(['latestWeight']);
+
+        return response()->json(new PetResource($freshPet), 200);
     }
 
-    public function destroy(Request $request, Pet $pet): Response
+    public function destroy(Pet $pet): Response
     {
         $this->authorize('delete', $pet);
 

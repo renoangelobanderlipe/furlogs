@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Teal rounded background matching brand primary -->
+  <rect width="32" height="32" rx="7" fill="#14B8A7"/>
+  <!-- Toe pads (4 small circles in an arc) -->
+  <circle cx="8.5"  cy="14"   r="2.2" fill="white"/>
+  <circle cx="12.5" cy="10.5" r="2.2" fill="white"/>
+  <circle cx="19.5" cy="10.5" r="2.2" fill="white"/>
+  <circle cx="23.5" cy="14"   r="2.2" fill="white"/>
+  <!-- Main palm pad -->
+  <ellipse cx="16" cy="22" rx="6" ry="4.5" fill="white"/>
+</svg>

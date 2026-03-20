@@ -1,28 +1,29 @@
 "use client";
 
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import SpeedIcon from "@mui/icons-material/Speed";
-import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import IconButton from "@mui/material/IconButton";
-import LinearProgress from "@mui/material/LinearProgress";
-import Skeleton from "@mui/material/Skeleton";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
-
+import { Gauge, Pencil, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type {
   FoodProduct,
   FoodProjectionItem,
   ProjectionStatus,
 } from "@/lib/api/food-stock";
+import { cn } from "@/lib/utils";
 
 interface InventoryTableProps {
   products: FoodProduct[];
@@ -41,22 +42,16 @@ const FOOD_TYPE_LABELS: Record<string, string> = {
   supplement: "Supplement",
 };
 
-const STATUS_COLOR_MAP: Record<
-  ProjectionStatus,
-  "success" | "warning" | "error"
-> = {
-  good: "success",
-  low: "warning",
-  critical: "error",
+const STATUS_BADGE_CLASS: Record<ProjectionStatus, string> = {
+  good: "border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-400",
+  low: "border-yellow-500/20 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400",
+  critical: "border-destructive/20 bg-destructive/10 text-destructive",
 };
 
-const PROGRESS_COLOR_MAP: Record<
-  ProjectionStatus,
-  "success" | "warning" | "error"
-> = {
-  good: "success",
-  low: "warning",
-  critical: "error",
+const PROGRESS_CLASS: Record<ProjectionStatus, string> = {
+  good: "[&>div]:bg-green-500",
+  low: "[&>div]:bg-yellow-500",
+  critical: "[&>div]:bg-destructive",
 };
 
 function formatDate(dateStr: string): string {
@@ -87,120 +82,108 @@ function InventoryRow({
   const rateCount = attr.consumptionRates?.length ?? 0;
 
   return (
-    <TableRow hover>
+    <TableRow>
       <TableCell>
-        <Typography variant="body2" fontWeight={600}>
-          {attr.name}
-        </Typography>
+        <p className="text-sm font-semibold">{attr.name}</p>
         {attr.brand && (
-          <Chip
-            label={attr.brand}
-            size="small"
-            variant="outlined"
-            sx={{ mt: 0.5 }}
-          />
+          <Badge variant="outline" className="mt-1 text-xs">
+            {attr.brand}
+          </Badge>
         )}
       </TableCell>
 
       <TableCell>
-        <Chip
-          label={FOOD_TYPE_LABELS[attr.type] ?? attr.type}
-          size="small"
-          variant="outlined"
-        />
+        <Badge variant="outline" className="text-xs">
+          {FOOD_TYPE_LABELS[attr.type] ?? attr.type}
+        </Badge>
       </TableCell>
 
       <TableCell>
         {proj ? (
-          <Chip
-            label={proj.status}
-            size="small"
-            color={STATUS_COLOR_MAP[proj.status]}
-            variant="outlined"
-          />
+          <Badge className={cn("text-xs", STATUS_BADGE_CLASS[proj.status])}>
+            {proj.status}
+          </Badge>
         ) : (
-          <Typography variant="caption" color="text.disabled">
-            —
-          </Typography>
+          <span className="text-xs text-muted-foreground">—</span>
         )}
       </TableCell>
 
-      <TableCell sx={{ minWidth: 140 }}>
+      <TableCell className="min-w-[140px]">
         {proj ? (
-          <Box>
-            <LinearProgress
-              variant="determinate"
+          <div>
+            <Progress
               value={Math.min(proj.percentageRemaining, 100)}
-              color={PROGRESS_COLOR_MAP[proj.status]}
-              sx={{ height: 6, borderRadius: 3, mb: 0.5 }}
+              className={cn("mb-1 h-1.5", PROGRESS_CLASS[proj.status])}
             />
-            <Typography variant="caption" color="text.secondary">
+            <span className="text-xs text-muted-foreground">
               {proj.percentageRemaining.toFixed(0)}% remaining
-            </Typography>
-          </Box>
+            </span>
+          </div>
         ) : (
-          <Typography variant="caption" color="text.disabled">
-            —
-          </Typography>
+          <span className="text-xs text-muted-foreground">—</span>
         )}
       </TableCell>
 
       <TableCell>
         {proj?.runsOutDate ? (
-          <Typography variant="body2">
-            {formatDate(proj.runsOutDate)}
-          </Typography>
+          <span className="text-sm">{formatDate(proj.runsOutDate)}</span>
         ) : (
-          <Typography variant="caption" color="text.disabled">
-            —
-          </Typography>
+          <span className="text-xs text-muted-foreground">—</span>
         )}
       </TableCell>
 
       <TableCell>
         {rateCount > 0 ? (
-          <Chip
-            label={`${rateCount} pet${rateCount === 1 ? "" : "s"}`}
-            size="small"
-          />
+          <Badge variant="secondary" className="text-xs">
+            {rateCount} pet{rateCount === 1 ? "" : "s"}
+          </Badge>
         ) : (
-          <Typography variant="caption" color="text.disabled">
-            None
-          </Typography>
+          <span className="text-xs text-muted-foreground">None</span>
         )}
       </TableCell>
 
-      <TableCell align="right">
-        <Box display="flex" gap={0.5} justifyContent="flex-end">
-          <Tooltip title="Edit consumption rates">
-            <IconButton
-              size="small"
-              onClick={onEditRates}
-              sx={{ minWidth: 36, minHeight: 36 }}
-            >
-              <SpeedIcon fontSize="small" />
-            </IconButton>
+      <TableCell className="text-right">
+        <div className="flex items-center justify-end gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={onEditRates}
+                aria-label="Edit consumption rates"
+                className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <Gauge className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Edit consumption rates</TooltipContent>
           </Tooltip>
-          <Tooltip title="Edit product">
-            <IconButton
-              size="small"
-              onClick={onEdit}
-              sx={{ minWidth: 36, minHeight: 36 }}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={onEdit}
+                aria-label="Edit product"
+                className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Edit product</TooltipContent>
           </Tooltip>
-          <Tooltip title="Delete product">
-            <IconButton
-              size="small"
-              color="error"
-              onClick={onDelete}
-              sx={{ minWidth: 36, minHeight: 36 }}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={onDelete}
+                aria-label="Delete product"
+                className="flex h-9 w-9 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Delete product</TooltipContent>
           </Tooltip>
-        </Box>
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -215,7 +198,7 @@ function SkeletonRows() {
           {Array.from({ length: 7 }).map((__, j) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: skeleton has no stable id
             <TableCell key={j}>
-              <Skeleton variant="text" width="80%" />
+              <Skeleton className="h-4 w-4/5" />
             </TableCell>
           ))}
         </TableRow>
@@ -248,19 +231,19 @@ export function InventoryTable({
   }
 
   return (
-    <TableContainer>
-      <Table size="small">
-        <TableHead>
+    <div className="overflow-x-auto rounded-md border border-border">
+      <Table>
+        <TableHeader>
           <TableRow>
-            <TableCell>Product</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Remaining</TableCell>
-            <TableCell>Runs Out</TableCell>
-            <TableCell>Assigned Pets</TableCell>
-            <TableCell align="right">Actions</TableCell>
+            <TableHead>Product</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Remaining</TableHead>
+            <TableHead>Runs Out</TableHead>
+            <TableHead>Assigned Pets</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
-        </TableHead>
+        </TableHeader>
         <TableBody>
           {isLoading ? (
             <SkeletonRows />
@@ -278,6 +261,6 @@ export function InventoryTable({
           )}
         </TableBody>
       </Table>
-    </TableContainer>
+    </div>
   );
 }

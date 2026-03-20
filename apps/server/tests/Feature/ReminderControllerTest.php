@@ -79,7 +79,7 @@ it('can create a reminder', function () {
     ]);
 
     $response->assertStatus(201);
-    $response->assertJsonPath('data.attributes.reminderType', 'vaccination');
+    $response->assertJsonPath('data.attributes.type', 'vaccination');
 });
 
 it('validates required fields on store reminder', function () {

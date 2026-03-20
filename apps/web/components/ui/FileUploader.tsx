@@ -1,6 +1,7 @@
 "use client";
 
 import { Upload } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -88,10 +89,12 @@ export function FileUploader({
       >
         {previewUrl ? (
           <>
-            {/* biome-ignore lint/performance/noImgElement: blob/data URL preview, not compatible with next/image */}
-            <img
+            <Image
               src={previewUrl}
               alt="Preview"
+              width={64}
+              height={64}
+              unoptimized
               className="h-16 w-16 rounded-lg object-cover"
             />
             <p className="text-sm text-muted-foreground">

@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, PawPrint, PlusCircle, Upload, X } from "lucide-react";
+import Image from "next/image";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Controller, useForm } from "react-hook-form";
@@ -295,10 +296,12 @@ export default function PetsPage() {
                   >
                     <input {...getInputProps()} />
                     {avatarPreview ? (
-                      // biome-ignore lint/performance/noImgElement: blob URL preview, not compatible with next/image
-                      <img
+                      <Image
                         src={avatarPreview}
                         alt="Preview"
+                        width={80}
+                        height={80}
+                        unoptimized
                         className="h-full w-full object-cover"
                       />
                     ) : (

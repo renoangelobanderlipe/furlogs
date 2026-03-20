@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import type { Pet } from "@/lib/api/pets";
 import { SPECIES_EMOJI } from "@/lib/constants";
@@ -49,10 +50,11 @@ export function PetCard({
       <div className="flex items-center gap-4 mb-4">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl shrink-0 overflow-hidden">
           {thumbUrl ? (
-            // biome-ignore lint/performance/noImgElement: external storage URL, next/image requires domain allowlist config
-            <img
+            <Image
               src={thumbUrl}
               alt={name}
+              width={56}
+              height={56}
               className="h-14 w-14 object-cover rounded-full"
             />
           ) : (

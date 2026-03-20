@@ -96,7 +96,8 @@ export function ActiveConsumptionCard({
   const rates = product?.attributes.consumptionRates ?? [];
   const totalDailyRate = projection?.totalDailyRate ?? 0;
 
-  const projStatus: ProjectionStatus | "unknown" = projection?.status ?? "unknown";
+  const projStatus: ProjectionStatus | "unknown" =
+    projection?.status ?? "unknown";
 
   const borderColorMap: Record<ProjectionStatus | "unknown", string> = {
     good: "success.main",

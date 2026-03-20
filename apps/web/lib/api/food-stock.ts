@@ -90,7 +90,9 @@ export interface FoodProjectionsResponse {
   data: FoodProjectionItem[];
 }
 
-function toProductPayload(data: ProductFormValues | Partial<ProductFormValues>) {
+function toProductPayload(
+  data: ProductFormValues | Partial<ProductFormValues>,
+) {
   return {
     name: data.name,
     brand: data.brand || null,

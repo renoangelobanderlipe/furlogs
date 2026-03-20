@@ -21,13 +21,10 @@ export const productSchema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name is too long"),
   brand: z.string().max(100, "Brand is too long").optional().or(z.literal("")),
   type: z.enum(FOOD_TYPES, { message: "Food type is required" }),
-  unitWeightGrams: z
-    .number({ invalid_type_error: "Must be a number" })
-    .positive("Must be positive")
-    .optional(),
+  unitWeightGrams: z.number({ error: "Must be a number" }).positive("Must be positive").optional(),
   unitType: z.enum(UNIT_TYPES, { message: "Unit type is required" }),
   alertThresholdPct: z
-    .number({ invalid_type_error: "Must be a number" })
+    .number({ error: "Must be a number" })
     .min(1, "Must be at least 1")
     .max(100, "Must be at most 100")
     .optional(),
@@ -40,10 +37,7 @@ export const productSchema = z.object({
 
 export const purchaseSchema = z.object({
   foodProductId: z
-    .number({
-      required_error: "Product is required",
-      invalid_type_error: "Product is required",
-    })
+    .number({ error: "Product is required" })
     .int()
     .positive("Product is required"),
   purchasedAt: z
@@ -51,7 +45,7 @@ export const purchaseSchema = z.object({
     .min(1, "Purchase date is required")
     .date("Must be a valid date"),
   purchaseCost: z
-    .number({ invalid_type_error: "Must be a number" })
+    .number({ error: "Must be a number" })
     .nonnegative("Must be 0 or more")
     .optional(),
   purchaseSource: z
@@ -60,25 +54,16 @@ export const purchaseSchema = z.object({
     .optional()
     .or(z.literal("")),
   quantity: z
-    .number({ invalid_type_error: "Must be a number" })
+    .number({ error: "Must be a number" })
     .int("Must be a whole number")
     .min(1, "Quantity must be at least 1")
     .optional(),
 });
 
 export const consumptionRateSchema = z.object({
-  petId: z
-    .number({
-      required_error: "Pet is required",
-      invalid_type_error: "Pet is required",
-    })
-    .int()
-    .positive("Pet is required"),
+  petId: z.number({ error: "Pet is required" }).int().positive("Pet is required"),
   dailyAmountGrams: z
-    .number({
-      required_error: "Daily amount is required",
-      invalid_type_error: "Must be a number",
-    })
+    .number({ error: "Daily amount is required" })
     .min(1, "Must be at least 1 gram"),
 });
 

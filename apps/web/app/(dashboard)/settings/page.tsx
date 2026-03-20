@@ -9,7 +9,8 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,8 +38,17 @@ const settingsTabs = [
   { label: "Profile", icon: User },
 ];
 
-export default function SettingsPage() {
-  const [tab, setTab] = useState("Household");
+function SettingsPageContent() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const initialTab =
+    tabParam === "notifications"
+      ? "Notifications"
+      : tabParam === "profile"
+        ? "Profile"
+        : "Household";
+
+  const [tab, setTab] = useState(initialTab);
   const { toast } = useToast();
   const user = useAuthStore((s) => s.user);
 
@@ -53,6 +63,13 @@ export default function SettingsPage() {
   const [householdName, setHouseholdName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [profileName, setProfileName] = useState(user?.name ?? "");
+
+  useEffect(() => {
+    if (user?.name) {
+      setProfileName(user.name);
+    }
+  }, [user?.name]);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -503,5 +520,13 @@ export default function SettingsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsPageContent />
+    </Suspense>
   );
 }

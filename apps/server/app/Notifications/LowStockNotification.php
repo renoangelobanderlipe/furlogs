@@ -37,6 +37,7 @@ class LowStockNotification extends Notification implements ShouldQueue
     {
         return [
             'type' => 'low_stock',
+            'title' => "Food stock running low: {$this->productName}",
             'food_stock_item_id' => $this->stockItem->id,
             'food_product_id' => $this->stockItem->food_product_id,
             'product_name' => $this->productName,

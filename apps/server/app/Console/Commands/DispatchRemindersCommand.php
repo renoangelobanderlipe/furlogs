@@ -23,7 +23,7 @@ class DispatchRemindersCommand extends Command
     {
         $reminders = Reminder::query()
             ->withoutGlobalScopes()
-            ->where('status', ReminderStatus::Pending)
+            ->whereIn('status', [ReminderStatus::Pending, ReminderStatus::Snoozed])
             ->where('due_date', '<=', now()->addDays(7)->toDateString())
             ->with(['pet', 'household.members'])
             ->get();
@@ -63,10 +63,15 @@ class DispatchRemindersCommand extends Command
             default => null,
         };
 
-        if ($notification !== null) {
+        // Only send notification once per day per reminder
+        $shouldNotify = $notification !== null
+            && ($reminder->last_notified_at === null || ! $reminder->last_notified_at->isToday());
+
+        if ($shouldNotify) {
             foreach ($members as $member) {
                 $member->notify($notification);
             }
+            $reminder->update(['last_notified_at' => now()]);
         }
 
         // Advance recurring reminders
@@ -75,7 +80,6 @@ class DispatchRemindersCommand extends Command
                 'due_date' => $reminder->due_date->addDays($reminder->recurrence_days),
             ]);
         } elseif (! $reminder->is_recurring && $reminder->due_date->lte(now()->startOfDay())) {
-            // Non-recurring reminders that are due today or overdue get completed
             $reminder->update(['status' => ReminderStatus::Completed]);
         }
     }

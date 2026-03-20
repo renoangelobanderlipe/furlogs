@@ -38,6 +38,7 @@ class CriticalStockNotification extends Notification implements ShouldQueue
     {
         return [
             'type' => 'critical_stock',
+            'title' => "URGENT: {$this->productName} critically low",
             'food_stock_item_id' => $this->stockItem->id,
             'food_product_id' => $this->stockItem->food_product_id,
             'product_name' => $this->productName,

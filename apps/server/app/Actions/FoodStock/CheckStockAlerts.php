@@ -24,8 +24,9 @@ class CheckStockAlerts
         FoodStockItem::query()
             ->where('status', StockStatus::Open)
             ->with([
-                'foodProduct' => fn ($q) => $q->withoutGlobalScopes()->with(['consumptionRates']),
-                'foodProduct.household.members',
+                'foodProduct' => fn ($q) => $q
+                    ->withoutGlobalScopes()
+                    ->with(['consumptionRates', 'household.members']),
             ])
             ->chunkById(100, function (Collection $items): void {
                 foreach ($items as $item) {

@@ -217,7 +217,7 @@ function ReminderItem({ reminder }: ReminderItemProps) {
           )}
           <Box display="flex" gap={2} flexWrap="wrap">
             <Typography variant="caption" color="text.disabled">
-              Type: {attributes.type.replace("_", " ")}
+              Type: {attributes.type?.replaceAll("_", " ")}
             </Typography>
             <Typography variant="caption" color="text.disabled">
               Due:{" "}

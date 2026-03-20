@@ -104,7 +104,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::patch('reminders/{reminder}/snooze', [ReminderController::class, 'snooze'])->name('reminders.snooze');
     Route::patch('reminders/{reminder}/dismiss', [ReminderController::class, 'dismiss'])->name('reminders.dismiss');
 
-    // Notifications — mark-all-read must be before {notification} to avoid route conflict
+    // Notifications — static routes must be before {notification} to avoid route conflict
+    Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
     Route::post('notifications/mark-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('notifications/{notification}', [NotificationController::class, 'markRead'])->name('notifications.mark-read');

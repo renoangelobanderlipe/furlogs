@@ -46,7 +46,7 @@ class UpdateReminderRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:5000'],
             'due_date' => ['sometimes', 'date'],
             'is_recurring' => ['boolean'],
-            'recurrence_days' => ['nullable', 'integer', 'min:1', 'max:365'],
+            'recurrence_days' => ['nullable', 'required_if:is_recurring,true', 'integer', 'min:1', 'max:365'],
             'status' => ['nullable', Rule::enum(ReminderStatus::class)],
         ];
     }

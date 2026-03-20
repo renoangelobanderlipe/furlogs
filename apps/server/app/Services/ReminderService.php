@@ -55,7 +55,7 @@ class ReminderService
     {
         $reminder->update([
             'due_date' => $reminder->due_date->addDays($days),
-            'status' => ReminderStatus::Pending,
+            'status' => ReminderStatus::Snoozed,
         ]);
 
         return $reminder->fresh();

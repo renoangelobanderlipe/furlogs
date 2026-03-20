@@ -17,11 +17,15 @@ export function useUnreadCount() {
   });
 }
 
-export function useNotifications(filters?: NotificationFilters) {
+export function useNotifications(
+  filters?: NotificationFilters,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: notificationKeys.list(filters),
     queryFn: () => notificationEndpoints.list(filters).then((r) => r.data),
     staleTime: QUERY_STALE_TIME,
+    enabled: options?.enabled,
   });
 }
 

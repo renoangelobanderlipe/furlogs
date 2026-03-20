@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MarkAllReadRequest;
 use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -58,6 +59,13 @@ class NotificationController extends Controller
         ]);
     }
 
+    public function unreadCount(Request $request): JsonResponse
+    {
+        return response()->json([
+            'data' => ['count' => $this->service->getUnreadCount($request->user())],
+        ]);
+    }
+
     public function markRead(Request $request, DatabaseNotification $notification): JsonResponse
     {
         abort_unless(
@@ -72,18 +80,14 @@ class NotificationController extends Controller
         return response()->json(['message' => 'Notification marked as read.']);
     }
 
-    public function markAllRead(Request $request): JsonResponse
+    public function markAllRead(MarkAllReadRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'ids' => ['nullable', 'array'],
-            'ids.*' => ['string', 'uuid'],
-        ]);
-
         $user = $request->user();
+        $ids = $request->validated('ids');
 
-        if (! empty($validated['ids'])) {
+        if (! empty($ids)) {
             $user->notifications()
-                ->whereIn('id', $validated['ids'])
+                ->whereIn('id', $ids)
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
         } else {

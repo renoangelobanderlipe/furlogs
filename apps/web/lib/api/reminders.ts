@@ -62,18 +62,18 @@ export const reminderEndpoints = {
   delete: (id: number) => apiClient.delete(`/api/reminders/${id}`),
 
   complete: (id: number) =>
-    apiClient.post<SingleResourceResponse<Reminder>>(
+    apiClient.patch<SingleResourceResponse<Reminder>>(
       `/api/reminders/${id}/complete`,
     ),
 
   snooze: (id: number, snoozeDays: number) =>
-    apiClient.post<SingleResourceResponse<Reminder>>(
+    apiClient.patch<SingleResourceResponse<Reminder>>(
       `/api/reminders/${id}/snooze`,
       { snooze_days: snoozeDays },
     ),
 
   dismiss: (id: number) =>
-    apiClient.post<SingleResourceResponse<Reminder>>(
+    apiClient.patch<SingleResourceResponse<Reminder>>(
       `/api/reminders/${id}/dismiss`,
     ),
 };

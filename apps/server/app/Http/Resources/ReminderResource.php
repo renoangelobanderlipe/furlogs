@@ -25,7 +25,7 @@ class ReminderResource extends JsonResource
             'id' => $reminder->id,
             'type' => 'reminders',
             'attributes' => [
-                'reminderType' => $reminder->type->value,
+                'type' => $reminder->type->value,
                 'title' => $reminder->title,
                 'description' => $reminder->description,
                 'dueDate' => $reminder->due_date->toDateString(),
@@ -38,6 +38,7 @@ class ReminderResource extends JsonResource
                     $daysUntilDue <= 7 => 'medium',
                     default => 'low',
                 },
+                'petName' => $this->whenLoaded('pet', fn () => $this->pet?->name),
                 'createdAt' => $reminder->created_at->toISOString(),
                 'updatedAt' => $reminder->updated_at->toISOString(),
             ],

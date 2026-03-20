@@ -1,9 +1,8 @@
-import CssBaseline from "@mui/material/CssBaseline";
-import { ThemeProvider } from "@mui/material/styles";
-import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Roboto } from "next/font/google";
-import theme from "@/lib/theme";
+import { Toaster } from "sonner";
+import { QueryProvider } from "@/providers/QueryProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,8 +23,8 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "Petlog",
-  description: "Pet activity logger",
+  title: "FurLog — Pet Care Management",
+  description: "Track your pets' health, vet visits, and daily care.",
 };
 
 export default function RootLayout({
@@ -39,12 +38,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${roboto.variable}`}
     >
       <body>
-        <AppRouterCacheProvider>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
+        <QueryProvider>
+          <ThemeProvider>
             {children}
+            <Toaster position="top-right" richColors />
           </ThemeProvider>
-        </AppRouterCacheProvider>
+        </QueryProvider>
       </body>
     </html>
   );

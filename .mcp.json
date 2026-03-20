@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "mui": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@mui/mcp"],
+      "description": "MUI component docs and examples"
+    },
+    "nextjs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@next/mcp"],
+      "description": "Next.js 16 docs and patterns"
+    },
+    "laravel-boost": {
+      "type": "stdio",
+      "command": "php",
+      "args": ["artisan", "mcp:serve"],
+      "cwd": "apps/server",
+      "description": "Laravel Boost MCP — database, routes, docs, browser logs"
+    }
+  }
+}

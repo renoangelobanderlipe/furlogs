@@ -13,6 +13,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - laravel/framework (LARAVEL) - v13
 - laravel/prompts (PROMPTS) - v0
 - laravel/sanctum (SANCTUM) - v4
+- larastan/larastan (LARASTAN) - v3
 - laravel/boost (BOOST) - v2
 - laravel/mcp (MCP) - v0
 - laravel/pail (PAIL) - v1
@@ -205,3 +206,58 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - Do NOT delete tests without approval.
 
 </laravel-boost-guidelines>
+
+## FurLog Backend — Laravel 13
+
+**MCP first:** Use `laravel-boost` MCP `search-docs` before writing any Laravel code.
+
+### Key Patterns
+
+**All PHP files must start with:**
+```php
+<?php
+
+declare(strict_types=1);
+```
+
+**Models use PHP 8 attributes:**
+```php
+#[Fillable(['name', 'email'])]
+#[Hidden(['password'])]
+class User extends Authenticatable
+```
+
+**Service/Action pattern:**
+```
+app/Services/HouseholdService.php  — domain logic
+app/Http/Controllers/              — thin, delegate to services
+app/Http/Requests/                 — all validation here
+```
+
+**BelongsToHousehold trait** (add when pets/vet-visits domain is built):
+```php
+trait BelongsToHousehold {
+    public function household(): BelongsTo { ... }
+}
+```
+
+### Auth System
+
+- Sanctum stateful SPA auth (cookie-based, not token)
+- `MustVerifyEmail` on User model
+- Rate limiting: 5/min login/register, 3/min forgot-password
+- Account lockout after 5 failed attempts (15 min window)
+
+### Pint + PHPStan
+
+```bash
+vendor/bin/pint --dirty       # Format changed files
+vendor/bin/phpstan analyse    # Run static analysis (level 6)
+```
+
+### Installed Packages
+
+- `spatie/laravel-permission` (teams=true)
+- `spatie/laravel-medialibrary`
+- `dedoc/scramble` (API docs)
+- `larastan/larastan` + `phpstan/phpstan`

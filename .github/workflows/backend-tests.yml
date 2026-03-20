@@ -1,0 +1,76 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/server/**"
+      - ".github/workflows/backend-tests.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/server/**"
+      - ".github/workflows/backend-tests.yml"
+
+jobs:
+  pest:
+    name: Pest
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: furlogs_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo, pdo_pgsql
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-scripts
+        working-directory: apps/server
+
+      - name: Copy .env
+        run: cp .env.example .env
+        working-directory: apps/server
+
+      - name: Generate app key
+        run: php artisan key:generate
+        working-directory: apps/server
+
+      - name: Run migrations
+        run: php artisan migrate --force
+        working-directory: apps/server
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: furlogs_test
+          DB_USERNAME: postgres
+          DB_PASSWORD: password
+
+      - name: Run Pest
+        run: php artisan test --compact
+        working-directory: apps/server
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: furlogs_test
+          DB_USERNAME: postgres
+          DB_PASSWORD: password

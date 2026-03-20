@@ -1,21 +1,26 @@
-name: Lint
+name: Backend Lint
 
 on:
   push:
     branches: [main]
+    paths:
+      - "apps/server/**"
+      - ".github/workflows/lint.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "apps/server/**"
+      - ".github/workflows/lint.yml"
 
 jobs:
-  duster:
-    name: Duster (PHP)
+  pint:
+    name: Pint (PHP style)
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
           coverage: none
@@ -24,6 +29,26 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-scripts
         working-directory: apps/server
 
-      - name: Run Duster lint
-        run: ./vendor/bin/duster lint
+      - name: Run Pint
+        run: vendor/bin/pint --test
+        working-directory: apps/server
+
+  phpstan:
+    name: PHPStan (static analysis)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-scripts
+        working-directory: apps/server
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=512M
         working-directory: apps/server

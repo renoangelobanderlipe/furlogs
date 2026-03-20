@@ -5,7 +5,11 @@ import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import { useMemo } from "react";
-import { VISIT_TYPE_LABEL, type VetVisit, type VetVisitType } from "@/lib/api/vet-visits";
+import {
+  type VetVisit,
+  type VetVisitType,
+  VISIT_TYPE_LABEL,
+} from "@/lib/api/vet-visits";
 
 interface VisitTimelineProps {
   visits: VetVisit[];
@@ -84,7 +88,8 @@ export function VisitTimeline({ visits, onSelectVisit }: VisitTimelineProps) {
                       width: 12,
                       height: 12,
                       borderRadius: "50%",
-                      bgcolor: VISIT_TYPE_PALETTE_COLOR[visit.attributes.visitType],
+                      bgcolor:
+                        VISIT_TYPE_PALETTE_COLOR[visit.attributes.visitType],
                       flexShrink: 0,
                       mt: 0.75,
                       border: "2px solid",
@@ -156,7 +161,8 @@ export function VisitTimeline({ visits, onSelectVisit }: VisitTimelineProps) {
                       sx={{
                         height: 18,
                         fontSize: 10,
-                        color: VISIT_TYPE_PALETTE_COLOR[visit.attributes.visitType],
+                        color:
+                          VISIT_TYPE_PALETTE_COLOR[visit.attributes.visitType],
                         borderColor:
                           VISIT_TYPE_PALETTE_COLOR[visit.attributes.visitType],
                       }}

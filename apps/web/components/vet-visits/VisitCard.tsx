@@ -9,9 +9,9 @@ import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
 import {
+  type VetVisit,
   VISIT_TYPE_COLOR,
   VISIT_TYPE_LABEL,
-  type VetVisit,
 } from "@/lib/api/vet-visits";
 import { formatShortDate } from "@/lib/format";
 

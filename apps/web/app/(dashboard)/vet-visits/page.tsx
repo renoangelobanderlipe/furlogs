@@ -73,7 +73,6 @@ function useDebounced<T>(value: T, delay = 300): T {
   return debounced;
 }
 
-
 export default function VetVisitsPage() {
   const [search, setSearch] = useState("");
   const [petIdFilter, setPetIdFilter] = useState<number | null>(null);

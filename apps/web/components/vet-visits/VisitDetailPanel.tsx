@@ -21,10 +21,10 @@ import Typography from "@mui/material/Typography";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
-  VISIT_TYPE_COLOR,
-  VISIT_TYPE_LABEL,
   type VetVisit,
   type VetVisitAttachment,
+  VISIT_TYPE_COLOR,
+  VISIT_TYPE_LABEL,
 } from "@/lib/api/vet-visits";
 
 interface VisitDetailPanelProps {

@@ -6,7 +6,7 @@ import {
   type MedicationPayload,
   medicationEndpoints,
 } from "@/lib/api/medications";
-import { QUERY_STALE_TIME, medicationKeys } from "./queryKeys";
+import { medicationKeys, QUERY_STALE_TIME } from "./queryKeys";
 
 export function useMedications(filters?: MedicationFilters) {
   return useQuery({

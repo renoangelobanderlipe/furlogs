@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const vaccinationSchema = z.object({
-  petId: z.number({ required_error: "Pet is required" }).positive(),
+  petId: z.number({ error: "Pet is required" }).positive(),
   clinicId: z.number().positive().optional(),
   vaccineName: z
     .string()

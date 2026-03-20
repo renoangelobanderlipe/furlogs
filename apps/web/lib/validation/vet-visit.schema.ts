@@ -15,7 +15,7 @@ export const VISIT_TYPE_OPTIONS = [
 ] as const;
 
 export const vetVisitSchema = z.object({
-  petId: z.number({ required_error: "Pet is required" }).positive(),
+  petId: z.number({ error: "Pet is required" }).positive(),
   clinicId: z.number().positive().optional(),
   vetName: z
     .string()

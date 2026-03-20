@@ -81,7 +81,7 @@ export function ReminderForm({
             <Select
               labelId="reminder-pet-label"
               label="Pet (optional)"
-              value={field.value ?? ""}
+              value={field.value !== null && field.value !== undefined ? String(field.value) : ""}
               onChange={(e) =>
                 field.onChange(
                   e.target.value === "" ? null : Number(e.target.value),
@@ -92,7 +92,7 @@ export function ReminderForm({
                 <em>Household (no specific pet)</em>
               </MenuItem>
               {pets.map((pet) => (
-                <MenuItem key={pet.id} value={pet.id}>
+                <MenuItem key={pet.id} value={String(pet.id)}>
                   {pet.attributes.name}
                 </MenuItem>
               ))}

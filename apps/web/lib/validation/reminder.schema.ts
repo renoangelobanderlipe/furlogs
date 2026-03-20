@@ -19,7 +19,7 @@ export const reminderSchema = z
     dueDate: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be a valid date (YYYY-MM-DD)"),
-    isRecurring: z.boolean().default(false),
+    isRecurring: z.boolean(),
     recurrenceDays: z
       .number()
       .int()

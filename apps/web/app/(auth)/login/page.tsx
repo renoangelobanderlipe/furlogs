@@ -44,12 +44,19 @@ export default function LoginPage() {
       await authEndpoints.login(values);
       await fetchUser();
       toast.success("Welcome back!");
-      router.replace("/");
+      router.replace("/pets");
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Invalid credentials. Please try again.";
-      setServerError(message);
+      const data = (
+        err as {
+          response?: {
+            data?: { message?: string; errors?: Record<string, string[]> };
+          };
+        }
+      )?.response?.data;
+      const message = data?.errors
+        ? Object.values(data.errors).flat()[0]
+        : (data?.message ?? "Invalid credentials. Please try again.");
+      setServerError(message ?? "Invalid credentials. Please try again.");
     }
   };
 

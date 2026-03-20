@@ -5,8 +5,8 @@ export const apiClient = axios.create({
   withCredentials: true,
   withXSRFToken: true,
   headers: {
-    Accept: "application/vnd.api+json",
-    "Content-Type": "application/vnd.api+json",
+    Accept: "application/json",
+    "Content-Type": "application/json",
   },
 });
 

@@ -46,10 +46,17 @@ export default function RegisterPage() {
       toast.success("Account created! Please verify your email.");
       router.replace("/verify-email");
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Registration failed. Please try again.";
-      setServerError(message);
+      const data = (
+        err as {
+          response?: {
+            data?: { message?: string; errors?: Record<string, string[]> };
+          };
+        }
+      )?.response?.data;
+      const message = data?.errors
+        ? Object.values(data.errors).flat()[0]
+        : (data?.message ?? "Registration failed. Please try again.");
+      setServerError(message ?? "Registration failed. Please try again.");
     }
   };
 

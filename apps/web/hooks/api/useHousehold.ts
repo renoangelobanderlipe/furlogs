@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { extractApiError } from "@/lib/api/extractApiError";
 import { type HouseholdData, householdEndpoints } from "@/lib/api/households";
+import { useAuthStore } from "@/stores/useAuthStore";
 import { householdKeys, QUERY_STALE_TIME } from "./queryKeys";
 
 export function useHousehold() {
@@ -120,6 +121,37 @@ export function useDeleteHousehold() {
     onError: (error: unknown) => {
       toast.error(
         extractApiError(error, "Failed to delete household. Please try again."),
+      );
+    },
+  });
+}
+
+export function useUserHouseholds() {
+  return useQuery({
+    queryKey: householdKeys.userHouseholds(),
+    queryFn: () =>
+      householdEndpoints.listUserHouseholds().then((r) => r.data.data),
+    staleTime: QUERY_STALE_TIME,
+  });
+}
+
+export function useSwitchHousehold() {
+  const queryClient = useQueryClient();
+  const fetchUser = useAuthStore((s) => s.fetchUser);
+
+  return useMutation({
+    mutationFn: (householdId: string) =>
+      householdEndpoints.switchHousehold(householdId).then((r) => r.data.data),
+    onSuccess: async (household) => {
+      // Re-hydrate the auth store so current_household_id is up to date,
+      // then clear all household-scoped query cache.
+      await fetchUser();
+      queryClient.clear();
+      toast.success(`Switched to "${household.name}"`);
+    },
+    onError: (error: unknown) => {
+      toast.error(
+        extractApiError(error, "Failed to switch household. Please try again."),
       );
     },
   });

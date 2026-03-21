@@ -24,6 +24,20 @@ export interface HouseholdResponse {
   data: HouseholdData;
 }
 
+export interface UserHousehold {
+  id: string;
+  name: string;
+  role: "owner" | "member";
+}
+
+export interface UserHouseholdsResponse {
+  data: UserHousehold[];
+}
+
+export interface SwitchHouseholdResponse {
+  data: { id: string; name: string };
+}
+
 export const householdEndpoints = {
   create: (name: string) =>
     apiClient.post<Household>("/api/households", { name }),
@@ -49,4 +63,12 @@ export const householdEndpoints = {
     ),
 
   delete: (id: string) => apiClient.delete(`/api/households/${id}`),
+
+  listUserHouseholds: () =>
+    apiClient.get<UserHouseholdsResponse>("/api/user/households"),
+
+  switchHousehold: (householdId: string) =>
+    apiClient.patch<SwitchHouseholdResponse>("/api/user/switch-household", {
+      household_id: householdId,
+    }),
 };

@@ -87,6 +87,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('households', [HouseholdController::class, 'store'])->name('households.store');
 
     // Household management
+    Route::get('user/households', [HouseholdController::class, 'userHouseholds'])->name('user.households.index');
+    Route::patch('user/switch-household', [HouseholdController::class, 'switchHousehold'])->name('user.switch-household');
     Route::get('households/current', [HouseholdController::class, 'current'])->name('households.current');
     Route::patch('households/{household}', [HouseholdController::class, 'update'])->name('households.update');
     Route::post('households/{household}/invite', [HouseholdController::class, 'invite'])->name('households.invite');

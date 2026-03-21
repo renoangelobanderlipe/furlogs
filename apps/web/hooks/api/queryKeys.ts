@@ -99,6 +99,7 @@ export const vetClinicKeys = {
 
 export const householdKeys = {
   current: () => ["household", "current"] as const,
+  userHouseholds: () => ["household", "user-list"] as const,
 };
 
 export const administrationKeys = {

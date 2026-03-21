@@ -16,6 +16,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useState } from "react";
+import { HouseholdSwitcher } from "@/components/layout/HouseholdSwitcher";
 import { ProfileDrawer } from "@/components/layout/ProfileDrawer";
 import { SettingsDrawer } from "@/components/layout/SettingsDrawer";
 import {
@@ -110,10 +111,12 @@ export function TopBar({
 
   return (
     <header className="topbar sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-4 md:px-6">
-      {/* Mobile logo */}
+      {/* Mobile: logo + household switcher */}
       <div className="flex md:hidden items-center gap-2">
         <PawPrint className="h-5 w-5 text-primary" />
         <span className="font-bold tracking-tight">FurLog</span>
+        <div className="w-px h-4 bg-border mx-0.5" />
+        <HouseholdSwitcher />
       </div>
 
       {isHorizontalNav ? (

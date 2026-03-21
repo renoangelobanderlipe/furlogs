@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, PawPrint } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { HouseholdSwitcher } from "@/components/layout/HouseholdSwitcher";
 import { accountNav, insightsNav, mainNav } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +72,16 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         {!collapsed && (
           <span className="text-lg font-bold tracking-tight">FurLog</span>
         )}
+      </div>
+
+      {/* Household switcher */}
+      <div
+        className={cn(
+          "border-b border-sidebar-border px-2 py-2",
+          collapsed && "px-1",
+        )}
+      >
+        <HouseholdSwitcher collapsed={collapsed} />
       </div>
 
       {/* Navigation */}

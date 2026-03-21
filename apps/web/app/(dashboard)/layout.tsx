@@ -1,6 +1,7 @@
 "use client";
 
 import type { InternalAxiosRequestConfig } from "axios";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PasswordConfirmDialog } from "@/components/auth/PasswordConfirmDialog";
@@ -22,6 +23,7 @@ export default function DashboardLayout({
   const pendingConfigRef = useRef<InternalAxiosRequestConfig | null>(null);
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
+  const isLoading = useAuthStore((s) => s.isLoading);
   const fetchUser = useAuthStore((s) => s.fetchUser);
   const layout = useAppSettingsStore((s) => s.layout);
   const navVisible = useAppSettingsStore((s) => s.navVisible);
@@ -35,7 +37,14 @@ export default function DashboardLayout({
   }, [fetchUser]);
 
   useEffect(() => {
-    if (user && user.current_household_id === null) {
+    if (!user) return;
+    // Authenticated but email not yet verified — send to verify-email so they
+    // are never silently stranded on a blank dashboard.
+    if (!user.email_verified_at) {
+      router.replace("/verify-email");
+      return;
+    }
+    if (user.current_household_id === null) {
       router.replace("/onboarding");
     }
   }, [user, router]);
@@ -81,6 +90,24 @@ export default function DashboardLayout({
   const isMini = layout === "mini";
   const isHorizontal = layout === "horizontal";
   const sidebarCollapsed = isMini || collapsed;
+
+  // Hold the full UI until we know who the user is. This prevents child pages
+  // from firing API calls that would bounce with 401/403 before the session
+  // is confirmed, and avoids a blank-content flash before redirect logic runs.
+  //
+  // We only block when BOTH conditions are true:
+  //   isLoading && !user  →  genuine first-load uncertainty
+  //
+  // If user is already known (e.g. navigated here right after login which
+  // already called fetchUser), skip the spinner even though the layout
+  // re-fetches on mount — we already know who they are.
+  if (isLoading && !user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <>

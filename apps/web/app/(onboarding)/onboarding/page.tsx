@@ -128,7 +128,7 @@ export default function OnboardingPage() {
             <Button
               size="lg"
               className="w-full"
-              onClick={() => router.replace("/")}
+              onClick={() => router.replace("/pets")}
             >
               Go to dashboard
             </Button>

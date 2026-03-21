@@ -106,3 +106,8 @@ export const administrationKeys = {
       ? ([...administrationKeys.all, "medication", medicationId, date] as const)
       : ([...administrationKeys.all, "medication", medicationId] as const),
 };
+
+export const spendingKeys = {
+  all: ["spending"] as const,
+  stats: (year?: number) => [...spendingKeys.all, "stats", year] as const,
+};

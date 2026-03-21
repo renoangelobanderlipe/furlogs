@@ -1,17 +1,24 @@
 "use client";
 
 import {
+  BarChart3,
+  CalendarDays,
+  Receipt,
+  ShoppingBag,
+  Stethoscope,
+  TrendingUp,
+} from "lucide-react";
+import type { TooltipProps } from "recharts";
+import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { useFoodStockItems } from "@/hooks/api/useFoodStock";
-import { useVetVisitStats, useVetVisits } from "@/hooks/api/useVetVisits";
+import { useSpendingStats } from "@/hooks/api/useSpending";
 import { formatCurrency } from "@/lib/format";
 
 const MONTHS = [
@@ -31,125 +38,359 @@ const MONTHS = [
 
 const currentYear = new Date().getFullYear();
 
-export default function SpendingPage() {
-  const { data: stats } = useVetVisitStats();
-  const { data: allVisits } = useVetVisits({ per_page: 200 });
-  const { data: stockItems = [] } = useFoodStockItems();
+function CustomTooltip({
+  active,
+  payload,
+  label,
+}: TooltipProps<number, string>) {
+  if (!active || !payload?.length) return null;
 
-  const vetTotal = stats?.ytdSpend ?? 0;
-
-  const foodTotal = stockItems
-    .filter((item) => {
-      const year = new Date(item.attributes.purchasedAt).getFullYear();
-      return year === currentYear;
-    })
-    .reduce((sum, item) => sum + (item.attributes.purchaseCost ?? 0), 0);
-
-  const total = vetTotal + foodTotal;
-
-  // Build monthly data
-  const visits = allVisits?.data ?? [];
-  const monthlyData = MONTHS.map((month, idx) => {
-    const vet = visits
-      .filter((v) => {
-        const d = new Date(v.attributes.visitDate);
-        return d.getFullYear() === currentYear && d.getMonth() === idx;
-      })
-      .reduce((sum, v) => {
-        const c = parseFloat(v.attributes.cost ?? "0");
-        return sum + (Number.isNaN(c) ? 0 : c);
-      }, 0);
-
-    const food = stockItems
-      .filter((item) => {
-        const d = new Date(item.attributes.purchasedAt);
-        return d.getFullYear() === currentYear && d.getMonth() === idx;
-      })
-      .reduce((sum, item) => sum + (item.attributes.purchaseCost ?? 0), 0);
-
-    return { month, vet, food };
-  });
+  const vet = (payload.find((p) => p.dataKey === "vet")?.value as number) ?? 0;
+  const food =
+    (payload.find((p) => p.dataKey === "food")?.value as number) ?? 0;
+  const total = vet + food;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="rounded-xl border border-border bg-card p-3 shadow-xl min-w-[156px]">
+      <p className="text-xs font-semibold text-foreground mb-2.5">{label}</p>
+      {total === 0 ? (
+        <p className="text-xs text-muted-foreground">No spending</p>
+      ) : (
+        <div className="space-y-1.5">
+          {vet > 0 && (
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-primary inline-block" />
+                <span className="text-xs text-muted-foreground">Vet</span>
+              </div>
+              <span className="text-xs font-medium tabular-nums">
+                {formatCurrency(vet)}
+              </span>
+            </div>
+          )}
+          {food > 0 && (
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-success inline-block" />
+                <span className="text-xs text-muted-foreground">Food</span>
+              </div>
+              <span className="text-xs font-medium tabular-nums">
+                {formatCurrency(food)}
+              </span>
+            </div>
+          )}
+          <div className="border-t border-border pt-1.5 flex justify-between">
+            <span className="text-xs text-muted-foreground">Total</span>
+            <span className="text-xs font-semibold tabular-nums">
+              {formatCurrency(total)}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function SpendingPage() {
+  const { data: stats } = useSpendingStats();
+
+  const vetTotal = stats?.vetYtdSpend ?? 0;
+  const foodTotal = stats?.foodYtdSpend ?? 0;
+  const total = stats?.totalYtdSpend ?? 0;
+  const hasData = total > 0;
+
+  const vetPct = hasData ? Math.round((vetTotal / total) * 100) : 0;
+  const foodPct = hasData ? 100 - vetPct : 0;
+
+  const monthlyData = (stats?.monthly ?? []).map((entry) => ({
+    month: MONTHS[entry.month - 1],
+    vet: entry.vet,
+    food: entry.food,
+  }));
+
+  const activeMonths = monthlyData.filter((m) => m.vet + m.food > 0);
+  const peakMonth = activeMonths.reduce<{
+    month: string;
+    total: number;
+  } | null>((acc, m) => {
+    const t = m.vet + m.food;
+    return t > (acc?.total ?? 0) ? { month: m.month, total: t } : acc;
+  }, null);
+  const avgMonthlySpend =
+    activeMonths.length > 0
+      ? activeMonths.reduce((sum, m) => sum + m.vet + m.food, 0) /
+        activeMonths.length
+      : 0;
+  const topCategory = vetTotal >= foodTotal ? "Vet" : "Food";
+  const topCategoryPct = hasData
+    ? Math.round((Math.max(vetTotal, foodTotal) / total) * 100)
+    : 0;
+
+  return (
+    <div className="space-y-4 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="animate-fade-in-up">
-        <h1 className="text-2xl font-bold tracking-tight">Spending</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {currentYear} overview
-        </p>
+      <div className="flex items-center gap-3 animate-fade-in-up">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
+          <Receipt className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Spending</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {currentYear} year-to-date
+          </p>
+        </div>
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-3 gap-3 animate-fade-in-up">
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Total Spend</p>
-          <p className="text-xl font-bold tabular-nums mt-1">
-            {formatCurrency(total)}
-          </p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Total */}
+        <div
+          className="rounded-xl border border-border bg-card p-4 animate-fade-in-up relative overflow-hidden"
+          style={{ animationDelay: "50ms" }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.03] to-transparent pointer-events-none" />
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground font-medium">
+                Total Spend
+              </p>
+              <p className="text-2xl font-bold tabular-nums mt-1 truncate">
+                {formatCurrency(total)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {currentYear} YTD
+              </p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted shrink-0">
+              <Receipt className="h-5 w-5 text-foreground/50" />
+            </div>
+          </div>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Vet Spend</p>
-          <p className="text-xl font-bold tabular-nums mt-1 text-primary">
-            {formatCurrency(vetTotal)}
-          </p>
+
+        {/* Vet */}
+        <div
+          className="rounded-xl border border-primary/20 bg-card p-4 animate-fade-in-up relative overflow-hidden"
+          style={{ animationDelay: "100ms" }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground font-medium">
+                Vet Spend
+              </p>
+              <p className="text-2xl font-bold tabular-nums mt-1 text-primary truncate">
+                {formatCurrency(vetTotal)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {hasData ? `${vetPct}% of total` : "No visits logged"}
+              </p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 shrink-0">
+              <Stethoscope className="h-5 w-5 text-primary" />
+            </div>
+          </div>
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-xs text-muted-foreground">Food Spend</p>
-          <p className="text-xl font-bold tabular-nums mt-1 text-success">
-            {formatCurrency(foodTotal)}
-          </p>
+
+        {/* Food */}
+        <div
+          className="rounded-xl border border-success/20 bg-card p-4 animate-fade-in-up relative overflow-hidden"
+          style={{ animationDelay: "150ms" }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent pointer-events-none" />
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground font-medium">
+                Food Spend
+              </p>
+              <p className="text-2xl font-bold tabular-nums mt-1 text-success truncate">
+                {formatCurrency(foodTotal)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {hasData ? `${foodPct}% of total` : "No purchases logged"}
+              </p>
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success/10 shrink-0">
+              <ShoppingBag className="h-5 w-5 text-success" />
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Spending split */}
+      {hasData && (
+        <div
+          className="rounded-xl border border-border bg-card p-4 animate-fade-in-up"
+          style={{ animationDelay: "200ms" }}
+        >
+          <p className="text-xs font-medium text-muted-foreground mb-3">
+            Spending Split
+          </p>
+          <div className="relative h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="absolute left-0 top-0 h-full bg-primary transition-all duration-700 ease-out"
+              style={{ width: `${vetPct}%` }}
+            />
+            <div
+              className="absolute top-0 h-full bg-success transition-all duration-700 ease-out"
+              style={{ left: `${vetPct}%`, right: 0 }}
+            />
+          </div>
+          <div className="flex justify-between mt-2.5">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-primary inline-block" />
+              <span className="text-xs text-muted-foreground">
+                Vet{" "}
+                <span className="font-semibold text-foreground">{vetPct}%</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">
+                Food{" "}
+                <span className="font-semibold text-foreground">
+                  {foodPct}%
+                </span>
+              </span>
+              <span className="h-2 w-2 rounded-full bg-success inline-block" />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Monthly breakdown chart */}
       <div
-        className="rounded-lg border border-border bg-card p-4 animate-fade-in-up"
-        style={{ animationDelay: "100ms" }}
+        className="rounded-xl border border-border bg-card p-5 animate-fade-in-up"
+        style={{ animationDelay: "250ms" }}
       >
-        <h2 className="font-semibold mb-4">Monthly Breakdown</h2>
-        <div className="h-64">
+        <div className="flex items-start justify-between mb-5">
+          <div>
+            <h2 className="font-semibold">Monthly Breakdown</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Vet and food spend per month
+            </p>
+          </div>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground pt-0.5">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-sm bg-primary inline-block" />
+              Vet
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-sm bg-success inline-block" />
+              Food
+            </div>
+          </div>
+        </div>
+        <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={monthlyData}
-              margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+              margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
+              barGap={3}
+              barCategoryGap="30%"
             >
-              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="hsl(var(--border))"
+                strokeOpacity={0.8}
+              />
               <XAxis
                 dataKey="month"
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                axisLine={false}
+                tickLine={false}
+                tick={{
+                  fill: "hsl(var(--muted-foreground))",
+                  fontSize: 11,
+                }}
               />
               <YAxis
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                tickFormatter={(v: number) => `₱${(v / 1000).toFixed(0)}k`}
+                axisLine={false}
+                tickLine={false}
+                tick={{
+                  fill: "hsl(var(--muted-foreground))",
+                  fontSize: 11,
+                }}
+                tickFormatter={(v: number) =>
+                  v >= 1000 ? `₱${(v / 1000).toFixed(0)}k` : `₱${v}`
+                }
               />
               <Tooltip
-                contentStyle={{
-                  background: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                  fontSize: 13,
-                  color: "hsl(var(--foreground))",
-                }}
-                formatter={(value: number) => [formatCurrency(value), ""]}
+                content={<CustomTooltip />}
+                cursor={{ fill: "hsl(var(--muted))", opacity: 0.5 }}
               />
-              <Legend />
               <Bar
                 dataKey="vet"
                 name="Vet"
                 fill="hsl(174 80% 40%)"
                 radius={[4, 4, 0, 0]}
+                maxBarSize={28}
               />
               <Bar
                 dataKey="food"
                 name="Food"
                 fill="hsl(142 71% 45%)"
                 radius={[4, 4, 0, 0]}
+                maxBarSize={28}
               />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* Insights */}
+      {hasData && (
+        <div
+          className="grid grid-cols-3 gap-3 animate-fade-in-up"
+          style={{ animationDelay: "300ms" }}
+        >
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-warning/10">
+                <TrendingUp className="h-3.5 w-3.5 text-warning" />
+              </div>
+              <p className="text-xs text-muted-foreground font-medium">
+                Peak Month
+              </p>
+            </div>
+            <p className="text-base font-bold">{peakMonth?.month ?? "—"}</p>
+            <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">
+              {peakMonth ? formatCurrency(peakMonth.total) : "—"}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+                <CalendarDays className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <p className="text-xs text-muted-foreground font-medium">
+                Monthly Avg
+              </p>
+            </div>
+            <p className="text-base font-bold tabular-nums">
+              {formatCurrency(avgMonthlySpend)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              across {activeMonths.length}{" "}
+              {activeMonths.length === 1 ? "month" : "months"}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card p-4">
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-success/10">
+                <BarChart3 className="h-3.5 w-3.5 text-success" />
+              </div>
+              <p className="text-xs text-muted-foreground font-medium">
+                Top Category
+              </p>
+            </div>
+            <p className="text-base font-bold">{topCategory}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {topCategoryPct}% of total spend
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

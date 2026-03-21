@@ -17,6 +17,7 @@ use App\Http\Controllers\PetController;
 use App\Http\Controllers\PetWeightController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\SpendingController;
 use App\Http\Controllers\VaccinationController;
 use App\Http\Controllers\VetClinicController;
 use App\Http\Controllers\VetVisitAttachmentController;
@@ -75,6 +76,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Dashboard
     Route::get('dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');
+
+    // Spending
+    Route::get('spending/stats', [SpendingController::class, 'stats'])->name('spending.stats');
 
     // Calendar
     Route::get('calendar/events', [CalendarController::class, 'events'])->name('calendar.events');

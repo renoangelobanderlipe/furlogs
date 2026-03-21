@@ -70,6 +70,28 @@ describe('successful registration', function () {
 });
 
 // ---------------------------------------------------------------------------
+// Mail failure atomicity
+// ---------------------------------------------------------------------------
+
+describe('registration atomicity', function () {
+    it('does not persist the user when email sending throws', function () {
+        // Simulate an SMTP failure by making the Registered listener throw.
+        Event::listen(Registered::class, function (): never {
+            throw new RuntimeException('SMTP connection failed');
+        });
+
+        $this->postJson('/api/auth/register', [
+            'name' => 'Jane Doe',
+            'email' => 'mail-fail@example.com',
+            'password' => 'Password1',
+            'password_confirmation' => 'Password1',
+        ])->assertStatus(500);
+
+        $this->assertDatabaseMissing('users', ['email' => 'mail-fail@example.com']);
+    });
+});
+
+// ---------------------------------------------------------------------------
 // Validation failures
 // ---------------------------------------------------------------------------
 

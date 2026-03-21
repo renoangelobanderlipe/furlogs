@@ -84,9 +84,9 @@ export function ReminderForm({
                 value={
                   field.value !== null && field.value !== undefined
                     ? String(field.value)
-                    : ""
+                    : "none"
                 }
-                onValueChange={(v) => field.onChange(v === "" ? null : v)}
+                onValueChange={(v) => field.onChange(v === "none" ? null : v)}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -94,7 +94,7 @@ export function ReminderForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value="none">
                     <em>Household (no specific pet)</em>
                   </SelectItem>
                   {pets.map((pet) => (

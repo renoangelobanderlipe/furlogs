@@ -144,6 +144,12 @@ export function VisitDetailPanel({
       {/* Body */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         <DetailRow label="Visit date" value={formatDate(visitDate)} />
+        {visit.relationships?.clinic && (
+          <DetailRow
+            label="Clinic"
+            value={visit.relationships.clinic.attributes.name}
+          />
+        )}
         {vetName && <DetailRow label="Veterinarian" value={vetName} />}
         {formattedCost && <DetailRow label="Cost" value={formattedCost} />}
         {weightAtVisit && (

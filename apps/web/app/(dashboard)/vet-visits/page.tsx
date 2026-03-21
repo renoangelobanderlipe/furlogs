@@ -41,6 +41,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { usePets } from "@/hooks/api/usePets";
+import { useVetClinics } from "@/hooks/api/useVetClinics";
 import {
   useCreateVetVisit,
   useDeleteVetVisit,
@@ -65,12 +66,14 @@ export default function VetVisitsPage() {
 
   const { data: visitsData, isLoading } = useVetVisits({ page, per_page: 5 });
   const { data: petsData } = usePets();
+  const { data: clinicsData } = useVetClinics();
   const createVisit = useCreateVetVisit();
   const deleteVisit = useDeleteVetVisit();
 
   const visits = visitsData?.data ?? [];
   const meta = visitsData?.meta;
   const pets = petsData?.data ?? [];
+  const clinics = clinicsData?.data ?? [];
 
   const petById = new Map(pets.map((p) => [p.id, p]));
 
@@ -103,7 +106,7 @@ export default function VetVisitsPage() {
         visit_type: form.type,
         visit_date: form.date,
         reason: form.diagnosis || form.type,
-        ...(form.clinic && { vet_name: form.clinic }),
+        ...(form.clinic && { clinic_id: form.clinic }),
         ...(form.diagnosis && { diagnosis: form.diagnosis }),
         ...(form.cost && { cost: parseFloat(form.cost) }),
       },
@@ -170,7 +173,10 @@ export default function VetVisitsPage() {
                     {pet?.attributes.name ?? "Unknown"}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {v.attributes.vetName || "—"} ·{" "}
+                    {v.relationships?.clinic?.attributes.name ||
+                      v.attributes.vetName ||
+                      "—"}{" "}
+                    ·{" "}
                     <span className="capitalize">{v.attributes.visitType}</span>
                   </p>
                 </div>
@@ -325,17 +331,27 @@ export default function VetVisitsPage() {
               </div>
             </div>
 
-            {/* Clinic / Vet Name */}
+            {/* Clinic */}
             <div>
-              <Label>Clinic / Vet Name</Label>
-              <Input
+              <Label>Clinic</Label>
+              <Select
                 value={form.clinic}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, clinic: e.target.value }))
+                onValueChange={(v) =>
+                  setForm((p) => ({ ...p, clinic: v === "none" ? "" : v }))
                 }
-                placeholder="e.g., Happy Paws Clinic"
-                className="mt-1.5 bg-background"
-              />
+              >
+                <SelectTrigger className="mt-1.5 bg-background">
+                  <SelectValue placeholder="Select clinic" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {clinics.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.attributes.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Diagnosis / Notes */}

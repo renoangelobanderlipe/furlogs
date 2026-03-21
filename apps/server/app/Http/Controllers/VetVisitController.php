@@ -47,6 +47,8 @@ class VetVisitController extends Controller
 
         $includes = explode(',', (string) $request->query('include', ''));
 
+        $vetVisit->load('clinic');
+
         if (in_array('medications', $includes, true)) {
             $vetVisit->load('medications');
         }

@@ -4,6 +4,7 @@ import type {
 } from "@/lib/validation/vet-visit.schema";
 import { apiClient } from "./client";
 import type { PaginatedResponse, Pet, SingleResourceResponse } from "./pets";
+import type { VetClinic } from "./vet-clinics";
 
 export interface VetVisitStats {
   ytdVisits: number;
@@ -63,6 +64,7 @@ export interface VetVisit {
   attributes: VetVisitAttributes;
   relationships?: {
     pet?: Pet;
+    clinic?: VetClinic;
     medications?: Medication[];
     attachments?: VetVisitAttachment[];
   };

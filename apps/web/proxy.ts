@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-const SESSION_COOKIE = "furlog-session";
+const SESSION_COOKIE = "furlogs-session";
 
 export function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\MedicationAdministration;
 use App\Models\User;
+use App\Policies\MedicationAdministrationPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -34,5 +36,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('viewApiDocs', function (?User $user = null): bool {
             return app()->environment('local');
         });
+
+        Gate::policy(MedicationAdministration::class, MedicationAdministrationPolicy::class);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\FrequencyType;
 use App\Models\Medication;
 use App\Models\Pet;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -47,7 +48,7 @@ class UpdateMedicationRequest extends FormRequest
             ],
             'name' => ['sometimes', 'string', 'max:255'],
             'dosage' => ['nullable', 'string', 'max:100'],
-            'frequency' => ['nullable', 'string', 'max:100'],
+            'frequency' => ['nullable', Rule::enum(FrequencyType::class)],
             'start_date' => ['sometimes', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'notes' => ['nullable', 'string', 'max:5000'],

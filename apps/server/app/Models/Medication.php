@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\FrequencyType;
 use App\Observers\MedicationObserver;
 use App\Traits\BelongsToHouseholdViaPet;
 use Carbon\Carbon;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -21,7 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int|null $vet_visit_id
  * @property string $name
  * @property string|null $dosage
- * @property string|null $frequency
+ * @property FrequencyType|null $frequency
  * @property Carbon $start_date
  * @property Carbon|null $end_date
  * @property string|null $notes
@@ -46,6 +48,7 @@ class Medication extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
+            'frequency' => FrequencyType::class,
         ];
     }
 
@@ -59,5 +62,11 @@ class Medication extends Model
     public function vetVisit(): BelongsTo
     {
         return $this->belongsTo(VetVisit::class, 'vet_visit_id');
+    }
+
+    /** @return HasMany<MedicationAdministration, $this> */
+    public function administrations(): HasMany
+    {
+        return $this->hasMany(MedicationAdministration::class);
     }
 }

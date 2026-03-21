@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FoodProductController;
 use App\Http\Controllers\FoodStockItemController;
 use App\Http\Controllers\HouseholdController;
+use App\Http\Controllers\MedicationAdministrationController;
 use App\Http\Controllers\MedicationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PetController;
@@ -117,6 +118,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Medications
     Route::apiResource('medications', MedicationController::class);
+    Route::apiResource('medications.administrations', MedicationAdministrationController::class)
+        ->shallow();
 
     // Reminders
     Route::apiResource('reminders', ReminderController::class);

@@ -379,7 +379,6 @@ export default function VetVisitsPage() {
                   <AlertDialogTrigger asChild>
                     <button
                       type="button"
-                      onClick={(e) => e.preventDefault()}
                       className="relative z-10 h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10 transition-all"
                     >
                       <Trash2 className="h-4 w-4" />

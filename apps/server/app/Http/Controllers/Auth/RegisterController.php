@@ -10,19 +10,24 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class RegisterController extends Controller
 {
     public function __invoke(RegisterRequest $request): JsonResponse
     {
-        $user = User::query()->create([
-            'name' => $request->string('name')->toString(),
-            'email' => $request->string('email')->toString(),
-            'password' => Hash::make($request->string('password')->toString()),
-        ]);
+        $user = DB::transaction(function () use ($request): User {
+            $user = User::query()->create([
+                'name' => $request->string('name')->toString(),
+                'email' => $request->string('email')->toString(),
+                'password' => Hash::make($request->string('password')->toString()),
+            ]);
 
-        event(new Registered($user));
+            event(new Registered($user));
+
+            return $user;
+        });
 
         Auth::login($user);
 

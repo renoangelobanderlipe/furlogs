@@ -5,13 +5,17 @@ import NextLink from "next/link";
 import type { Pet } from "@/lib/api/pets";
 import { SPECIES_EMOJI } from "@/lib/constants";
 import { formatAge } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+export type PetStatus = "healthy" | "vaccine_due";
 
 interface PetCardProps {
   pet: Pet;
   animationIndex?: number;
+  status?: PetStatus;
 }
 
-export function PetCard({ pet, animationIndex = 0 }: PetCardProps) {
+export function PetCard({ pet, animationIndex = 0, status }: PetCardProps) {
   const {
     name,
     species,
@@ -19,71 +23,94 @@ export function PetCard({ pet, animationIndex = 0 }: PetCardProps) {
     breed,
     birthday,
     age,
-    size,
     latestWeightKg,
+    avatarUrl,
     thumbUrl,
   } = pet.attributes;
 
   return (
     <NextLink
       href={`/pets/${pet.id}`}
-      className="group block rounded-lg border border-border bg-card p-5 transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 animate-fade-in-up active:scale-[0.98] no-underline"
+      className="group relative block rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 animate-fade-in-up active:scale-[0.98] no-underline"
       style={{ animationDelay: `${animationIndex * 80}ms` }}
     >
-      <div className="flex items-center gap-4 mb-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-2xl shrink-0 overflow-hidden">
-          {thumbUrl ? (
-            <Image
-              src={thumbUrl}
-              alt={name}
-              width={56}
-              height={56}
-              className="h-14 w-14 object-cover rounded-full"
-            />
-          ) : (
-            (SPECIES_EMOJI[species] ?? "🐾")
+      {/* Status badge */}
+      {status && (
+        <span
+          className={cn(
+            "absolute top-4 right-4 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border",
+            status === "healthy"
+              ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+              : "bg-red-500/15 text-red-400 border-red-500/30",
           )}
-        </div>
-        <div className="min-w-0">
-          <h3 className="font-semibold text-lg truncate text-foreground group-hover:text-primary transition-colors">
-            {name}
-          </h3>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium capitalize">
-              {species}
-            </span>
-            <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-medium capitalize">
-              {sex}
-            </span>
+        >
+          {status === "healthy" ? "Healthy" : "Vaccine Due"}
+        </span>
+      )}
+
+      {/* Avatar with sex badge */}
+      <div className="flex justify-center mb-4 mt-2">
+        <div className="relative inline-block">
+          <div className="h-24 w-24 rounded-full ring-2 ring-white/10 overflow-hidden bg-muted flex items-center justify-center text-4xl">
+            {thumbUrl || avatarUrl ? (
+              <Image
+                src={(thumbUrl || avatarUrl) as string}
+                alt={name}
+                width={96}
+                height={96}
+                className="h-24 w-24 object-cover"
+              />
+            ) : (
+              (SPECIES_EMOJI[species] ?? "🐾")
+            )}
           </div>
+          {/* Sex badge */}
+          <span
+            className={cn(
+              "absolute bottom-0.5 right-0.5 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold shadow-lg",
+              sex === "male"
+                ? "bg-primary text-primary-foreground"
+                : "bg-pink-500 text-white",
+            )}
+          >
+            {sex === "male" ? "♂" : "♀"}
+          </span>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <p className="text-xs text-muted-foreground">Age</p>
-          <p className="font-medium text-foreground">
+
+      {/* Name + breed */}
+      <div className="text-center mb-4">
+        <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors truncate px-1">
+          {name}
+        </h3>
+        {breed && (
+          <p className="text-sm text-muted-foreground mt-0.5">{breed}</p>
+        )}
+      </div>
+
+      {/* Stat boxes */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="rounded-xl bg-muted/40 p-3 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+            Age
+          </p>
+          <p className="text-sm font-semibold text-foreground">
             {formatAge(birthday, age)}
           </p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Weight</p>
-          <p className="font-medium text-foreground">
+        <div className="rounded-xl bg-muted/40 p-3 text-center">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+            Weight
+          </p>
+          <p className="text-sm font-semibold text-foreground">
             {latestWeightKg != null ? `${latestWeightKg} kg` : "—"}
           </p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Breed</p>
-          <p className="font-medium truncate text-foreground">{breed || "—"}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Size</p>
-          <p className="font-medium capitalize text-foreground">
-            {size || "—"}
-          </p>
-        </div>
       </div>
-      <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground group-hover:text-primary/70 transition-colors">
-        <span>View profile</span>
+
+      {/* View Profile button */}
+      <div className="flex items-center justify-center gap-2 w-full rounded-xl bg-muted/50 group-hover:bg-muted py-2.5 text-sm font-medium text-foreground/80 group-hover:text-foreground transition-all">
+        View Profile
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="14"

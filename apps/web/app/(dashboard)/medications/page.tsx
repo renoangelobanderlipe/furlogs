@@ -60,6 +60,7 @@ import {
   type MedicationFormValues,
   medicationSchema,
 } from "@/lib/validation/medication.schema";
+import { useHouseholdStore } from "@/stores/useHouseholdStore";
 
 function getDosesPerDay(
   frequency: FrequencyValue | string | null | undefined,
@@ -200,12 +201,15 @@ function MedicationItem({ med, index, onEdit, onDelete }: MedicationItemProps) {
 // ---------------------------------------------------------------------------
 
 export default function MedicationsPage() {
+  const initialMedPetId = useHouseholdStore((s) =>
+    s.isPetFilterActive && s.selectedPetId ? s.selectedPetId : "all",
+  );
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
   const [deleteMedId, setDeleteMedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [petFilter, setPetFilter] = useState("all");
+  const [petFilter, setPetFilter] = useState(initialMedPetId);
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "completed"
   >("all");

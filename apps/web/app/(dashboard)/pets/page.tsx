@@ -28,10 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreatePet, usePets, useUploadPetAvatar } from "@/hooks/api/usePets";
-import type { Pet } from "@/lib/api/pets";
 import { petEndpoints } from "@/lib/api/pets";
 import { SPECIES_EMOJI } from "@/lib/constants";
 import {
@@ -42,26 +42,11 @@ import {
   SPECIES_OPTIONS,
 } from "@/lib/validation/pet.schema";
 
-function formatAge(birthday: string | null, age: number | null): string {
-  if (age !== null) return age === 1 ? "1 year" : `${age} years`;
-  if (!birthday) return "—";
-  const birth = new Date(birthday);
-  const now = new Date();
-  const totalMonths =
-    (now.getFullYear() - birth.getFullYear()) * 12 +
-    (now.getMonth() - birth.getMonth());
-  if (totalMonths < 12)
-    return totalMonths <= 1 ? "1 month" : `${totalMonths} months`;
-  const yr = Math.floor(totalMonths / 12);
-  return yr === 1 ? "1 year" : `${yr} years`;
-}
-
 function PetsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [viewPet, setViewPet] = useState<Pet | null>(null);
   const [latestWeight, setLatestWeight] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -164,9 +149,14 @@ function PetsContent() {
       <div className="flex items-center justify-between animate-fade-in-up">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">My Pets</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {pets.length} {pets.length === 1 ? "pet" : "pets"} in your household
-          </p>
+          {isLoading ? (
+            <Skeleton className="h-4 w-36 mt-1" />
+          ) : (
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {pets.length} {pets.length === 1 ? "pet" : "pets"} in your
+              household
+            </p>
+          )}
         </div>
         <Button size="sm" onClick={() => setDialogOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -201,94 +191,10 @@ function PetsContent() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {pets.map((pet, i) => (
-            <PetCard
-              key={pet.id}
-              pet={pet}
-              animationIndex={i}
-              onViewProfile={() => setViewPet(pet)}
-            />
+            <PetCard key={pet.id} pet={pet} animationIndex={i} />
           ))}
         </div>
       )}
-
-      {/* View Pet Dialog */}
-      <Dialog open={!!viewPet} onOpenChange={(o) => !o && setViewPet(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <span className="text-2xl">
-                {SPECIES_EMOJI[viewPet?.attributes.species ?? ""] ?? "🐾"}
-              </span>
-              {viewPet?.attributes.name}
-            </DialogTitle>
-          </DialogHeader>
-          {viewPet && (
-            <div className="space-y-3 py-2">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground">Species</p>
-                  <p className="font-medium capitalize">
-                    {viewPet.attributes.species}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Breed</p>
-                  <p className="font-medium">
-                    {viewPet.attributes.breed || "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Sex</p>
-                  <p className="font-medium capitalize">
-                    {viewPet.attributes.sex}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Age</p>
-                  <p className="font-medium">
-                    {formatAge(
-                      viewPet.attributes.birthday,
-                      viewPet.attributes.age,
-                    )}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Weight</p>
-                  <p className="font-medium">
-                    {viewPet.attributes.latestWeightKg != null
-                      ? `${viewPet.attributes.latestWeightKg} kg`
-                      : "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Size</p>
-                  <p className="font-medium capitalize">
-                    {viewPet.attributes.size || "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Neutered</p>
-                  <p className="font-medium">
-                    {viewPet.attributes.isNeutered ? "Yes" : "No"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Birthday</p>
-                  <p className="font-medium">
-                    {viewPet.attributes.birthday || "—"}
-                  </p>
-                </div>
-              </div>
-              {viewPet.attributes.notes && (
-                <div>
-                  <p className="text-xs text-muted-foreground">Notes</p>
-                  <p className="text-sm mt-1">{viewPet.attributes.notes}</p>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Add Pet Dialog */}
       <Dialog open={dialogOpen} onOpenChange={handleClose}>
@@ -300,41 +206,54 @@ function PetsContent() {
             <div className="space-y-4 py-2">
               {/* Photo upload */}
               <div className="flex items-center justify-center">
-                <div className="relative">
-                  <div
-                    {...getRootProps()}
-                    className={`flex h-20 w-20 flex-col items-center justify-center rounded-full border-2 border-dashed bg-muted/30 text-muted-foreground transition-colors cursor-pointer overflow-hidden
-                      ${isDragActive ? "border-primary text-primary bg-primary/5" : "border-border hover:border-primary/50 hover:text-primary"}`}
-                  >
-                    <input {...getInputProps()} />
-                    {avatarPreview ? (
-                      <Image
-                        src={avatarPreview}
-                        alt="Preview"
-                        width={80}
-                        height={80}
-                        unoptimized
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <>
-                        <Upload className="h-5 w-5" />
-                        <span className="text-[9px] mt-0.5">
-                          {isDragActive ? "Drop" : "Photo"}
-                        </span>
-                      </>
+                <div className="flex flex-col items-center">
+                  <div className="relative">
+                    <div
+                      {...getRootProps()}
+                      className={`flex h-24 w-24 flex-col items-center justify-center rounded-full border-2 border-dashed bg-muted/30 text-muted-foreground transition-colors cursor-pointer overflow-hidden
+                        ${isDragActive ? "border-primary text-primary bg-primary/5" : "border-border hover:border-primary/50 hover:text-primary"}`}
+                    >
+                      <input {...getInputProps()} />
+                      {avatarPreview ? (
+                        <Image
+                          src={avatarPreview}
+                          alt="Preview"
+                          width={96}
+                          height={96}
+                          unoptimized
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <Upload className="h-5 w-5" />
+                          <span className="text-[9px] mt-0.5">
+                            {isDragActive ? "Drop" : "Photo"}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {avatarPreview && (
+                      <button
+                        type="button"
+                        onClick={clearAvatar}
+                        className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     )}
                   </div>
-                  {avatarPreview && (
-                    <button
-                      type="button"
-                      onClick={clearAvatar}
-                      className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  )}
+                  <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+                    JPG, PNG or WebP · Max 5 MB
+                  </p>
                 </div>
+              </div>
+
+              {/* Basic Info section */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Basic Info
+                </span>
+                <div className="flex-1 h-px bg-border" />
               </div>
 
               {/* Name */}
@@ -430,6 +349,14 @@ function PetsContent() {
                 />
               </div>
 
+              {/* Health & Vitals section */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Health &amp; Vitals
+                </span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+
               {/* Birthday + Weight */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -496,6 +423,14 @@ function PetsContent() {
                   onCheckedChange={(v) => setValue("isNeutered", v)}
                 />
                 <Label htmlFor="isNeutered">Is Neutered / Spayed</Label>
+              </div>
+
+              {/* Notes section */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Notes
+                </span>
+                <div className="flex-1 h-px bg-border" />
               </div>
 
               {/* Notes */}

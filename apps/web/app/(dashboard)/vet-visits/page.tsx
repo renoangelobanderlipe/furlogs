@@ -55,6 +55,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import type { VetVisitType } from "@/lib/api/vet-visits";
 import { SPECIES_EMOJI } from "@/lib/constants";
 import { formatCurrency, formatShortDate } from "@/lib/format";
+import { useHouseholdStore } from "@/stores/useHouseholdStore";
 
 const VISIT_TYPES = ["checkup", "treatment", "vaccine", "emergency"] as const;
 
@@ -73,9 +74,12 @@ const VISIT_TYPE_CLASSES: Record<VetVisitType, string> = {
 };
 
 export default function VetVisitsPage() {
+  const initialVetPetId = useHouseholdStore((s) =>
+    s.isPetFilterActive && s.selectedPetId ? s.selectedPetId : "all",
+  );
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [petFilter, setPetFilter] = useState("all");
+  const [petFilter, setPetFilter] = useState(initialVetPetId);
   const [typeFilter, setTypeFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({

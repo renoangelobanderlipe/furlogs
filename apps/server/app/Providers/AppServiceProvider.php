@@ -7,6 +7,8 @@ namespace App\Providers;
 use App\Models\MedicationAdministration;
 use App\Models\User;
 use App\Policies\MedicationAdministrationPolicy;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -38,5 +40,14 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::policy(MedicationAdministration::class, MedicationAdministrationPolicy::class);
+
+        VerifyEmail::toMailUsing(function (mixed $notifiable, string $url): MailMessage {
+            return (new MailMessage)
+                ->subject('Verify Your Email Address — FurLog')
+                ->markdown('notifications.verify-email', [
+                    'name' => $notifiable->name,
+                    'url' => $url,
+                ]);
+        });
     }
 }

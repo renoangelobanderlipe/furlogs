@@ -26,6 +26,8 @@ class RegisterController extends Controller
 
         Auth::login($user);
 
+        $request->session()->regenerate();
+
         return response()->json(['message' => 'Registration successful. Please verify your email.'], 201);
     }
 }

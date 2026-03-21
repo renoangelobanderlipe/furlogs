@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ChangePasswordRequest;
+use App\Actions\Fortify\UpdateUserPassword;
 use App\Http\Requests\UpdateNotificationPreferencesRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
+    public function __construct(private readonly UpdateUserPassword $updateUserPassword) {}
+
     /**
      * Update the authenticated user's profile name.
      */
@@ -27,11 +29,9 @@ class ProfileController extends Controller
     /**
      * Change the authenticated user's password.
      */
-    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    public function changePassword(Request $request): JsonResponse
     {
-        $request->user()->update([
-            'password' => $request->string('password')->toString(),
-        ]);
+        $this->updateUserPassword->update($request->user(), $request->all());
 
         return response()->json(['message' => 'Password updated successfully.']);
     }

@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\EmailVerificationController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CalendarController;
@@ -40,9 +39,6 @@ Route::middleware('guest')->prefix('auth')->group(function () {
         // ->middleware('throttle:5,1')
         ->name('auth.login');
 
-    Route::post('forgot-password', ForgotPasswordController::class)
-        ->middleware('throttle:3,1')
-        ->name('auth.forgot-password');
 });
 
 // Auth routes (authenticated)
@@ -69,7 +65,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('user/notification-preferences', [ProfileController::class, 'notificationPreferences'])->name('user.notification-preferences.show');
     Route::patch('user/notification-preferences', [ProfileController::class, 'updateNotificationPreferences'])->name('user.notification-preferences.update');
     Route::patch('user', [ProfileController::class, 'update'])->name('user.update');
-    Route::patch('user/password', [ProfileController::class, 'changePassword'])->name('user.password');
+    Route::patch('user/password', [ProfileController::class, 'changePassword'])->middleware('password.confirm')->name('user.password');
 
     // Dashboard
     Route::get('dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');

@@ -3,9 +3,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, PawPrint, PlusCircle, Upload, X } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { PetCard } from "@/components/pets/PetCard";
 import { PetCardSkeleton } from "@/components/pets/PetCardSkeleton";
 import { Button } from "@/components/ui/button";
@@ -54,12 +56,22 @@ function formatAge(birthday: string | null, age: number | null): string {
   return yr === 1 ? "1 year" : `${yr} years`;
 }
 
-export default function PetsPage() {
+function PetsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewPet, setViewPet] = useState<Pet | null>(null);
   const [latestWeight, setLatestWeight] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchParams.get("verified") === "1") {
+      toast.success("Email verified successfully!");
+      router.replace("/pets");
+    }
+  }, [searchParams, router]);
 
   const { data, isLoading } = usePets();
   const createPet = useCreatePet();
@@ -518,5 +530,13 @@ export default function PetsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function PetsPage() {
+  return (
+    <Suspense>
+      <PetsContent />
+    </Suspense>
   );
 }

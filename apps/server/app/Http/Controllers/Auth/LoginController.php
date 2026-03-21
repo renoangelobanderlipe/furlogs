@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,6 +39,22 @@ class LoginController extends Controller
         }
 
         RateLimiter::clear($key);
+
+        /** @var User $user */
+        $user = Auth::user();
+
+        // If 2FA is enabled and confirmed, defer full login to the challenge step.
+        if ($user->hasEnabledTwoFactorAuthentication()) {
+            Auth::guard('web')->logout();
+
+            $request->session()->put([
+                'login.id' => $user->getKey(),
+                'login.remember' => $remember,
+            ]);
+
+            return response()->json(['two_factor' => true]);
+        }
+
         $request->session()->regenerate();
 
         return response()->json(['message' => 'Login successful.']);

@@ -1,11 +1,14 @@
 "use client";
 
+import type { InternalAxiosRequestConfig } from "axios";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { PasswordConfirmDialog } from "@/components/auth/PasswordConfirmDialog";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { SettingsApplier } from "@/components/layout/SettingsApplier";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
+import { apiClient } from "@/lib/api/client";
 import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -15,6 +18,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const pendingConfigRef = useRef<InternalAxiosRequestConfig | null>(null);
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const fetchUser = useAuthStore((s) => s.fetchUser);
@@ -34,6 +39,44 @@ export default function DashboardLayout({
       router.replace("/onboarding");
     }
   }, [user, router]);
+
+  // Listen for 423 "password confirmation required" events emitted by the
+  // Axios interceptor. Open the global dialog and store the failed config so
+  // it can be retried once the user confirms their password.
+  const handlePasswordConfirmRequired = useCallback((event: Event) => {
+    const customEvent = event as CustomEvent<{
+      config: InternalAxiosRequestConfig;
+    }>;
+    pendingConfigRef.current = customEvent.detail.config ?? null;
+    setConfirmOpen(true);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener(
+      "password-confirm-required",
+      handlePasswordConfirmRequired,
+    );
+    return () => {
+      window.removeEventListener(
+        "password-confirm-required",
+        handlePasswordConfirmRequired,
+      );
+    };
+  }, [handlePasswordConfirmRequired]);
+
+  const handleConfirmed = useCallback(() => {
+    setConfirmOpen(false);
+    const config = pendingConfigRef.current;
+    pendingConfigRef.current = null;
+    if (config) {
+      apiClient.request(config).catch(() => {});
+    }
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setConfirmOpen(false);
+    pendingConfigRef.current = null;
+  }, []);
 
   const isMini = layout === "mini";
   const isHorizontal = layout === "horizontal";
@@ -63,6 +106,11 @@ export default function DashboardLayout({
         </div>
         <MobileNav />
       </div>
+      <PasswordConfirmDialog
+        open={confirmOpen}
+        onClose={handleClose}
+        onConfirmed={handleConfirmed}
+      />
     </>
   );
 }

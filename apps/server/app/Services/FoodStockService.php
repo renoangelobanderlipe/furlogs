@@ -111,6 +111,7 @@ class FoodStockService
         $items = FoodStockItem::query()
             ->whereHas('foodProduct', fn ($q) => $q->withoutGlobalScopes()->where('household_id', $householdId))
             ->where('status', StockStatus::Open)
+            ->with(['foodProduct.consumptionRates'])
             ->get();
 
         return $items->map(function (FoodStockItem $item): array {

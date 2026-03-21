@@ -88,7 +88,7 @@ export function PetWeightChart({ petId }: PetWeightChartProps) {
               borderRadius: "8px",
               color: "hsl(var(--foreground))",
             }}
-            formatter={(value) => [`${value} kg`, "Weight"]}
+            formatter={(value) => [`${Number(value).toFixed(2)} kg`, "Weight"]}
           />
           <Line
             type="monotone"

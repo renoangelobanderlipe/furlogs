@@ -16,6 +16,7 @@ import {
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type {
@@ -143,47 +144,49 @@ function InventoryRow({
       </TableCell>
 
       <TableCell className="text-right">
-        <div className="flex items-center justify-end gap-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={onEditRates}
-                aria-label="Edit consumption rates"
-                className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              >
-                <Gauge className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Edit consumption rates</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={onEdit}
-                aria-label="Edit product"
-                className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Edit product</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                onClick={onDelete}
-                aria-label="Delete product"
-                className="flex h-9 w-9 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>Delete product</TooltipContent>
-          </Tooltip>
-        </div>
+        <TooltipProvider>
+          <div className="flex items-center justify-end gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onEditRates}
+                  aria-label="Edit consumption rates"
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  <Gauge className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Edit consumption rates</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  aria-label="Edit product"
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Edit product</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  aria-label="Delete product"
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Delete product</TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </TableCell>
     </TableRow>
   );

@@ -2,7 +2,7 @@
 
 import { Paperclip, Stethoscope } from "lucide-react";
 import { type VetVisit, VISIT_TYPE_LABEL } from "@/lib/api/vet-visits";
-import { formatShortDate } from "@/lib/format";
+import { formatCurrency, formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 interface VisitCardProps {
@@ -20,16 +20,6 @@ const VISIT_TYPE_CLASS: Record<string, string> = {
   emergency: "border-destructive/30 bg-destructive/10 text-destructive",
 };
 
-function formatCost(cost: string | null): string | null {
-  if (!cost) return null;
-  const num = Number.parseFloat(cost);
-  if (Number.isNaN(num)) return null;
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(num);
-}
-
 export function VisitCard({
   visit,
   onClick,
@@ -39,7 +29,7 @@ export function VisitCard({
 }: VisitCardProps) {
   const { visitType, visitDate, reason, cost, attachmentCount } =
     visit.attributes;
-  const formattedCost = formatCost(cost);
+  const formattedCost = cost ? formatCurrency(cost) : null;
 
   const handleClick = () => {
     if (selectable && onToggleSelect) {

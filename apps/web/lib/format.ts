@@ -21,7 +21,7 @@ export function formatCurrency(
   if (amount == null) return "";
   const n = typeof amount === "string" ? parseFloat(amount) : amount;
   if (Number.isNaN(n)) return "";
-  return `₱${n.toLocaleString("en-PH")}`;
+  return `₱${n.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 /**

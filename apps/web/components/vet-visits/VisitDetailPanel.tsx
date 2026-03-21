@@ -20,6 +20,7 @@ import {
   VISIT_TYPE_COLOR,
   VISIT_TYPE_LABEL,
 } from "@/lib/api/vet-visits";
+import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 interface VisitDetailPanelProps {
@@ -110,12 +111,7 @@ export function VisitDetailPanel({
 
   const attachments = visit.relationships?.attachments ?? [];
 
-  const formattedCost = cost
-    ? new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(Number.parseFloat(cost))
-    : null;
+  const formattedCost = cost ? formatCurrency(cost) : null;
 
   const visitTypeColor = VISIT_TYPE_COLOR[visitType];
 

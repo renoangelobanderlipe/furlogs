@@ -30,15 +30,18 @@ class FoodProductResource extends JsonResource
                 'unitType' => $product->unit_type->value,
                 'alertThresholdPct' => $product->alert_threshold_pct,
                 'notes' => $product->notes,
+                'consumptionRates' => $this->whenLoaded(
+                    'consumptionRates',
+                    fn () => $product->consumptionRates->map(fn ($rate) => [
+                        'petId' => $rate->pet_id,
+                        'dailyAmountGrams' => $rate->daily_amount_grams,
+                    ])->values()->all(),
+                    [],
+                ),
                 'createdAt' => $product->created_at->toISOString(),
                 'updatedAt' => $product->updated_at->toISOString(),
             ],
-            'relationships' => [
-                'consumptionRates' => $this->whenLoaded(
-                    'consumptionRates',
-                    fn () => FoodConsumptionRateResource::collection($product->consumptionRates),
-                ),
-            ],
+            'relationships' => [],
         ];
     }
 }

@@ -1,10 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, PawPrint } from "lucide-react";
+import { CheckCircle, Eye, EyeOff, Loader2, PawPrint } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,10 @@ import {
 } from "@/lib/validation/auth.schema";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isVerified = searchParams.get("verified") === "1";
   const fetchUser = useAuthStore((s) => s.fetchUser);
   const setTwoFactorPending = useAuthStore((s) => s.setTwoFactorPending);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -81,6 +83,15 @@ export default function LoginPage() {
             Sign in to your FurLog account
           </p>
         </div>
+
+        {isVerified && (
+          <div className="mb-4 flex items-center gap-2 rounded-md bg-green-500/10 border border-green-500/30 px-3 py-2.5">
+            <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
+            <p className="text-sm text-green-700 dark:text-green-400">
+              Email verified! Sign in to continue.
+            </p>
+          </div>
+        )}
 
         {serverError && (
           <div className="mb-4 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2">
@@ -177,5 +188,13 @@ export default function LoginPage() {
         </p>
       </CardContent>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

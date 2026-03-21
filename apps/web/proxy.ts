@@ -40,6 +40,7 @@ export function proxy(request: NextRequest) {
 
   // Authenticated users hitting auth routes → /pets
   // /verify-email is excluded: users are logged in right after registration but still need to verify
+  // /two-factor-challenge is excluded: session cookie is set before 2FA is completed
   if (
     pathname === "/login" ||
     pathname === "/register" ||

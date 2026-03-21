@@ -4,6 +4,7 @@ import {
   Bell,
   Crown,
   LogOut,
+  Shield,
   Trash2,
   User,
   UserPlus,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { TwoFactorSettings } from "@/components/settings/TwoFactorSettings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,12 +39,14 @@ const settingsTabs = [
   { label: "Household", icon: Users },
   { label: "Notifications", icon: Bell },
   { label: "Profile", icon: User },
+  { label: "Security", icon: Shield },
 ];
 
 const TAB_TO_PARAM: Record<string, string> = {
   Household: "household",
   Notifications: "notifications",
   Profile: "profile",
+  Security: "security",
 };
 
 function SettingsPageContent() {
@@ -54,7 +58,9 @@ function SettingsPageContent() {
       ? "Notifications"
       : tabParam === "profile"
         ? "Profile"
-        : "Household";
+        : tabParam === "security"
+          ? "Security"
+          : "Household";
 
   const [tab, setTab] = useState(initialTab);
 
@@ -526,6 +532,12 @@ function SettingsPageContent() {
                 Export Data
               </Button>
             </div>
+          </div>
+        )}
+
+        {tab === "Security" && (
+          <div className="space-y-6">
+            <TwoFactorSettings />
           </div>
         )}
       </div>

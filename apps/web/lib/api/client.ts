@@ -13,13 +13,20 @@ export const apiClient = axios.create({
 apiClient.interceptors.response.use(
   (response) => response,
   (error: unknown) => {
-    if (
-      axios.isAxiosError(error) &&
-      error.response?.status === 401 &&
-      typeof window !== "undefined"
-    ) {
-      if (window.location.pathname !== "/login") {
+    if (axios.isAxiosError(error) && typeof window !== "undefined") {
+      if (
+        error.response?.status === 401 &&
+        window.location.pathname !== "/login"
+      ) {
         window.location.href = "/login?expired=1";
+      }
+
+      if (error.response?.status === 423) {
+        window.dispatchEvent(
+          new CustomEvent("password-confirm-required", {
+            detail: { config: error.config },
+          }),
+        );
       }
     }
     return Promise.reject(error);

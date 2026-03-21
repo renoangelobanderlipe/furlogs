@@ -22,6 +22,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 export default function LoginPage() {
   const router = useRouter();
   const fetchUser = useAuthStore((s) => s.fetchUser);
+  const setTwoFactorPending = useAuthStore((s) => s.setTwoFactorPending);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -42,7 +43,14 @@ export default function LoginPage() {
     setServerError(null);
     try {
       await authEndpoints.csrfCookie();
-      await authEndpoints.login(values);
+      const response = await authEndpoints.login(values);
+      if (
+        (response.data as { two_factor?: boolean } | null)?.two_factor === true
+      ) {
+        setTwoFactorPending(true);
+        router.replace("/two-factor-challenge");
+        return;
+      }
       await fetchUser();
       toast.success("Welcome back!");
       router.replace("/pets");

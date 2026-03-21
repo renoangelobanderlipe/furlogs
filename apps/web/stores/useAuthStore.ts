@@ -4,14 +4,17 @@ import { type AuthUser, authEndpoints } from "@/lib/api/endpoints";
 interface AuthStore {
   user: AuthUser | null;
   isLoading: boolean;
+  twoFactorPending: boolean;
   fetchUser: () => Promise<void>;
   setUser: (user: AuthUser | null) => void;
+  setTwoFactorPending: (value: boolean) => void;
   logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isLoading: false,
+  twoFactorPending: false,
 
   fetchUser: async () => {
     set({ isLoading: true });
@@ -25,11 +28,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   setUser: (user) => set({ user }),
 
+  setTwoFactorPending: (value) => set({ twoFactorPending: value }),
+
   logout: async () => {
     try {
       await authEndpoints.logout();
     } finally {
-      set({ user: null });
+      set({ user: null, twoFactorPending: false });
     }
   },
 }));

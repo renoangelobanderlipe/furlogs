@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckCircle, Loader2, Mail } from "lucide-react";
+import { AlertTriangle, CheckCircle, Loader2, Mail } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { authEndpoints } from "@/lib/api/endpoints";
 
 export default function VerifyEmailPage() {
+  const searchParams = useSearchParams();
+  const isInvalidLink = searchParams.get("error") === "invalid_link";
+
   const [resent, setResent] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
@@ -37,6 +41,16 @@ export default function VerifyEmailPage() {
           We&apos;ve sent a verification link to your email address. Click the
           link to activate your account before continuing.
         </p>
+
+        {isInvalidLink && (
+          <div className="mb-4 flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2.5 text-left">
+            <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+            <p className="text-sm text-destructive">
+              This verification link is invalid or has expired. Please request a
+              new one.
+            </p>
+          </div>
+        )}
 
         {resent && (
           <div className="mb-4 flex items-center gap-2 rounded-md bg-success/10 border border-success/30 px-3 py-2 text-left">

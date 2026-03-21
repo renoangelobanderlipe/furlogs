@@ -13,6 +13,8 @@ import { useCalendarEvents } from "@/hooks/api/useCalendar";
 import type { CalendarEvent, CalendarEventType } from "@/lib/api/calendar";
 import { cn } from "@/lib/utils";
 
+const MAX_VISIBLE_EVENTS = 2;
+
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 const MONTH_NAMES = [
@@ -77,6 +79,10 @@ export default function CalendarPage() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
     null,
   );
+  const [selectedDay, setSelectedDay] = useState<{
+    label: string;
+    events: CalendarEvent[];
+  } | null>(null);
 
   const range = getRange(year, month);
   const { data: events = [] } = useCalendarEvents(range);
@@ -129,6 +135,9 @@ export default function CalendarPage() {
   for (let d = 1; d <= daysInMonth; d++) {
     const dayEvents = eventsByDay.get(d) ?? [];
     const isToday = d === todayDay;
+    const visibleEvents = dayEvents.slice(0, MAX_VISIBLE_EVENTS);
+    const hiddenCount = dayEvents.length - MAX_VISIBLE_EVENTS;
+
     cells.push(
       <div
         key={d}
@@ -146,7 +155,7 @@ export default function CalendarPage() {
           {d}
         </span>
         <div className="mt-0.5 space-y-0.5">
-          {dayEvents.map((ev) => {
+          {visibleEvents.map((ev) => {
             const displayType = TYPE_MAP[ev.type] ?? "vet";
             return (
               <button
@@ -162,6 +171,20 @@ export default function CalendarPage() {
               </button>
             );
           })}
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedDay({
+                  label: `${MONTH_NAMES[month]} ${d}, ${year}`,
+                  events: dayEvents,
+                })
+              }
+              className="w-full truncate rounded px-1 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-muted transition-colors"
+            >
+              +{hiddenCount} more
+            </button>
+          )}
         </div>
       </div>,
     );
@@ -264,6 +287,45 @@ export default function CalendarPage() {
               </p>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Day overflow dialog */}
+      <Dialog
+        open={!!selectedDay}
+        onOpenChange={(o) => !o && setSelectedDay(null)}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{selectedDay?.label}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            {selectedDay?.events.map((ev) => {
+              const displayType = TYPE_MAP[ev.type] ?? "vet";
+              const cfg = TYPE_CONFIG[displayType];
+              return (
+                <button
+                  key={ev.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedDay(null);
+                    setSelectedEvent(ev);
+                  }}
+                  className="flex w-full items-center gap-2.5 rounded-md border border-border px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
+                >
+                  <span
+                    className={cn("h-2.5 w-2.5 shrink-0 rounded-sm", cfg.color)}
+                  />
+                  <span className="flex-1 truncate font-medium">
+                    {ev.title}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {cfg.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

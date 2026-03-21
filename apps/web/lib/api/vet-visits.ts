@@ -75,6 +75,8 @@ export interface MedicationAttributes {
   endDate: string | null;
   notes: string | null;
   isActive: boolean;
+  streak?: number;
+  administrationCount?: number;
 }
 
 export interface Medication {

@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ReminderStatus;
 use App\Enums\ReminderType;
+use App\Models\Medication;
 use App\Models\Reminder;
 use App\Models\Vaccination;
 use App\Models\VetVisit;
@@ -22,11 +23,13 @@ class CalendarController extends Controller
     {
         $validated = $request->validate([
             'start' => ['required', 'date'],
-            'end' => ['required', 'date'],
+            'end' => ['required', 'date', 'after_or_equal:start'],
         ]);
 
         $start = Carbon::parse($validated['start'])->startOfDay();
         $end = Carbon::parse($validated['end'])->endOfDay();
+
+        abort_if($start->diffInDays($end) > 62, 422, 'Date range may not exceed 62 days.');
 
         $events = collect();
 
@@ -80,6 +83,37 @@ class CalendarController extends Controller
                     'url' => '/reminders',
                     'petName' => $reminder->pet?->name,
                 ]);
+            });
+
+        // Active medication schedule events (yellow) — one event per day per active medication
+        Medication::query()
+            ->with(['pet'])
+            ->whereDate('start_date', '<=', $end->toDateString())
+            ->where(function ($q) use ($start): void {
+                $q->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', $start->toDateString());
+            })
+            ->get()
+            ->each(function (Medication $med) use ($events, $start, $end): void {
+                $startDate = $med->start_date;
+                $cursor = $startDate->copy()->max($start->copy()->startOfDay());
+                $finish = $med->end_date
+                    ? $med->end_date->copy()->min($end->copy()->startOfDay())
+                    : $end->copy()->startOfDay();
+
+                while ($cursor->lte($finish)) {
+                    $events->push([
+                        'id' => "med-{$med->id}-{$cursor->toDateString()}",
+                        'title' => $med->name.' — '.$med->pet->name,
+                        'start' => $cursor->toDateString(),
+                        'type' => 'medication_schedule',
+                        'color' => '#ff9800',
+                        'url' => '/medications',
+                        'petName' => $med->pet->name,
+                        'medicationId' => $med->id,
+                    ]);
+                    $cursor->addDay();
+                }
             });
 
         // Food stock alerts (orange) — projected run-out dates

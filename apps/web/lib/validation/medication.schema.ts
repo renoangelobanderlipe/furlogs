@@ -1,4 +1,10 @@
 import { z } from "zod";
+import { FREQUENCY_OPTIONS, type FrequencyValue } from "@/lib/api/medications";
+
+const frequencyValues = FREQUENCY_OPTIONS.map((o) => o.value) as [
+  FrequencyValue,
+  ...FrequencyValue[],
+];
 
 export const medicationSchema = z.object({
   petId: z.number({ error: "Pet is required" }).positive(),
@@ -11,9 +17,9 @@ export const medicationSchema = z.object({
     .min(1, "Dosage is required")
     .max(255, "Dosage is too long"),
   frequency: z
-    .string()
-    .min(1, "Frequency is required")
-    .max(255, "Frequency is too long"),
+    .enum(frequencyValues, { message: "Select a frequency" })
+    .nullable()
+    .optional(),
   startDate: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be a valid date (YYYY-MM-DD)"),

@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  CheckCircle,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
@@ -33,12 +35,21 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   useCreateMedication,
   useDeleteMedication,
+  useLogDose,
   useMedications,
+  useTodayAdministrations,
   useUpdateMedication,
 } from "@/hooks/api/useMedications";
 import { usePets } from "@/hooks/api/usePets";
+import { FREQUENCY_OPTIONS, type FrequencyValue } from "@/lib/api/medications";
 import type { Medication } from "@/lib/api/vet-visits";
 import { SPECIES_EMOJI } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -46,6 +57,145 @@ import {
   type MedicationFormValues,
   medicationSchema,
 } from "@/lib/validation/medication.schema";
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function getDosesPerDay(
+  frequency: FrequencyValue | string | null | undefined,
+): number {
+  if (frequency === "twice_daily") return 2;
+  if (frequency === "as_needed" || frequency == null) return 0;
+  return 1;
+}
+
+function getFrequencyLabel(value: string | null | undefined): string {
+  if (!value) return "";
+  const found = FREQUENCY_OPTIONS.find((o) => o.value === value);
+  return found ? found.label : value;
+}
+
+// ---------------------------------------------------------------------------
+// MedicationItem — sub-component so it can call useTodayAdministrations
+// ---------------------------------------------------------------------------
+
+interface MedicationItemProps {
+  med: Medication;
+  index: number;
+  onEdit: (m: Medication) => void;
+  onDelete: (id: number) => void;
+}
+
+function MedicationItem({ med, index, onEdit, onDelete }: MedicationItemProps) {
+  // Each card owns its own mutation so pending state is isolated per medication
+  const logDose = useLogDose();
+  const { data: todayData } = useTodayAdministrations(
+    med.attributes.isActive ? med.id : 0,
+  );
+
+  const dosesPerDay = getDosesPerDay(med.attributes.frequency);
+  const todayCount = todayData?.data?.length ?? 0;
+  const pet = med.relationships?.pet;
+
+  return (
+    <div
+      className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 animate-fade-in-up"
+      style={{ animationDelay: `${index * 60}ms` }}
+    >
+      <span className="text-xl">
+        {SPECIES_EMOJI[pet?.attributes.species ?? ""] ?? "🐾"}
+      </span>
+
+      <div className="flex-1 min-w-0">
+        <p className="font-medium">{med.attributes.name}</p>
+        <p className="text-sm text-muted-foreground">
+          {pet?.attributes.name ?? ""}
+          {med.attributes.dosage ? ` · ${med.attributes.dosage}` : ""}
+          {med.attributes.frequency
+            ? ` · ${getFrequencyLabel(med.attributes.frequency)}`
+            : ""}
+        </p>
+        {med.attributes.isActive && dosesPerDay > 0 && (
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {todayCount}/{dosesPerDay} doses today
+          </p>
+        )}
+      </div>
+
+      {/* Streak badge */}
+      {med.attributes.streak != null && med.attributes.streak > 0 && (
+        <Badge
+          className="shrink-0 bg-warning/15 text-warning-foreground border-warning/20"
+          variant="outline"
+        >
+          🔥 {med.attributes.streak} day streak
+        </Badge>
+      )}
+
+      {/* Status chip */}
+      <span
+        className={cn(
+          "rounded-full px-2 py-0.5 text-xs font-medium shrink-0",
+          med.attributes.isActive
+            ? "bg-success/15 text-success"
+            : "bg-muted text-muted-foreground",
+        )}
+      >
+        {med.attributes.isActive ? "Active" : "Completed"}
+      </span>
+
+      <div className="flex items-center gap-1 shrink-0">
+        {/* Log dose button */}
+        {med.attributes.isActive && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() =>
+                    logDose.mutate({ medicationId: med.id, data: {} })
+                  }
+                  disabled={logDose.isPending}
+                  aria-label="Log dose taken"
+                  className="flex h-8 w-8 items-center justify-center rounded-md text-success transition-colors hover:bg-success/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {logDose.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4" />
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Log dose taken</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+
+        <button
+          type="button"
+          onClick={() => onEdit(med)}
+          aria-label="Edit medication"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onDelete(med.id)}
+          aria-label="Delete medication"
+          className="flex h-8 w-8 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
 
 export default function MedicationsPage() {
   const [page, setPage] = useState(1);
@@ -75,6 +225,7 @@ export default function MedicationsPage() {
   });
 
   const petIdValue = watch("petId");
+  const frequencyValue = watch("frequency");
 
   const handleOpenAdd = () => {
     setEditingMed(null);
@@ -88,7 +239,7 @@ export default function MedicationsPage() {
       petId: m.relationships?.pet?.id ?? 0,
       name: m.attributes.name,
       dosage: m.attributes.dosage ?? "",
-      frequency: m.attributes.frequency ?? "",
+      frequency: (m.attributes.frequency as FrequencyValue) ?? undefined,
       startDate: m.attributes.startDate ?? "",
       endDate: m.attributes.endDate ?? "",
       notes: m.attributes.notes ?? "",
@@ -109,7 +260,7 @@ export default function MedicationsPage() {
       pet_id: values.petId,
       name: values.name,
       dosage: values.dosage,
-      frequency: values.frequency,
+      frequency: values.frequency ?? undefined,
       start_date: values.startDate,
       end_date: values.endDate || undefined,
       notes: values.notes || undefined,
@@ -180,58 +331,15 @@ export default function MedicationsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {medications.map((m, i) => {
-            const pet = m.relationships?.pet;
-            return (
-              <div
-                key={m.id}
-                className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 animate-fade-in-up"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <span className="text-xl">
-                  {SPECIES_EMOJI[pet?.attributes.species ?? ""] ?? "🐾"}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium">{m.attributes.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {pet?.attributes.name ?? ""}
-                    {m.attributes.dosage ? ` · ${m.attributes.dosage}` : ""}
-                    {m.attributes.frequency
-                      ? ` · ${m.attributes.frequency}`
-                      : ""}
-                  </p>
-                </div>
-                <span
-                  className={cn(
-                    "rounded-full px-2 py-0.5 text-xs font-medium shrink-0",
-                    m.attributes.isActive
-                      ? "bg-success/15 text-success"
-                      : "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {m.attributes.isActive ? "Active" : "Completed"}
-                </span>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEdit(m)}
-                    aria-label="Edit medication"
-                    className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteMedId(m.id)}
-                    aria-label="Delete medication"
-                    className="flex h-8 w-8 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+          {medications.map((m, i) => (
+            <MedicationItem
+              key={m.id}
+              med={m}
+              index={i}
+              onEdit={handleOpenEdit}
+              onDelete={(id) => setDeleteMedId(id)}
+            />
+          ))}
         </div>
       )}
 
@@ -340,14 +448,26 @@ export default function MedicationsPage() {
                   )}
                 </div>
                 <div>
-                  <Label>
-                    Frequency <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    {...register("frequency")}
-                    placeholder="e.g., Daily"
-                    className="mt-1.5 bg-background"
-                  />
+                  <Label>Frequency</Label>
+                  <Select
+                    value={frequencyValue ?? ""}
+                    onValueChange={(v) =>
+                      setValue("frequency", v as FrequencyValue, {
+                        shouldValidate: true,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="mt-1.5 bg-background">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FREQUENCY_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {errors.frequency && (
                     <p className="text-xs text-destructive mt-1">
                       {errors.frequency.message}

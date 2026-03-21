@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Models\Medication;
+use App\Services\MedicationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -27,7 +28,15 @@ class MedicationResource extends JsonResource
             'attributes' => [
                 'name' => $medication->name,
                 'dosage' => $medication->dosage,
-                'frequency' => $medication->frequency,
+                'frequency' => $medication->frequency?->value,
+                'streak' => $this->when(
+                    $medication->relationLoaded('administrations'),
+                    fn () => app(MedicationService::class)->calculateStreak($medication),
+                ),
+                'administrationCount' => $this->when(
+                    $medication->relationLoaded('administrations'),
+                    fn () => $medication->administrations->count(),
+                ),
                 'startDate' => $medication->start_date->toDateString(),
                 'endDate' => $medication->end_date?->toDateString(),
                 'notes' => $medication->notes,

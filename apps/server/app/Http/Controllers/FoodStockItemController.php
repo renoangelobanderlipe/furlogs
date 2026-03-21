@@ -92,7 +92,7 @@ class FoodStockItemController extends Controller
         $projections = $this->foodStockService->getProjections($householdId);
 
         $order = ['critical' => 0, 'low' => 1, 'good' => 2];
-        usort($projections, fn (array $a, array $b): int => ($order[$a['projection']?->status ?? 'none'] ?? 3) <=> ($order[$b['projection']?->status ?? 'none'] ?? 3),
+        usort($projections, fn (array $a, array $b): int => ($order[$a['projection']->status ?? 'none'] ?? 3) <=> ($order[$b['projection']->status ?? 'none'] ?? 3),
         );
 
         return FoodProjectionResource::collection($projections);

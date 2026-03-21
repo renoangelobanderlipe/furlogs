@@ -61,7 +61,7 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
   const deletePet = useDeletePet();
 
   const { data: vetVisitsData, isLoading: visitsLoading } = useVetVisits({
-    pet_id: id,
+    petId: id,
     per_page: 10,
   });
   const { data: vaccinationsData, isLoading: vaccsLoading } = useVaccinations({

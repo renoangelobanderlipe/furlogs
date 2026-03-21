@@ -3,6 +3,7 @@
 import {
   Bell,
   Crown,
+  Download,
   LogOut,
   Shield,
   Trash2,
@@ -15,13 +16,16 @@ import { Suspense, useEffect, useState } from "react";
 import { TwoFactorSettings } from "@/components/settings/TwoFactorSettings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import {
+  useDeleteHousehold,
   useHousehold,
   useInviteMember,
   useRemoveMember,
+  useTransferOwnership,
   useUpdateHousehold,
 } from "@/hooks/api/useHousehold";
 import {
@@ -31,6 +35,7 @@ import {
   useUpdateProfile,
 } from "@/hooks/api/useProfile";
 import { useToast } from "@/hooks/use-toast";
+import { profileEndpoints } from "@/lib/api/profile";
 import { getInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -49,18 +54,15 @@ const TAB_TO_PARAM: Record<string, string> = {
   Security: "security",
 };
 
+const PARAM_TO_TAB: Record<string, string> = Object.fromEntries(
+  Object.entries(TAB_TO_PARAM).map(([label, param]) => [param, label]),
+);
+
 function SettingsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const initialTab =
-    tabParam === "notifications"
-      ? "Notifications"
-      : tabParam === "profile"
-        ? "Profile"
-        : tabParam === "security"
-          ? "Security"
-          : "Household";
+  const initialTab = (tabParam && PARAM_TO_TAB[tabParam]) || "Household";
 
   const [tab, setTab] = useState(initialTab);
 
@@ -77,6 +79,13 @@ function SettingsPageContent() {
   const updateHousehold = useUpdateHousehold();
   const inviteMember = useInviteMember();
   const removeMember = useRemoveMember();
+  const transferOwnership = useTransferOwnership();
+  const deleteHousehold = useDeleteHousehold();
+
+  const [transferTargetId, setTransferTargetId] = useState<number | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const transferTargetName =
+    household?.members.find((m) => m.id === transferTargetId)?.name ?? "";
 
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
@@ -145,24 +154,31 @@ function SettingsPageContent() {
     );
   };
 
-  const exportData = () => {
-    const data = {
-      profile: { name: profileName, email: user?.email ?? "" },
-      exportedAt: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "furlog-export.json";
-    a.click();
-    URL.revokeObjectURL(url);
-    toast({
-      title: "Data exported",
-      description: "Your data has been downloaded as JSON.",
-    });
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportData = async () => {
+    setIsExporting(true);
+    try {
+      const response = await profileEndpoints.export();
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `furlog-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+      toast({ title: "Data exported", description: "Download started." });
+    } catch {
+      toast({
+        title: "Export failed",
+        description: "Could not export data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const togglePref = (key: keyof NonNullable<typeof notifPrefs>) => {
@@ -285,6 +301,19 @@ function SettingsPageContent() {
                         >
                           {member.role}
                         </Badge>
+                        {isOwner && !isSelf && member.role !== "owner" && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-amber-600 hover:text-amber-600 shrink-0"
+                            disabled={transferOwnership.isPending}
+                            onClick={() => setTransferTargetId(member.id)}
+                            title="Transfer ownership"
+                          >
+                            <Crown className="mr-1 h-3.5 w-3.5" />
+                            Make Owner
+                          </Button>
+                        )}
                         {canRemove && (
                           <Button
                             size="sm"
@@ -347,6 +376,28 @@ function SettingsPageContent() {
                     </Button>
                   </form>
                 )}
+              </div>
+            )}
+
+            {/* Danger Zone — owner only */}
+            {isOwner && !householdLoading && (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-5">
+                <h3 className="font-semibold text-destructive mb-1">
+                  Danger Zone
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Deleting the household is permanent. All pets, records, and
+                  data will be erased and cannot be recovered.
+                </p>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => household && setDeleteTargetId(household.id)}
+                  disabled={deleteHousehold.isPending}
+                >
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                  Delete Household
+                </Button>
               </div>
             )}
           </div>
@@ -528,8 +579,20 @@ function SettingsPageContent() {
               <p className="text-sm text-muted-foreground mb-3">
                 Download all your household data as JSON
               </p>
-              <Button variant="outline" size="sm" onClick={exportData}>
-                Export Data
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportData}
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  "Exporting…"
+                ) : (
+                  <>
+                    <Download className="mr-1.5 h-3.5 w-3.5" />
+                    Export Data
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -541,6 +604,39 @@ function SettingsPageContent() {
           </div>
         )}
       </div>
+
+      {/* Transfer Ownership Confirm */}
+      <ConfirmDialog
+        open={transferTargetId !== null}
+        title="Transfer ownership?"
+        description={`${transferTargetName} will become the household owner. You will become a regular member and lose owner privileges.`}
+        confirmLabel="Transfer Ownership"
+        onConfirm={() => {
+          if (!household || transferTargetId === null) return;
+          transferOwnership.mutate(
+            { householdId: household.id, userId: transferTargetId },
+            { onSuccess: () => setTransferTargetId(null) },
+          );
+        }}
+        onCancel={() => setTransferTargetId(null)}
+        isLoading={transferOwnership.isPending}
+      />
+
+      {/* Delete Household Confirm */}
+      <ConfirmDialog
+        open={deleteTargetId !== null}
+        title="Delete household?"
+        description={`This will permanently delete "${household?.name}" and all associated pets, records, and data. This action cannot be undone.`}
+        confirmLabel="Delete Household"
+        onConfirm={() => {
+          if (deleteTargetId === null) return;
+          deleteHousehold.mutate(deleteTargetId, {
+            onSuccess: () => router.replace("/onboarding"),
+          });
+        }}
+        onCancel={() => setDeleteTargetId(null)}
+        isLoading={deleteHousehold.isPending}
+      />
     </div>
   );
 }

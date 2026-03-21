@@ -88,6 +88,13 @@ export const calendarKeys = {
     [...calendarKeys.all, "events", filters] as const,
 };
 
+export const vetClinicKeys = {
+  all: ["vet-clinics"] as const,
+  lists: () => [...vetClinicKeys.all, "list"] as const,
+  list: (page?: number) => [...vetClinicKeys.lists(), { page }] as const,
+  detail: (id: number) => [...vetClinicKeys.all, "detail", id] as const,
+};
+
 export const householdKeys = {
   current: () => ["household", "current"] as const,
 };

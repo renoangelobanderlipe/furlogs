@@ -5,12 +5,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Pencil,
   Pill,
   PlusCircle,
+  Trash2,
 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   Dialog,
   DialogClose,
@@ -31,9 +34,12 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useCreateMedication,
+  useDeleteMedication,
   useMedications,
+  useUpdateMedication,
 } from "@/hooks/api/useMedications";
 import { usePets } from "@/hooks/api/usePets";
+import type { Medication } from "@/lib/api/vet-visits";
 import { SPECIES_EMOJI } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
@@ -44,10 +50,14 @@ import {
 export default function MedicationsPage() {
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingMed, setEditingMed] = useState<Medication | null>(null);
+  const [deleteMedId, setDeleteMedId] = useState<number | null>(null);
 
   const { data: medsData, isLoading } = useMedications({ page, per_page: 5 });
   const { data: petsData } = usePets();
   const createMedication = useCreateMedication();
+  const updateMedication = useUpdateMedication();
+  const deleteMedication = useDeleteMedication();
 
   const medications = medsData?.data ?? [];
   const meta = medsData?.meta;
@@ -66,38 +76,84 @@ export default function MedicationsPage() {
 
   const petIdValue = watch("petId");
 
+  const handleOpenAdd = () => {
+    setEditingMed(null);
+    reset();
+    setDialogOpen(true);
+  };
+
+  const handleOpenEdit = (m: Medication) => {
+    setEditingMed(m);
+    reset({
+      petId: m.relationships?.pet?.id ?? 0,
+      name: m.attributes.name,
+      dosage: m.attributes.dosage ?? "",
+      frequency: m.attributes.frequency ?? "",
+      startDate: m.attributes.startDate ?? "",
+      endDate: m.attributes.endDate ?? "",
+      notes: m.attributes.notes ?? "",
+    });
+    setDialogOpen(true);
+  };
+
   const handleClose = (open: boolean) => {
     setDialogOpen(open);
-    if (!open) reset();
+    if (!open) {
+      reset();
+      setEditingMed(null);
+    }
   };
 
   const onSubmit = (values: MedicationFormValues) => {
-    createMedication.mutate(
-      {
-        pet_id: values.petId,
-        name: values.name,
-        dosage: values.dosage,
-        frequency: values.frequency,
-        start_date: values.startDate,
-        end_date: values.endDate || undefined,
-        notes: values.notes || undefined,
-      },
-      {
+    const payload = {
+      pet_id: values.petId,
+      name: values.name,
+      dosage: values.dosage,
+      frequency: values.frequency,
+      start_date: values.startDate,
+      end_date: values.endDate || undefined,
+      notes: values.notes || undefined,
+    };
+
+    if (editingMed) {
+      updateMedication.mutate(
+        { id: editingMed.id, data: payload },
+        {
+          onSuccess: () => {
+            setDialogOpen(false);
+            reset();
+            setEditingMed(null);
+          },
+        },
+      );
+    } else {
+      createMedication.mutate(payload, {
         onSuccess: () => {
           setDialogOpen(false);
           reset();
           setPage(1);
         },
-      },
-    );
+      });
+    }
   };
+
+  const handleConfirmDelete = () => {
+    if (deleteMedId === null) return;
+    deleteMedication.mutate(deleteMedId, {
+      onSuccess: () => setDeleteMedId(null),
+    });
+  };
+
+  const isPending = editingMed
+    ? updateMedication.isPending
+    : createMedication.isPending;
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between animate-fade-in-up">
         <h1 className="text-2xl font-bold tracking-tight">Medications</h1>
-        <Button size="sm" onClick={() => setDialogOpen(true)}>
+        <Button size="sm" onClick={handleOpenAdd}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Medication
         </Button>
@@ -117,11 +173,7 @@ export default function MedicationsPage() {
           <p className="text-sm text-muted-foreground mt-1">
             Log medications prescribed during vet visits
           </p>
-          <Button
-            size="sm"
-            className="mt-4"
-            onClick={() => setDialogOpen(true)}
-          >
+          <Button size="sm" className="mt-4" onClick={handleOpenAdd}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Medication
           </Button>
@@ -159,6 +211,24 @@ export default function MedicationsPage() {
                 >
                   {m.attributes.isActive ? "Active" : "Completed"}
                 </span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEdit(m)}
+                    aria-label="Edit medication"
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteMedId(m.id)}
+                    aria-label="Delete medication"
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -195,11 +265,13 @@ export default function MedicationsPage() {
         </div>
       )}
 
-      {/* Add Medication Dialog */}
+      {/* Add / Edit Medication Dialog */}
       <Dialog open={dialogOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Medication</DialogTitle>
+            <DialogTitle>
+              {editingMed ? "Edit Medication" : "Add Medication"}
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="space-y-4 py-2">
@@ -318,16 +390,25 @@ export default function MedicationsPage() {
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={createMedication.isPending}>
-                {createMedication.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Save
+              <Button type="submit" disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {editingMed ? "Save Changes" : "Save"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirm */}
+      <ConfirmDialog
+        open={deleteMedId !== null}
+        title="Delete medication?"
+        description="This will permanently remove this medication record and any associated reminders."
+        confirmLabel="Delete"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteMedId(null)}
+        isLoading={deleteMedication.isPending}
+      />
     </div>
   );
 }

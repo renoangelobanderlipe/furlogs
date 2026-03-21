@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  Building2,
   CalendarDays,
   DollarSign,
   LayoutDashboard,
@@ -36,6 +37,7 @@ const tabs = [
 const moreLinks = [
   { label: "Vaccinations", icon: Syringe, path: "/vaccinations" },
   { label: "Medications", icon: Pill, path: "/medications" },
+  { label: "Vet Clinics", icon: Building2, path: "/vet-clinics" },
   { label: "Reminders", icon: Bell, path: "/reminders" },
   { label: "Spending", icon: DollarSign, path: "/spending" },
   { label: "Weight History", icon: Weight, path: "/weight-history" },

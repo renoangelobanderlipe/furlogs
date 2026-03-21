@@ -5,7 +5,10 @@ import {
   Cake,
   PawPrint,
   Pencil,
+  Pill,
   Scale,
+  Stethoscope,
+  Syringe,
   Trash2,
   User,
 } from "lucide-react";
@@ -27,8 +30,18 @@ import {
 import { StatCard } from "@/components/ui/StatCard";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { VaccinationCard } from "@/components/vaccinations/VaccinationCard";
+import { useMedications } from "@/hooks/api/useMedications";
 import { useDeletePet, usePet, useUpdatePet } from "@/hooks/api/usePets";
+import { useVaccinations } from "@/hooks/api/useVaccinations";
+import { useVetVisits } from "@/hooks/api/useVetVisits";
+import { VISIT_TYPE_LABEL } from "@/lib/api/vet-visits";
+import { SPECIES_EMOJI } from "@/lib/constants";
+import { formatCurrency, formatShortDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { PetFormValues } from "@/lib/validation/pet.schema";
+
+type Tab = "overview" | "vet-visits" | "vaccinations" | "medications";
 
 interface PetDetailPageProps {
   params: Promise<{ petId: string }>;
@@ -39,12 +52,26 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
   const id = Number(petId);
   const router = useRouter();
 
+  const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const { data: pet, isLoading, isError } = usePet(id);
   const updatePet = useUpdatePet();
   const deletePet = useDeletePet();
+
+  const { data: vetVisitsData, isLoading: visitsLoading } = useVetVisits({
+    petId: id,
+    per_page: 10,
+  });
+  const { data: vaccinationsData, isLoading: vaccsLoading } = useVaccinations({
+    petId: id,
+    per_page: 20,
+  });
+  const { data: medicationsData, isLoading: medsLoading } = useMedications({
+    petId: id,
+    per_page: 20,
+  });
 
   const handleUpdate = (values: PetFormValues) => {
     updatePet.mutate(
@@ -123,6 +150,13 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
       })
     : "—";
 
+  const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
+    { key: "overview", label: "Overview", icon: PawPrint },
+    { key: "vet-visits", label: "Vet Visits", icon: Stethoscope },
+    { key: "vaccinations", label: "Vaccinations", icon: Syringe },
+    { key: "medications", label: "Medications", icon: Pill },
+  ];
+
   return (
     <div>
       {/* Breadcrumbs */}
@@ -154,7 +188,7 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
         <Avatar className="h-24 w-24 text-4xl">
           {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
           <AvatarFallback className="text-3xl">
-            {!avatarUrl && (species === "dog" ? "🐶" : "🐱")}
+            {!avatarUrl && (SPECIES_EMOJI[species] ?? "🐾")}
           </AvatarFallback>
         </Avatar>
 
@@ -196,7 +230,6 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
           >
             <Pencil className="h-5 w-5" />
           </button>
-          {/* TODO: hide for non-owners once role is exposed on GET /api/user */}
           <button
             type="button"
             onClick={() => setIsDeleteDialogOpen(true)}
@@ -208,37 +241,192 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
         </div>
       </div>
 
-      {/* Info stats */}
-      <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard label="Age" value={ageDisplay} icon={<PawPrint />} />
-        <StatCard label="Birthday" value={birthdayDisplay} icon={<Cake />} />
-        <StatCard
-          label="Sex"
-          value={sex.charAt(0).toUpperCase() + sex.slice(1)}
-          icon={<User />}
-        />
-        <StatCard
-          label="Size"
-          value={size ? size.charAt(0).toUpperCase() + size.slice(1) : "—"}
-          icon={<Scale />}
-        />
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-border pb-px mb-6">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setActiveTab(t.key)}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px",
+              activeTab === t.key
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <t.icon className="h-4 w-4" />
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {/* Notes */}
-      {notes && (
-        <div className="mb-6">
-          <h2 className="mb-1 text-sm font-semibold">Notes</h2>
-          <p className="whitespace-pre-wrap text-sm text-muted-foreground">
-            {notes}
-          </p>
-          <Separator className="mt-4" />
+      {/* Tab: Overview */}
+      {activeTab === "overview" && (
+        <div>
+          <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+            <StatCard label="Age" value={ageDisplay} icon={<PawPrint />} />
+            <StatCard
+              label="Birthday"
+              value={birthdayDisplay}
+              icon={<Cake />}
+            />
+            <StatCard
+              label="Sex"
+              value={sex.charAt(0).toUpperCase() + sex.slice(1)}
+              icon={<User />}
+            />
+            <StatCard
+              label="Size"
+              value={size ? size.charAt(0).toUpperCase() + size.slice(1) : "—"}
+              icon={<Scale />}
+            />
+          </div>
+
+          {notes && (
+            <div className="mb-6">
+              <h2 className="mb-1 text-sm font-semibold">Notes</h2>
+              <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                {notes}
+              </p>
+              <Separator className="mt-4" />
+            </div>
+          )}
+
+          <PetWeightChart petId={id} />
         </div>
       )}
 
-      {/* Weight chart */}
-      <div className="mb-6">
-        <PetWeightChart petId={id} />
-      </div>
+      {/* Tab: Vet Visits */}
+      {activeTab === "vet-visits" && (
+        <div className="space-y-3">
+          {visitsLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: skeleton list
+              <Skeleton key={i} className="h-[72px] rounded-lg" />
+            ))
+          ) : (vetVisitsData?.data ?? []).length === 0 ? (
+            <div className="flex flex-col items-center py-16 text-center">
+              <Stethoscope className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="font-semibold">No vet visits recorded</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Vet visits for {name} will appear here
+              </p>
+              <Button asChild size="sm" className="mt-4">
+                <NextLink href="/vet-visits">Go to Vet Visits</NextLink>
+              </Button>
+            </div>
+          ) : (
+            (vetVisitsData?.data ?? []).map((visit) => (
+              <NextLink
+                key={visit.id}
+                href={`/vet-visits/${visit.id}`}
+                className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 hover:bg-accent/30 transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">
+                      {VISIT_TYPE_LABEL[visit.attributes.visitType]}
+                    </p>
+                    <span className="text-xs text-muted-foreground">
+                      {formatShortDate(visit.attributes.visitDate)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {visit.attributes.reason}
+                  </p>
+                </div>
+                {visit.attributes.cost && (
+                  <span className="text-sm font-medium tabular-nums shrink-0">
+                    {formatCurrency(parseFloat(visit.attributes.cost))}
+                  </span>
+                )}
+              </NextLink>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Tab: Vaccinations */}
+      {activeTab === "vaccinations" && (
+        <div>
+          {vaccsLoading ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: skeleton list
+                <Skeleton key={i} className="h-[120px] rounded-lg" />
+              ))}
+            </div>
+          ) : (vaccinationsData?.data ?? []).length === 0 ? (
+            <div className="flex flex-col items-center py-16 text-center">
+              <Syringe className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="font-semibold">No vaccinations recorded</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Vaccination records for {name} will appear here
+              </p>
+              <Button asChild size="sm" className="mt-4">
+                <NextLink href="/vaccinations">Go to Vaccinations</NextLink>
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {(vaccinationsData?.data ?? []).map((v) => (
+                <VaccinationCard key={v.id} vaccination={v} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab: Medications */}
+      {activeTab === "medications" && (
+        <div className="space-y-3">
+          {medsLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: skeleton list
+              <Skeleton key={i} className="h-[68px] rounded-lg" />
+            ))
+          ) : (medicationsData?.data ?? []).length === 0 ? (
+            <div className="flex flex-col items-center py-16 text-center">
+              <Pill className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="font-semibold">No medications recorded</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Medications for {name} will appear here
+              </p>
+              <Button asChild size="sm" className="mt-4">
+                <NextLink href="/medications">Go to Medications</NextLink>
+              </Button>
+            </div>
+          ) : (
+            (medicationsData?.data ?? []).map((m) => (
+              <div
+                key={m.id}
+                className="flex items-center gap-4 rounded-lg border border-border bg-card p-4"
+              >
+                <Pill className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium">{m.attributes.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {[m.attributes.dosage, m.attributes.frequency]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-xs font-medium shrink-0",
+                    m.attributes.isActive
+                      ? "bg-success/15 text-success"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {m.attributes.isActive ? "Active" : "Completed"}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {/* Edit dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

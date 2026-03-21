@@ -79,3 +79,48 @@ export function useRemoveMember() {
     },
   });
 }
+
+export function useTransferOwnership() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      householdId,
+      userId,
+    }: {
+      householdId: number;
+      userId: number;
+    }) =>
+      householdEndpoints
+        .transferOwnership(householdId, userId)
+        .then((r) => r.data.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: householdKeys.current() });
+      toast.success("Ownership transferred successfully.");
+    },
+    onError: (error: unknown) => {
+      toast.error(
+        extractApiError(
+          error,
+          "Failed to transfer ownership. Please try again.",
+        ),
+      );
+    },
+  });
+}
+
+export function useDeleteHousehold() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (householdId: number) => householdEndpoints.delete(householdId),
+    onSuccess: () => {
+      queryClient.clear();
+    },
+    onError: (error: unknown) => {
+      toast.error(
+        extractApiError(error, "Failed to delete household. Please try again."),
+      );
+    },
+  });
+}

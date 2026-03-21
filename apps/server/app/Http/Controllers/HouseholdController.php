@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\HouseholdService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class HouseholdController extends Controller
 {
@@ -37,9 +38,10 @@ class HouseholdController extends Controller
 
     public function update(UpdateHouseholdRequest $request, Household $household): JsonResponse
     {
-        $household->update(['name' => $request->string('name')->toString()]);
-
-        $fresh = $this->householdService->getCurrent($request->user());
+        $fresh = $this->householdService->rename(
+            household: $household,
+            name: $request->string('name')->toString(),
+        );
 
         return response()->json(['data' => new HouseholdResource($fresh)]);
     }
@@ -49,6 +51,20 @@ class HouseholdController extends Controller
         $updated = $this->householdService->inviteByEmail(
             household: $household,
             email: $request->string('email')->toString(),
+            actor: $request->user(),
+        );
+
+        return response()->json(['data' => new HouseholdResource($updated)]);
+    }
+
+    public function transferOwnership(Request $request, Household $household, User $user): JsonResponse
+    {
+        $this->authorize('transferOwnership', $household);
+
+        $updated = $this->householdService->transferOwnership(
+            household: $household,
+            actor: $request->user(),
+            newOwner: $user,
         );
 
         return response()->json(['data' => new HouseholdResource($updated)]);
@@ -65,5 +81,14 @@ class HouseholdController extends Controller
         );
 
         return response()->json(['data' => new HouseholdResource($updated)]);
+    }
+
+    public function destroy(Household $household): Response
+    {
+        $this->authorize('delete', $household);
+
+        $this->householdService->delete($household);
+
+        return response()->noContent();
     }
 }

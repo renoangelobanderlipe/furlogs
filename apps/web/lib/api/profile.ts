@@ -28,4 +28,6 @@ export const profileEndpoints = {
       "/api/user/notification-preferences",
       prefs,
     ),
+
+  export: () => apiClient.get("/api/user/export"),
 };

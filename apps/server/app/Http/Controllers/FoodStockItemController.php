@@ -26,7 +26,7 @@ class FoodStockItemController extends Controller
 
         $items = FoodStockItem::query()
             ->whereHas('foodProduct', fn ($q) => $q->where('household_id', $request->user()->current_household_id))
-            ->with('foodProduct')
+            ->with(['foodProduct', 'consumptionLog'])
             ->orderByRaw("CASE status WHEN 'open' THEN 0 WHEN 'sealed' THEN 1 WHEN 'finished' THEN 2 ELSE 3 END")
             ->paginate(20);
 
@@ -37,7 +37,7 @@ class FoodStockItemController extends Controller
     {
         $this->authorize('view', $foodStockItem);
 
-        $foodStockItem->load('foodProduct');
+        $foodStockItem->load(['foodProduct', 'consumptionLog']);
 
         return new FoodStockItemResource($foodStockItem);
     }
@@ -58,7 +58,7 @@ class FoodStockItemController extends Controller
         return new FoodStockItemResource($foodStockItem->fresh());
     }
 
-    public function destroy(Request $request, FoodStockItem $foodStockItem): Response
+    public function destroy(FoodStockItem $foodStockItem): Response
     {
         $this->authorize('delete', $foodStockItem);
 
@@ -67,7 +67,7 @@ class FoodStockItemController extends Controller
         return response()->noContent();
     }
 
-    public function open(Request $request, FoodStockItem $foodStockItem): FoodStockItemResource
+    public function open(FoodStockItem $foodStockItem): FoodStockItemResource
     {
         $this->authorize('update', $foodStockItem);
 
@@ -76,7 +76,7 @@ class FoodStockItemController extends Controller
         return new FoodStockItemResource($item);
     }
 
-    public function markFinished(Request $request, FoodStockItem $foodStockItem): FoodStockItemResource
+    public function markFinished(FoodStockItem $foodStockItem): FoodStockItemResource
     {
         $this->authorize('update', $foodStockItem);
 
@@ -91,13 +91,9 @@ class FoodStockItemController extends Controller
 
         $projections = $this->foodStockService->getProjections($householdId);
 
-        usort($projections, function (array $a, array $b): int {
-            $order = ['critical' => 0, 'low' => 1, 'good' => 2];
-            $statusA = $a['projection'] !== null ? $a['projection']->status : 'none';
-            $statusB = $b['projection'] !== null ? $b['projection']->status : 'none';
-
-            return ($order[$statusA] ?? 3) <=> ($order[$statusB] ?? 3);
-        });
+        $order = ['critical' => 0, 'low' => 1, 'good' => 2];
+        usort($projections, fn (array $a, array $b): int => ($order[$a['projection']->status ?? 'none'] ?? 3) <=> ($order[$b['projection']->status ?? 'none'] ?? 3),
+        );
 
         return FoodProjectionResource::collection($projections);
     }

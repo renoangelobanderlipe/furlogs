@@ -1,5 +1,6 @@
 import {
   Bell,
+  Building2,
   CalendarDays,
   DollarSign,
   LayoutDashboard,
@@ -16,6 +17,7 @@ export const mainNav = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { label: "My Pets", icon: PawPrint, path: "/pets" },
   { label: "Vet Visits", icon: Stethoscope, path: "/vet-visits" },
+  { label: "Vet Clinics", icon: Building2, path: "/vet-clinics" },
   { label: "Vaccinations", icon: Syringe, path: "/vaccinations" },
   { label: "Medications", icon: Pill, path: "/medications" },
   { label: "Food Stock", icon: Package, path: "/stock" },

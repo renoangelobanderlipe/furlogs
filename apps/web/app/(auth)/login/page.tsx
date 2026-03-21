@@ -54,19 +54,38 @@ function LoginForm() {
         return;
       }
       await fetchUser();
+      // fetchUser() silently catches errors, so we read state directly.
+      // If the user exists but hasn't verified their email, send them there
+      // instead of the dashboard so they're not stuck in a broken state.
+      const currentUser = useAuthStore.getState().user;
+      if (!currentUser) {
+        setServerError("Unable to load your account. Please try again.");
+        return;
+      }
+      if (!currentUser.email_verified_at) {
+        router.replace("/verify-email");
+        return;
+      }
       toast.success("Welcome back!");
       router.replace("/pets");
     } catch (err: unknown) {
-      const data = (
+      const response = (
         err as {
           response?: {
             data?: { message?: string; errors?: Record<string, string[]> };
           };
         }
-      )?.response?.data;
-      const message = data?.errors
-        ? Object.values(data.errors).flat()[0]
-        : (data?.message ?? "Invalid credentials. Please try again.");
+      )?.response;
+      if (!response) {
+        // Network error or server unreachable (e.g. CSRF fetch failed)
+        setServerError(
+          "Unable to reach the server. Please check your connection and try again.",
+        );
+        return;
+      }
+      const message = response.data?.errors
+        ? Object.values(response.data.errors).flat()[0]
+        : (response.data?.message ?? "Invalid credentials. Please try again.");
       setServerError(message ?? "Invalid credentials. Please try again.");
     }
   };

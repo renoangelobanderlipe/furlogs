@@ -51,12 +51,17 @@ describe('email-verified guard', function () {
             ->assertForbidden();
     });
 
-    it('blocks an unverified user from accessing GET /api/user', function () {
+    // /api/user intentionally has NO verified check — the frontend reads
+    // email_verified_at from the response and redirects unverified users to
+    // /verify-email itself. Removing the guard here prevents the stuck-session
+    // bug where an unverified but authenticated user can never load their state.
+    it('allows an unverified user to access GET /api/user', function () {
         $user = User::factory()->unverified()->create();
 
         $this->actingAs($user)
             ->getJson('/api/user')
-            ->assertForbidden();
+            ->assertOk()
+            ->assertJsonStructure(['id', 'name', 'email', 'email_verified_at']);
     });
 
     it('allows a verified user to access GET /api/pets', function () {

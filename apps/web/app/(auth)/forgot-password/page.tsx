@@ -37,10 +37,14 @@ export default function ForgotPasswordPage() {
       setSent(true);
       toast.success("Password reset link sent!");
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ?? "Something went wrong. Please try again.";
-      setServerError(message);
+      const response = (err as { response?: { data?: { message?: string } } })
+        ?.response;
+      setServerError(
+        response
+          ? (response.data?.message ??
+              "Something went wrong. Please try again.")
+          : "Unable to reach the server. Please check your connection and try again.",
+      );
     }
   };
 

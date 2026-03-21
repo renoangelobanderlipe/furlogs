@@ -1,19 +1,24 @@
 "use client";
 
 import { AlertTriangle, CheckCircle, Loader2, Mail } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { authEndpoints } from "@/lib/api/endpoints";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const isInvalidLink = searchParams.get("error") === "invalid_link";
+  const logout = useAuthStore((s) => s.logout);
 
   const [resent, setResent] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleResend = async () => {
     setIsSending(true);
@@ -25,6 +30,20 @@ function VerifyEmailContent() {
       toast.error("Failed to resend. Please try again.");
     } finally {
       setIsSending(false);
+    }
+  };
+
+  // Allows a user to abandon this account/session and register with a
+  // different email — resolves the "signup loop" edge case where the proxy
+  // keeps redirecting them away from /register because they still have an
+  // active session for an unverified account.
+  const handleSignOut = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setIsLoggingOut(false);
+      router.replace("/register");
     }
   };
 
@@ -70,6 +89,26 @@ function VerifyEmailContent() {
           {isSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isSending ? "Sending..." : "Resend verification email"}
         </Button>
+
+        <p className="mt-4 text-sm text-muted-foreground">
+          Wrong account?{" "}
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={isLoggingOut}
+            className="font-medium text-primary hover:underline disabled:opacity-50"
+          >
+            {isLoggingOut
+              ? "Signing out…"
+              : "Sign out and use a different email"}
+          </button>
+        </p>
+
+        <p className="mt-2 text-sm text-muted-foreground">
+          <Link href="/login" className="text-primary hover:underline">
+            Back to sign in
+          </Link>
+        </p>
       </CardContent>
     </Card>
   );

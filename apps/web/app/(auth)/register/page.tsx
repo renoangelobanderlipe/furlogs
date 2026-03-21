@@ -43,17 +43,30 @@ export default function RegisterPage() {
       toast.success("Account created! Please verify your email.");
       router.replace("/verify-email");
     } catch (err: unknown) {
-      const data = (
+      const response = (
         err as {
           response?: {
             data?: { message?: string; errors?: Record<string, string[]> };
           };
         }
-      )?.response?.data;
-      const message = data?.errors
-        ? Object.values(data.errors).flat()[0]
-        : (data?.message ?? "Registration failed. Please try again.");
-      setServerError(message ?? "Registration failed. Please try again.");
+      )?.response;
+      if (!response) {
+        setServerError(
+          "Unable to reach the server. Please check your connection and try again.",
+        );
+        return;
+      }
+      const firstError = response.data?.errors
+        ? Object.values(response.data.errors).flat()[0]
+        : (response.data?.message ?? "Registration failed. Please try again.");
+      // When the email is already registered (possibly with an unverified
+      // account), surface a more helpful message so the user isn't confused.
+      const message =
+        firstError?.toLowerCase().includes("already been taken") ||
+        firstError?.toLowerCase().includes("already registered")
+          ? "An account with this email already exists. Try signing in or check your inbox for a verification email."
+          : (firstError ?? "Registration failed. Please try again.");
+      setServerError(message);
     }
   };
 

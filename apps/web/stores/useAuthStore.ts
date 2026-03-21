@@ -13,7 +13,9 @@ interface AuthStore {
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
-  isLoading: false,
+  // Start true so the dashboard layout waits for the first fetchUser() to
+  // complete before rendering children or deciding on redirects.
+  isLoading: true,
   twoFactorPending: false,
 
   fetchUser: async () => {

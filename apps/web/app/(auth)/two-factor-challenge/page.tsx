@@ -44,9 +44,12 @@ export default function TwoFactorChallengePage() {
     defaultValues: { code: "", recovery_code: "" },
   });
 
-  // If user is already fully authenticated, go to pets
+  // If user is already fully authenticated AND verified, go to pets.
+  // The email_verified_at check is required so this effect doesn't race
+  // against the onSubmit handler when fetchUser() resolves with an unverified
+  // user — without it, both would fire and the result would be non-deterministic.
   useEffect(() => {
-    if (user !== null) {
+    if (user !== null && user.email_verified_at) {
       router.replace("/pets");
     }
   }, [user, router]);
@@ -79,26 +82,39 @@ export default function TwoFactorChallengePage() {
       await authEndpoints.twoFactorChallenge(payload);
       setTwoFactorPending(false);
       await fetchUser();
+      // Apply the same verification gate as the login page.
+      const currentUser = useAuthStore.getState().user;
+      if (!currentUser?.email_verified_at) {
+        router.replace("/verify-email");
+        return;
+      }
       toast.success("Signed in successfully!");
       router.replace("/pets");
     } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response
-        ?.status;
-      const data = (
+      const response = (
         err as {
           response?: {
+            status?: number;
             data?: { message?: string; errors?: Record<string, string[]> };
           };
         }
-      )?.response?.data;
+      )?.response;
 
-      if (status === 422) {
-        const message = data?.errors
-          ? Object.values(data.errors).flat()[0]
-          : (data?.message ?? "The provided code was invalid.");
+      if (!response) {
+        toast.error(
+          "Unable to reach the server. Please check your connection.",
+        );
+        return;
+      }
+      if (response.status === 422) {
+        const message = response.data?.errors
+          ? Object.values(response.data.errors).flat()[0]
+          : (response.data?.message ?? "The provided code was invalid.");
         setServerError(message ?? "The provided code was invalid.");
       } else {
-        toast.error(data?.message ?? "Something went wrong. Please try again.");
+        toast.error(
+          response.data?.message ?? "Something went wrong. Please try again.",
+        );
       }
     }
   };

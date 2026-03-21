@@ -55,12 +55,17 @@ Route::get('auth/email/verify/{id}/{hash}', [EmailVerificationController::class,
     ->middleware('signed')
     ->name('verification.verify');
 
-// Authenticated user
-Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+// Fetch the authenticated user's own record — no verified check so the
+// frontend can read email_verified_at and redirect unverified users to
+// /verify-email before they reach any protected dashboard route.
+Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', function (Request $request): User {
         return $request->user()->load('currentHousehold');
     })->name('user');
+});
 
+// Authenticated user
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // User profile
     Route::get('user/notification-preferences', [ProfileController::class, 'notificationPreferences'])->name('user.notification-preferences.show');
     Route::patch('user/notification-preferences', [ProfileController::class, 'updateNotificationPreferences'])->name('user.notification-preferences.update');

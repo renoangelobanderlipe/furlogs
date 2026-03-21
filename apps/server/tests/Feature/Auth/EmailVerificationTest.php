@@ -49,6 +49,20 @@ describe('email verification link', function () {
         Event::assertDispatched(Verified::class);
     });
 
+    it('redirects to the frontend with an error query parameter when the id is not a valid UUID', function () {
+        // Simulates stale links generated before the UUID primary key migration.
+        $signedUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => '1', 'hash' => sha1('any@example.com')],
+        );
+
+        $response = $this->get($signedUrl);
+
+        $response->assertRedirect();
+        expect($response->headers->get('Location'))->toContain('error=invalid_link');
+    });
+
     it('redirects to the frontend with an error query parameter when the hash is invalid', function () {
         $user = User::factory()->unverified()->create();
 

@@ -10,12 +10,17 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class EmailVerificationController extends Controller
 {
     public function verify(Request $request, string $id, string $hash): RedirectResponse
     {
         $frontendUrl = config('app.frontend_url');
+
+        if (! Str::isUuid($id)) {
+            return redirect("{$frontendUrl}/verify-email?error=invalid_link");
+        }
 
         $user = User::findOrFail($id);
 

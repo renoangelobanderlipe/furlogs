@@ -144,9 +144,9 @@ export function useSwitchHousehold() {
       householdEndpoints.switchHousehold(householdId).then((r) => r.data.data),
     onSuccess: async (household) => {
       // Re-hydrate the auth store so current_household_id is up to date,
-      // then clear all household-scoped query cache.
+      // then invalidate all cached queries so they refetch in the background.
       await fetchUser();
-      queryClient.clear();
+      await queryClient.invalidateQueries();
       toast.success(`Switched to "${household.name}"`);
     },
     onError: (error: unknown) => {

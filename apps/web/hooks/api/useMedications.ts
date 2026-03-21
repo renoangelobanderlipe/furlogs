@@ -2,17 +2,74 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { extractApiError } from "@/lib/api/extractApiError";
 import {
+  type AdministrationPayload,
   type MedicationFilters,
   type MedicationPayload,
   medicationEndpoints,
 } from "@/lib/api/medications";
-import { medicationKeys, QUERY_STALE_TIME } from "./queryKeys";
+import {
+  administrationKeys,
+  medicationKeys,
+  QUERY_STALE_TIME,
+} from "./queryKeys";
 
 export function useMedications(filters?: MedicationFilters) {
   return useQuery({
     queryKey: medicationKeys.list(filters),
     queryFn: () => medicationEndpoints.list(filters).then((r) => r.data),
     staleTime: QUERY_STALE_TIME,
+  });
+}
+
+export function useTodayAdministrations(medicationId: number) {
+  const today = new Date().toISOString().split("T")[0];
+  return useQuery({
+    queryKey: administrationKeys.forMedication(medicationId, today),
+    queryFn: () =>
+      medicationEndpoints
+        .listAdministrations(medicationId, today)
+        .then((r) => r.data),
+    staleTime: 60_000,
+    enabled: medicationId > 0,
+  });
+}
+
+export function useLogDose() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      medicationId,
+      data,
+    }: {
+      medicationId: number;
+      data: AdministrationPayload;
+    }) =>
+      medicationEndpoints.logDose(medicationId, data).then((r) => r.data.data),
+    onSuccess: (_, { medicationId }) => {
+      queryClient.invalidateQueries({
+        queryKey: administrationKeys.forMedication(medicationId),
+      });
+      queryClient.invalidateQueries({ queryKey: medicationKeys.lists() });
+      toast.success("Dose logged!");
+    },
+    onError: (error: unknown) => {
+      toast.error(extractApiError(error, "Failed to log dose."));
+    },
+  });
+}
+
+export function useDeleteAdministration() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => medicationEndpoints.deleteAdministration(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: administrationKeys.all });
+      queryClient.invalidateQueries({ queryKey: medicationKeys.lists() });
+      toast.success("Dose removed");
+    },
+    onError: (error: unknown) => {
+      toast.error(extractApiError(error, "Failed to remove dose."));
+    },
   });
 }
 

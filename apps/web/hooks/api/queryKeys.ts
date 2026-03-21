@@ -98,3 +98,9 @@ export const vetClinicKeys = {
 export const householdKeys = {
   current: () => ["household", "current"] as const,
 };
+
+export const administrationKeys = {
+  all: ["administrations"] as const,
+  forMedication: (medicationId: number, date?: string) =>
+    [...administrationKeys.all, "medication", medicationId, date] as const,
+};

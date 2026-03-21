@@ -3,7 +3,9 @@
 import {
   AlertTriangle,
   History,
+  Loader2,
   Package,
+  PackageOpen,
   PlusCircle,
   Search,
   ShoppingCart,
@@ -43,11 +45,13 @@ import {
   useFoodStockItems,
   useLogPurchase,
   useMarkFinished,
+  useOpenStockItem,
   useUpdateFoodProduct,
   useUpsertConsumptionRate,
 } from "@/hooks/api/useFoodStock";
 import { usePets } from "@/hooks/api/usePets";
 import type { FoodProduct, FoodProjectionItem } from "@/lib/api/food-stock";
+import { formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type {
   ProductFormValues,
@@ -72,6 +76,7 @@ const URGENCY_ORDER: Record<string, number> = {
 export default function StockPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("active");
 
   const [addProductOpen, setAddProductOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<FoodProduct | null>(null);
@@ -81,6 +86,7 @@ export default function StockPage() {
   const [ratesProduct, setRatesProduct] = useState<FoodProduct | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FoodProduct | null>(null);
   const [finishingItemId, setFinishingItemId] = useState<string | null>(null);
+  const [openingItemId, setOpeningItemId] = useState<string | null>(null);
 
   const { data: products = [], isLoading: productsLoading } = useFoodProducts();
   const { data: stockItems = [], isLoading: itemsLoading } =
@@ -97,6 +103,7 @@ export default function StockPage() {
   const deleteProduct = useDeleteFoodProduct();
   const logPurchase = useLogPurchase();
   const markFinished = useMarkFinished();
+  const openItem = useOpenStockItem();
   const upsertRate = useUpsertConsumptionRate();
   const deleteRate = useDeleteConsumptionRate();
 
@@ -107,6 +114,10 @@ export default function StockPage() {
     (p) => p.projection?.status === "low",
   ).length;
   const alertCount = criticalCount + lowCount;
+
+  const sealedItems = stockItems.filter(
+    (i) => i.attributes.status === "sealed",
+  );
 
   const activeProjections: FoodProjectionItem[] = [...projections]
     .filter((p) => p.item.attributes.status !== "finished")
@@ -129,7 +140,12 @@ export default function StockPage() {
   });
 
   const handleAddProduct = (values: ProductFormValues) => {
-    createProduct.mutate(values, { onSuccess: () => setAddProductOpen(false) });
+    createProduct.mutate(values, {
+      onSuccess: () => {
+        setAddProductOpen(false);
+        setActiveTab("products");
+      },
+    });
   };
 
   const handleEditProduct = (values: ProductFormValues) => {
@@ -149,7 +165,10 @@ export default function StockPage() {
 
   const handleLogPurchase = (values: PurchaseFormValues) => {
     logPurchase.mutate(values, {
-      onSuccess: () => setLogPurchaseFor(undefined),
+      onSuccess: () => {
+        setLogPurchaseFor(undefined);
+        setActiveTab("active");
+      },
     });
   };
 
@@ -297,7 +316,8 @@ export default function StockPage() {
       {/* Tabbed content */}
       {!isEmpty && (
         <Tabs
-          defaultValue="active"
+          value={activeTab}
+          onValueChange={setActiveTab}
           className="animate-fade-in-up"
           style={{ animationDelay: "120ms" }}
         >
@@ -340,7 +360,7 @@ export default function StockPage() {
                   <Skeleton key={k} className="h-[200px] rounded-xl" />
                 ))}
               </div>
-            ) : activeProjections.length === 0 ? (
+            ) : activeProjections.length === 0 && sealedItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center rounded-xl border border-dashed border-border bg-muted/20">
                 <Package className="h-8 w-8 text-muted-foreground/40 mb-3" />
                 <p className="text-sm font-medium text-muted-foreground">
@@ -360,31 +380,84 @@ export default function StockPage() {
                 </Button>
               </div>
             ) : (
-              activeProjections.map((projItem, i) => (
-                <div
-                  key={projItem.item.id}
-                  className="animate-fade-in-up"
-                  style={{ animationDelay: `${i * 60}ms` }}
-                >
-                  <ActiveConsumptionCard
-                    projectionItem={projItem}
-                    pets={pets}
-                    onAdjustRates={() =>
-                      handleAdjustRates(projItem.item.attributes.foodProductId)
-                    }
-                    onMarkFinished={() => {
-                      setFinishingItemId(projItem.item.id);
-                      markFinished.mutate(projItem.item.id, {
-                        onSettled: () => setFinishingItemId(null),
-                      });
-                    }}
-                    onLogNewBag={() =>
-                      handleLogNewBag(projItem.item.attributes.foodProductId)
-                    }
-                    isMarkingFinished={finishingItemId === projItem.item.id}
-                  />
-                </div>
-              ))
+              <>
+                {activeProjections.map((projItem, i) => (
+                  <div
+                    key={projItem.item.id}
+                    className="animate-fade-in-up"
+                    style={{ animationDelay: `${i * 60}ms` }}
+                  >
+                    <ActiveConsumptionCard
+                      projectionItem={projItem}
+                      pets={pets}
+                      onAdjustRates={() =>
+                        handleAdjustRates(
+                          projItem.item.attributes.foodProductId,
+                        )
+                      }
+                      onMarkFinished={() => {
+                        setFinishingItemId(projItem.item.id);
+                        markFinished.mutate(projItem.item.id, {
+                          onSettled: () => setFinishingItemId(null),
+                        });
+                      }}
+                      onLogNewBag={() =>
+                        handleLogNewBag(projItem.item.attributes.foodProductId)
+                      }
+                      isMarkingFinished={finishingItemId === projItem.item.id}
+                    />
+                  </div>
+                ))}
+
+                {sealedItems.length > 0 && (
+                  <div className="space-y-2">
+                    {activeProjections.length > 0 && (
+                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground px-1 pt-2">
+                        Sealed ({sealedItems.length})
+                      </p>
+                    )}
+                    {sealedItems.map((item) => {
+                      const product = item.relationships?.foodProduct;
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3 animate-fade-in-up"
+                        >
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {product?.attributes.name ?? `Item #${item.id}`}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Purchased{" "}
+                              {formatShortDate(item.attributes.purchasedAt)}
+                              {item.attributes.quantity > 1 &&
+                                ` · ×${item.attributes.quantity}`}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={openingItemId === item.id}
+                            onClick={() => {
+                              setOpeningItemId(item.id);
+                              openItem.mutate(item.id, {
+                                onSettled: () => setOpeningItemId(null),
+                              });
+                            }}
+                          >
+                            {openingItemId === item.id ? (
+                              <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <PackageOpen className="mr-2 h-3.5 w-3.5" />
+                            )}
+                            Open Bag
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
 

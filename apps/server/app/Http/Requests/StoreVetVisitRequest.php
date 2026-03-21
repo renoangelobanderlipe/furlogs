@@ -34,10 +34,10 @@ class StoreVetVisitRequest extends FormRequest
         return [
             'pet_id' => [
                 'required',
-                'integer',
+                'uuid',
                 Rule::exists('pets', 'id')->where('household_id', $this->user()->current_household_id),
             ],
-            'clinic_id' => ['nullable', 'integer', 'exists:vet_clinics,id'],
+            'clinic_id' => ['nullable', 'uuid', 'exists:vet_clinics,id'],
             'vet_name' => ['nullable', 'string', 'max:255'],
             'visit_type' => ['required', 'string', Rule::enum(VisitType::class)],
             'visit_date' => ['required', 'date', 'before_or_equal:today'],

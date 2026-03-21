@@ -23,7 +23,7 @@ export interface PetAttributes {
 }
 
 export interface Pet {
-  id: number;
+  id: string;
   type: "pets";
   attributes: PetAttributes;
 }
@@ -35,7 +35,7 @@ export interface PetWeightAttributes {
 }
 
 export interface PetWeight {
-  id: number;
+  id: string;
   type: "pet-weights";
   attributes: PetWeightAttributes;
 }
@@ -74,10 +74,10 @@ export const petEndpoints = {
   list: (filters?: PetFilters) =>
     apiClient.get<PaginatedResponse<Pet>>("/api/pets", { params: filters }),
 
-  get: (id: number) =>
+  get: (id: string) =>
     apiClient.get<SingleResourceResponse<Pet>>(`/api/pets/${id}`),
 
-  getWithWeights: (id: number) =>
+  getWithWeights: (id: string) =>
     apiClient.get<SingleResourceResponse<Pet>>(
       `/api/pets/${id}?include=weights`,
     ),
@@ -88,27 +88,27 @@ export const petEndpoints = {
       is_neutered: isNeutered,
     }),
 
-  update: (id: number, { isNeutered, ...rest }: PetUpdateFormValues) =>
+  update: (id: string, { isNeutered, ...rest }: PetUpdateFormValues) =>
     apiClient.patch<SingleResourceResponse<Pet>>(`/api/pets/${id}`, {
       ...rest,
       ...(isNeutered !== undefined ? { is_neutered: isNeutered } : {}),
     }),
 
-  delete: (id: number) => apiClient.delete(`/api/pets/${id}`),
+  delete: (id: string) => apiClient.delete(`/api/pets/${id}`),
 
-  listWeights: (petId: number) =>
+  listWeights: (petId: string) =>
     apiClient.get<WeightListResponse>(`/api/pets/${petId}/weights`),
 
-  recordWeight: (petId: number, { weightKg, recordedAt }: WeightFormValues) =>
+  recordWeight: (petId: string, { weightKg, recordedAt }: WeightFormValues) =>
     apiClient.post<SingleResourceResponse<PetWeight>>(
       `/api/pets/${petId}/weights`,
       { weight_kg: weightKg, recorded_at: recordedAt },
     ),
 
-  deleteWeight: (petId: number, weightId: number) =>
+  deleteWeight: (petId: string, weightId: string) =>
     apiClient.delete(`/api/pets/${petId}/weights/${weightId}`),
 
-  uploadAvatar: (petId: number, file: File) => {
+  uploadAvatar: (petId: string, file: File) => {
     const formData = new FormData();
     formData.append("avatar", file);
     return apiClient.post<SingleResourceResponse<Pet>>(

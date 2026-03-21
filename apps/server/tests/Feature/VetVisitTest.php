@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\VetVisit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -183,7 +184,7 @@ it('bulk delete is forbidden for members', function () {
     $member = createVetVisitMember($household);
 
     $response = $this->actingAs($member)->deleteJson('/api/vet-visits/bulk', [
-        'ids' => [1],
+        'ids' => [Str::uuid()->toString()],
     ]);
 
     $response->assertForbidden();

@@ -7,13 +7,14 @@ namespace App\Models;
 use Carbon\Carbon;
 use Database\Factories\FoodConsumptionLogFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int $id
- * @property int $food_stock_item_id
+ * @property string $id
+ * @property string $food_stock_item_id
  * @property int $actual_duration_days
  * @property int $actual_daily_rate_grams
  * @property string $estimated_vs_actual_diff
@@ -24,7 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class FoodConsumptionLog extends Model
 {
     /** @use HasFactory<FoodConsumptionLogFactory> */
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     /**
      * @return array<string, mixed>

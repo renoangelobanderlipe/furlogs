@@ -1,12 +1,12 @@
 import { apiClient } from "./client";
 
 export interface AuthUser {
-  id: number;
+  id: string;
   name: string;
   email: string;
   email_verified_at: string | null;
   two_factor_confirmed_at: string | null;
-  current_household_id: number | null;
+  current_household_id: string | null;
   timezone: string;
 }
 

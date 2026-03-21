@@ -35,12 +35,12 @@ class StoreMedicationRequest extends FormRequest
         return [
             'pet_id' => [
                 'required',
-                'integer',
+                'uuid',
                 Rule::exists('pets', 'id')->where('household_id', $this->user()->current_household_id),
             ],
             'vet_visit_id' => [
                 'nullable',
-                'integer',
+                'uuid',
                 Rule::exists('vet_visits', 'id')->whereIn(
                     'pet_id',
                     Pet::query()

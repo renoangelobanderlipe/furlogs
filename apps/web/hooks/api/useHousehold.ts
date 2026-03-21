@@ -16,7 +16,7 @@ export function useUpdateHousehold() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, name }: { id: number; name: string }) =>
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
       householdEndpoints.update(id, name).then((r) => r.data.data),
     onSuccess: (household: HouseholdData) => {
       queryClient.invalidateQueries({ queryKey: householdKeys.current() });
@@ -38,7 +38,7 @@ export function useInviteMember() {
       householdId,
       email,
     }: {
-      householdId: number;
+      householdId: string;
       email: string;
     }) =>
       householdEndpoints.invite(householdId, email).then((r) => r.data.data),
@@ -62,8 +62,8 @@ export function useRemoveMember() {
       householdId,
       userId,
     }: {
-      householdId: number;
-      userId: number;
+      householdId: string;
+      userId: string;
     }) =>
       householdEndpoints
         .removeMember(householdId, userId)
@@ -88,8 +88,8 @@ export function useTransferOwnership() {
       householdId,
       userId,
     }: {
-      householdId: number;
-      userId: number;
+      householdId: string;
+      userId: string;
     }) =>
       householdEndpoints
         .transferOwnership(householdId, userId)
@@ -113,7 +113,7 @@ export function useDeleteHousehold() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (householdId: number) => householdEndpoints.delete(householdId),
+    mutationFn: (householdId: string) => householdEndpoints.delete(householdId),
     onSuccess: () => {
       queryClient.clear();
     },

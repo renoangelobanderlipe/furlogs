@@ -14,14 +14,14 @@ export const petKeys = {
   lists: () => [...petKeys.all, "list"] as const,
   list: (filters?: PetFilters) => [...petKeys.lists(), filters] as const,
   details: () => [...petKeys.all, "detail"] as const,
-  detail: (id: number) => [...petKeys.details(), id] as const,
-  weights: (petId: number) => [...petKeys.detail(petId), "weights"] as const,
+  detail: (id: string) => [...petKeys.details(), id] as const,
+  weights: (petId: string) => [...petKeys.detail(petId), "weights"] as const,
 };
 
 export const foodProductKeys = {
   all: ["food-products"] as const,
   lists: () => [...foodProductKeys.all, "list"] as const,
-  detail: (id: number) => [...foodProductKeys.all, "detail", id] as const,
+  detail: (id: string) => [...foodProductKeys.all, "detail", id] as const,
 };
 
 export const foodStockItemKeys = {
@@ -39,7 +39,7 @@ export const vetVisitKeys = {
   list: (filters?: VetVisitFilters) =>
     [...vetVisitKeys.lists(), filters] as const,
   details: () => [...vetVisitKeys.all, "detail"] as const,
-  detail: (id: number) => [...vetVisitKeys.details(), id] as const,
+  detail: (id: string) => [...vetVisitKeys.details(), id] as const,
 };
 
 export const vaccinationKeys = {
@@ -48,7 +48,7 @@ export const vaccinationKeys = {
   list: (filters?: VaccinationFilters) =>
     [...vaccinationKeys.lists(), filters] as const,
   details: () => [...vaccinationKeys.all, "detail"] as const,
-  detail: (id: number) => [...vaccinationKeys.details(), id] as const,
+  detail: (id: string) => [...vaccinationKeys.details(), id] as const,
 };
 
 export const medicationKeys = {
@@ -57,7 +57,7 @@ export const medicationKeys = {
   list: (filters?: MedicationFilters) =>
     [...medicationKeys.lists(), filters] as const,
   details: () => [...medicationKeys.all, "detail"] as const,
-  detail: (id: number) => [...medicationKeys.details(), id] as const,
+  detail: (id: string) => [...medicationKeys.details(), id] as const,
 };
 
 export const notificationKeys = {
@@ -73,7 +73,7 @@ export const reminderKeys = {
   lists: () => [...reminderKeys.all, "list"] as const,
   list: (filters?: ReminderFilters) =>
     [...reminderKeys.lists(), { filters }] as const,
-  detail: (id: number) => [...reminderKeys.all, "detail", id] as const,
+  detail: (id: string) => [...reminderKeys.all, "detail", id] as const,
 };
 
 export const dashboardKeys = {
@@ -92,7 +92,7 @@ export const vetClinicKeys = {
   all: ["vet-clinics"] as const,
   lists: () => [...vetClinicKeys.all, "list"] as const,
   list: (page?: number) => [...vetClinicKeys.lists(), { page }] as const,
-  detail: (id: number) => [...vetClinicKeys.all, "detail", id] as const,
+  detail: (id: string) => [...vetClinicKeys.all, "detail", id] as const,
 };
 
 export const householdKeys = {
@@ -101,7 +101,7 @@ export const householdKeys = {
 
 export const administrationKeys = {
   all: ["administrations"] as const,
-  forMedication: (medicationId: number, date?: string) =>
+  forMedication: (medicationId: string, date?: string) =>
     date
       ? ([...administrationKeys.all, "medication", medicationId, date] as const)
       : ([...administrationKeys.all, "medication", medicationId] as const),

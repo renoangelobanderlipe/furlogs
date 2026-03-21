@@ -13,7 +13,7 @@ export const FREQUENCY_OPTIONS = [
 export type FrequencyValue = (typeof FREQUENCY_OPTIONS)[number]["value"];
 
 export interface MedicationAdministration {
-  id: number;
+  id: string;
   type: "medication_administrations";
   attributes: {
     administeredAt: string; // ISO datetime
@@ -28,8 +28,8 @@ export interface AdministrationPayload {
 }
 
 export interface MedicationPayload {
-  pet_id: number;
-  vet_visit_id?: number;
+  pet_id: string;
+  vet_visit_id?: string;
   name: string;
   dosage?: string;
   frequency?: string;
@@ -39,8 +39,8 @@ export interface MedicationPayload {
 }
 
 export interface MedicationFilters {
-  petId?: number;
-  vetVisitId?: number;
+  petId?: string;
+  vetVisitId?: string;
   page?: number;
   per_page?: number;
 }
@@ -51,7 +51,7 @@ export const medicationEndpoints = {
       params: { ...filters, include: "pet" },
     }),
 
-  get: (id: number) =>
+  get: (id: string) =>
     apiClient.get<SingleResourceResponse<Medication>>(`/api/medications/${id}`),
 
   create: (data: MedicationPayload) =>
@@ -60,28 +60,28 @@ export const medicationEndpoints = {
       data,
     ),
 
-  update: (id: number, data: Partial<MedicationPayload>) =>
+  update: (id: string, data: Partial<MedicationPayload>) =>
     apiClient.patch<SingleResourceResponse<Medication>>(
       `/api/medications/${id}`,
       data,
     ),
 
-  delete: (id: number) => apiClient.delete(`/api/medications/${id}`),
+  delete: (id: string) => apiClient.delete(`/api/medications/${id}`),
 
-  listAdministrations: (medicationId: number, date?: string) =>
+  listAdministrations: (medicationId: string, date?: string) =>
     apiClient.get<PaginatedResponse<MedicationAdministration>>(
       `/api/medications/${medicationId}/administrations`,
       { params: date ? { date } : {} },
     ),
 
-  logDose: (medicationId: number, data: AdministrationPayload) =>
+  logDose: (medicationId: string, data: AdministrationPayload) =>
     apiClient.post<{ data: MedicationAdministration }>(
       `/api/medications/${medicationId}/administrations`,
       data,
     ),
 
   updateAdministration: (
-    administrationId: number,
+    administrationId: string,
     data: AdministrationPayload,
   ) =>
     apiClient.patch<{ data: MedicationAdministration }>(
@@ -89,6 +89,6 @@ export const medicationEndpoints = {
       data,
     ),
 
-  deleteAdministration: (administrationId: number) =>
+  deleteAdministration: (administrationId: string) =>
     apiClient.delete(`/api/administrations/${administrationId}`),
 };

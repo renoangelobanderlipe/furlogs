@@ -25,7 +25,7 @@ class VetVisitController extends Controller
 
         $visits = VetVisit::query()
             ->with(['pet', 'clinic', 'media'])
-            ->when($request->integer('pet_id'), fn ($q, $petId) => $q->where('pet_id', $petId))
+            ->when($request->query('pet_id'), fn ($q, string $petId) => $q->where('pet_id', $petId))
             ->when($request->query('visit_type'), fn ($q, $type) => $q->where('visit_type', $type))
             ->when(
                 $request->query('search'),
@@ -90,7 +90,7 @@ class VetVisitController extends Controller
 
         $request->validate([
             'ids' => ['required', 'array'],
-            'ids.*' => ['integer'],
+            'ids.*' => ['string', 'uuid'],
         ]);
 
         $this->service->bulkDelete($request->input('ids'));

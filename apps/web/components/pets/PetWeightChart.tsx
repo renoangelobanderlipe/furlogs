@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePetWeights } from "@/hooks/api/usePetWeights";
 
 interface PetWeightChartProps {
-  petId: number;
+  petId: string;
 }
 
 function formatDate(dateStr: string): string {

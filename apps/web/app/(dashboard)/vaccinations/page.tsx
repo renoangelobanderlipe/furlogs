@@ -206,7 +206,7 @@ export default function VaccinationsPage() {
                   render={({ field }) => (
                     <Select
                       value={field.value ? String(field.value) : ""}
-                      onValueChange={(v) => field.onChange(Number(v))}
+                      onValueChange={(v) => field.onChange(v)}
                     >
                       <SelectTrigger className="mt-1.5 bg-background">
                         <SelectValue placeholder="Select" />

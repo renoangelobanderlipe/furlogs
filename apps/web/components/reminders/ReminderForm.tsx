@@ -86,9 +86,7 @@ export function ReminderForm({
                     ? String(field.value)
                     : ""
                 }
-                onValueChange={(v) =>
-                  field.onChange(v === "" ? null : Number(v))
-                }
+                onValueChange={(v) => field.onChange(v === "" ? null : v)}
               >
                 <FormControl>
                   <SelectTrigger>

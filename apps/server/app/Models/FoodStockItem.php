@@ -11,14 +11,15 @@ use Database\Factories\FoodStockItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- * @property int $id
- * @property int $food_product_id
+ * @property string $id
+ * @property string $food_product_id
  * @property StockStatus $status
  * @property Carbon $purchased_at
  * @property Carbon|null $opened_at
@@ -36,7 +37,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class FoodStockItem extends Model
 {
     /** @use HasFactory<FoodStockItemFactory> */
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     /**
      * @return array<string, mixed>

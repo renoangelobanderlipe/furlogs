@@ -49,7 +49,7 @@ interface PetDetailPageProps {
 
 export default function PetDetailPage({ params }: PetDetailPageProps) {
   const { petId } = use(params);
-  const id = Number(petId);
+  const id = petId;
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<Tab>("overview");

@@ -55,7 +55,7 @@ export function useUpdateFoodProduct() {
       id,
       data,
     }: {
-      id: number;
+      id: string;
       data: Partial<ProductFormValues>;
     }) => foodStockEndpoints.updateProduct(id, data).then((r) => r.data.data),
     onSuccess: (product) => {
@@ -75,7 +75,7 @@ export function useDeleteFoodProduct() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       foodStockEndpoints.deleteProduct(id).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: foodProductKeys.lists() });
@@ -96,7 +96,7 @@ export function useUpsertConsumptionRate() {
       productId,
       data,
     }: {
-      productId: number;
+      productId: string;
       data: ConsumptionRateFormValues;
     }) =>
       foodStockEndpoints
@@ -117,7 +117,7 @@ export function useDeleteConsumptionRate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ productId, petId }: { productId: number; petId: number }) =>
+    mutationFn: ({ productId, petId }: { productId: string; petId: string }) =>
       foodStockEndpoints
         .deleteConsumptionRate(productId, petId)
         .then((r) => r.data),
@@ -163,7 +163,7 @@ export function useOpenStockItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       foodStockEndpoints.openItem(id).then((r) => r.data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: foodStockItemKeys.lists() });
@@ -180,7 +180,7 @@ export function useMarkFinished() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       foodStockEndpoints.markFinished(id).then((r) => r.data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: foodStockItemKeys.lists() });
@@ -197,7 +197,7 @@ export function useDeleteStockItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       foodStockEndpoints.deleteItem(id).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: foodStockItemKeys.lists() });

@@ -30,7 +30,7 @@ interface PageProps {
 
 export default function VetVisitDetailPage({ params }: PageProps) {
   const { visitId } = use(params);
-  const id = Number(visitId);
+  const id = visitId;
   const router = useRouter();
 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);

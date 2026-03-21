@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Traits\BelongsToHousehold;
 use Database\Factories\VetClinicFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class VetClinic extends Model
 {
     /** @use HasFactory<VetClinicFactory> */
-    use BelongsToHousehold, HasFactory;
+    use BelongsToHousehold, HasFactory, HasUuids;
 
     /** @return HasMany<Pet, $this> */
     public function vetVisits(): HasMany

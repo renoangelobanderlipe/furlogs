@@ -45,7 +45,7 @@ export default function VetClinicsPage() {
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClinic, setEditingClinic] = useState<VetClinic | null>(null);
-  const [deleteClinicId, setDeleteClinicId] = useState<number | null>(null);
+  const [deleteClinicId, setDeleteClinicId] = useState<string | null>(null);
   const [form, setForm] = useState<VetClinicPayload>(emptyForm);
 
   const { data, isLoading } = useVetClinics(page);

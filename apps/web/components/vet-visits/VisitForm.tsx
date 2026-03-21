@@ -41,7 +41,7 @@ interface VisitFormProps {
   onSuccess: (data: VetVisitFormValues, attachments: File[]) => void;
   onCancel: () => void;
   isLoading?: boolean;
-  defaultPetId?: number;
+  defaultPetId?: string;
   initialValues?: Partial<VetVisitFormValues>;
   isEditMode?: boolean;
 }
@@ -217,7 +217,7 @@ export function VisitForm({
                   </FormLabel>
                   <Select
                     value={field.value ? String(field.value) : ""}
-                    onValueChange={(v) => field.onChange(Number(v))}
+                    onValueChange={(v) => field.onChange(v)}
                   >
                     <FormControl>
                       <SelectTrigger>

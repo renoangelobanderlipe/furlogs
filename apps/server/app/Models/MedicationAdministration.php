@@ -7,14 +7,15 @@ namespace App\Models;
 use App\Traits\BelongsToHouseholdViaMedication;
 use Carbon\Carbon;
 use Database\Factories\MedicationAdministrationFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int $id
- * @property int $medication_id
- * @property int|null $administered_by
+ * @property string $id
+ * @property string $medication_id
+ * @property string|null $administered_by
  * @property Carbon $administered_at
  * @property string|null $notes
  * @property Carbon $created_at
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MedicationAdministration extends Model
 {
     /** @use HasFactory<MedicationAdministrationFactory> */
-    use BelongsToHouseholdViaMedication, HasFactory;
+    use BelongsToHouseholdViaMedication, HasFactory, HasUuids;
 
     protected $fillable = [
         'medication_id',

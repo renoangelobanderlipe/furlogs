@@ -1,13 +1,13 @@
 import { apiClient } from "./client";
 
 export interface Household {
-  id: number;
+  id: string;
   name: string;
   created_at: string;
 }
 
 export interface HouseholdMember {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: "owner" | "member";
@@ -15,7 +15,7 @@ export interface HouseholdMember {
 }
 
 export interface HouseholdData {
-  id: number;
+  id: string;
   name: string;
   members: HouseholdMember[];
 }
@@ -30,23 +30,23 @@ export const householdEndpoints = {
 
   get: () => apiClient.get<HouseholdResponse>("/api/households/current"),
 
-  update: (id: number, name: string) =>
+  update: (id: string, name: string) =>
     apiClient.patch<HouseholdResponse>(`/api/households/${id}`, { name }),
 
-  invite: (id: number, email: string) =>
+  invite: (id: string, email: string) =>
     apiClient.post<HouseholdResponse>(`/api/households/${id}/invite`, {
       email,
     }),
 
-  removeMember: (householdId: number, userId: number) =>
+  removeMember: (householdId: string, userId: string) =>
     apiClient.delete<HouseholdResponse>(
       `/api/households/${householdId}/members/${userId}`,
     ),
 
-  transferOwnership: (householdId: number, userId: number) =>
+  transferOwnership: (householdId: string, userId: string) =>
     apiClient.post<HouseholdResponse>(
       `/api/households/${householdId}/transfer-ownership/${userId}`,
     ),
 
-  delete: (id: number) => apiClient.delete(`/api/households/${id}`),
+  delete: (id: string) => apiClient.delete(`/api/households/${id}`),
 };

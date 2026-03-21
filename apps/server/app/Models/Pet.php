@@ -14,6 +14,7 @@ use Database\Factories\PetFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,8 +26,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * @property int $id
- * @property int $household_id
+ * @property string $id
+ * @property string $household_id
  * @property string $name
  * @property Species $species
  * @property string|null $breed
@@ -44,7 +45,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class Pet extends Model implements HasMedia
 {
     /** @use HasFactory<PetFactory> */
-    use BelongsToHousehold, HasFactory, InteractsWithMedia, SoftDeletes;
+    use BelongsToHousehold, HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
 
     /**
      * @return array<string, mixed>
@@ -69,7 +70,7 @@ class Pet extends Model implements HasMedia
     /** @return HasOne<PetWeight, $this> */
     public function latestWeight(): HasOne
     {
-        return $this->hasOne(PetWeight::class)->latestOfMany('recorded_at');
+        return $this->hasOne(PetWeight::class)->orderByDesc('recorded_at')->orderByDesc('created_at');
     }
 
     /**

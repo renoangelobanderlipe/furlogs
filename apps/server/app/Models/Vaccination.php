@@ -10,15 +10,16 @@ use Carbon\Carbon;
 use Database\Factories\VaccinationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property int $id
- * @property int $pet_id
- * @property int|null $clinic_id
+ * @property string $id
+ * @property string $pet_id
+ * @property string|null $clinic_id
  * @property string $vaccine_name
  * @property Carbon $administered_date
  * @property Carbon|null $next_due_date
@@ -36,7 +37,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Vaccination extends Model
 {
     /** @use HasFactory<VaccinationFactory> */
-    use BelongsToHouseholdViaPet, HasFactory, SoftDeletes;
+    use BelongsToHouseholdViaPet, HasFactory, HasUuids, SoftDeletes;
 
     /**
      * @return array<string, mixed>

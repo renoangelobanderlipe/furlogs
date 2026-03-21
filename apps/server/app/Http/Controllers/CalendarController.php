@@ -117,7 +117,7 @@ class CalendarController extends Controller
             });
 
         // Food stock alerts (orange) — projected run-out dates
-        $householdId = (int) $request->user()->current_household_id;
+        $householdId = (string) $request->user()->current_household_id;
         $projections = $this->foodStockService->getProjections($householdId);
 
         $itemsWithProjections = collect($projections)->filter(fn ($p) => $p['projection'] !== null);

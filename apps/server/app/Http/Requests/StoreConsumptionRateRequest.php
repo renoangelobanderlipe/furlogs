@@ -23,6 +23,7 @@ class StoreConsumptionRateRequest extends FormRequest
         return [
             'pet_id' => [
                 'required',
+                'uuid',
                 Rule::exists('pets', 'id')->where(
                     'household_id',
                     $this->user()->current_household_id,

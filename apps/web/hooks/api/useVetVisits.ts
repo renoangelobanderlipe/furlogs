@@ -20,7 +20,7 @@ export function useVetVisits(filters?: VetVisitFilters) {
   });
 }
 
-export function useVetVisit(id: number) {
+export function useVetVisit(id: string) {
   return useQuery({
     queryKey: vetVisitKeys.detail(id),
     queryFn: () =>
@@ -28,7 +28,7 @@ export function useVetVisit(id: number) {
         .get(id, "medications,attachments")
         .then((r) => r.data.data),
     staleTime: QUERY_STALE_TIME,
-    enabled: id > 0,
+    enabled: id.length > 0,
   });
 }
 
@@ -62,7 +62,7 @@ export function useUpdateVetVisit() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: VetVisitUpdatePayload }) =>
+    mutationFn: ({ id, data }: { id: string; data: VetVisitUpdatePayload }) =>
       vetVisitEndpoints.update(id, data).then((r) => r.data.data),
     onSuccess: (visit) => {
       queryClient.invalidateQueries({
@@ -83,7 +83,7 @@ export function useDeleteVetVisit() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       vetVisitEndpoints.delete(id).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vetVisitKeys.lists() });
@@ -101,7 +101,7 @@ export function useBulkDeleteVetVisits() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (ids: number[]) =>
+    mutationFn: (ids: string[]) =>
       vetVisitEndpoints.bulkDelete(ids).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vetVisitKeys.lists() });
@@ -122,7 +122,7 @@ export function useAddVetVisitAttachment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, file }: { id: number; file: File }) =>
+    mutationFn: ({ id, file }: { id: string; file: File }) =>
       vetVisitEndpoints.addAttachment(id, file).then((r) => r.data),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
@@ -142,7 +142,7 @@ export function useRemoveVetVisitAttachment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ visitId, mediaId }: { visitId: number; mediaId: number }) =>
+    mutationFn: ({ visitId, mediaId }: { visitId: string; mediaId: number }) =>
       vetVisitEndpoints.removeAttachment(visitId, mediaId).then((r) => r.data),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({

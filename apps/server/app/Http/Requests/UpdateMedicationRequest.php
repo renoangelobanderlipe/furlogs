@@ -38,7 +38,7 @@ class UpdateMedicationRequest extends FormRequest
         return [
             'vet_visit_id' => [
                 'nullable',
-                'integer',
+                'uuid',
                 Rule::exists('vet_visits', 'id')->whereIn(
                     'pet_id',
                     Pet::query()

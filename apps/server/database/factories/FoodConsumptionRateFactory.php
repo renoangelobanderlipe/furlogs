@@ -22,7 +22,7 @@ class FoodConsumptionRateFactory extends Factory
         return [
             'food_product_id' => FoodProduct::factory(),
             'pet_id' => Pet::factory(),
-            'daily_amount_grams' => 250,
+            'daily_amount_grams' => fake()->randomElement([80, 100, 120, 150, 180, 200, 250, 300, 350]),
         ];
     }
 }

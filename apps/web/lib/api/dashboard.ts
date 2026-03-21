@@ -1,7 +1,7 @@
 import { apiClient } from "./client";
 
 export interface DashboardPetSummary {
-  id: number;
+  id: string;
   name: string;
   species: string;
   avatarUrl: string | null;
@@ -9,7 +9,7 @@ export interface DashboardPetSummary {
 }
 
 export interface DashboardReminderItem {
-  id: number;
+  id: string;
   title: string;
   type: string;
   dueDate: string;
@@ -46,7 +46,7 @@ export interface DashboardSummary {
 }
 
 export interface DashboardFilters {
-  petId?: number;
+  petId?: string;
 }
 
 export const dashboardEndpoints = {

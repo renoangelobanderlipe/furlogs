@@ -39,7 +39,7 @@ interface LogPurchaseDialogProps {
   onSubmit: (values: PurchaseFormValues) => void;
   isLoading: boolean;
   products: FoodProduct[];
-  preselectedProductId?: number | null;
+  preselectedProductId?: string | null;
 }
 
 export function LogPurchaseDialog({
@@ -108,7 +108,7 @@ export function LogPurchaseDialog({
                   </FormLabel>
                   <Select
                     value={field.value ? String(field.value) : ""}
-                    onValueChange={(v) => field.onChange(v ? Number(v) : null)}
+                    onValueChange={(v) => field.onChange(v ? v : null)}
                   >
                     <FormControl>
                       <SelectTrigger>

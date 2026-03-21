@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 
 class EmailVerificationController extends Controller
 {
-    public function verify(Request $request, int $id, string $hash): RedirectResponse
+    public function verify(Request $request, string $id, string $hash): RedirectResponse
     {
         $frontendUrl = config('app.frontend_url');
 

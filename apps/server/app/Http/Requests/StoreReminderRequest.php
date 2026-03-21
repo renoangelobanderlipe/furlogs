@@ -35,7 +35,7 @@ class StoreReminderRequest extends FormRequest
         return [
             'pet_id' => [
                 'nullable',
-                'integer',
+                'uuid',
                 Rule::exists('pets', 'id')->where('household_id', $this->user()->current_household_id),
             ],
             'type' => ['required', Rule::enum(ReminderType::class)],

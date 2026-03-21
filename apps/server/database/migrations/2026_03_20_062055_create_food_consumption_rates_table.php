@@ -11,9 +11,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('food_consumption_rates', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('food_product_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('pet_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('food_product_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('pet_id')->constrained()->cascadeOnDelete();
             $table->integer('daily_amount_grams');
             $table->timestamps();
 

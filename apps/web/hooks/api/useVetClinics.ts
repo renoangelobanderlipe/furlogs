@@ -41,7 +41,7 @@ export function useUpdateVetClinic() {
       id,
       data,
     }: {
-      id: number;
+      id: string;
       data: Partial<VetClinicPayload>;
     }) => vetClinicEndpoints.update(id, data).then((r) => r.data.data),
     onSuccess: (clinic) => {
@@ -66,7 +66,7 @@ export function useDeleteVetClinic() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => vetClinicEndpoints.delete(id),
+    mutationFn: (id: string) => vetClinicEndpoints.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vetClinicKeys.lists() });
       toast.success("Vet clinic deleted");

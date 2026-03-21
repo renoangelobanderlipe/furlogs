@@ -73,7 +73,7 @@ export function VaccinationForm({
               </FormLabel>
               <Select
                 value={field.value ? String(field.value) : ""}
-                onValueChange={(v) => field.onChange(Number(v))}
+                onValueChange={(v) => field.onChange(v)}
               >
                 <FormControl>
                   <SelectTrigger>

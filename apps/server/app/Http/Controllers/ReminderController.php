@@ -25,7 +25,7 @@ class ReminderController extends Controller
         $reminders = Reminder::query()
             ->with(['pet'])
             ->when($request->query('status'), fn ($q, string $status) => $q->where('status', $status))
-            ->when($request->integer('pet_id'), fn ($q, int $petId) => $q->where('pet_id', $petId))
+            ->when($request->query('pet_id'), fn ($q, string $petId) => $q->where('pet_id', $petId))
             ->when($request->query('type'), fn ($q, string $type) => $q->where('type', $type))
             ->orderBy('due_date', 'asc')
             ->paginate(20);

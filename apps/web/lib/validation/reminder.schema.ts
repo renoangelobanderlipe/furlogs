@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const reminderBaseSchema = z.object({
-  petId: z.number().positive().nullable().optional(),
+  petId: z.string().uuid().nullable().optional(),
   type: z.enum([
     "vaccination",
     "medication",

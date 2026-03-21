@@ -7,14 +7,15 @@ namespace App\Models;
 use Carbon\Carbon;
 use Database\Factories\FoodConsumptionRateFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int $id
- * @property int $food_product_id
- * @property int $pet_id
+ * @property string $id
+ * @property string $food_product_id
+ * @property string $pet_id
  * @property int $daily_amount_grams
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class FoodConsumptionRate extends Model
 {
     /** @use HasFactory<FoodConsumptionRateFactory> */
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     /**
      * @return array<string, mixed>

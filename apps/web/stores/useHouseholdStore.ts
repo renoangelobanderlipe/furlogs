@@ -1,10 +1,10 @@
 import { create } from "zustand";
 
 interface HouseholdStore {
-  selectedPetId: number | null;
+  selectedPetId: string | null;
   selectedPetName: string | null;
   isPetFilterActive: boolean;
-  selectPet: (id: number, name: string) => void;
+  selectPet: (id: string, name: string) => void;
   togglePetFilter: () => void;
   clearPetFilter: () => void;
 }

@@ -32,7 +32,8 @@ export const VISIT_TYPE_COLOR: Record<
 };
 
 export interface VetVisitAttributes {
-  petId: number;
+  petId: string;
+  clinicId: string | null;
   vetName: string | null;
   visitDate: string;
   visitType: VetVisitType;
@@ -57,7 +58,7 @@ export interface VetVisitAttachment {
 }
 
 export interface VetVisit {
-  id: number;
+  id: string;
   type: "vet-visits";
   attributes: VetVisitAttributes;
   relationships?: {
@@ -80,7 +81,7 @@ export interface MedicationAttributes {
 }
 
 export interface Medication {
-  id: number;
+  id: string;
   type: "medications";
   attributes: MedicationAttributes;
   relationships?: {
@@ -89,8 +90,8 @@ export interface Medication {
 }
 
 export interface VetVisitPayload {
-  pet_id: number;
-  clinic_id?: number;
+  pet_id: string;
+  clinic_id?: string;
   vet_name?: string;
   visit_type: string;
   visit_date: string;
@@ -104,8 +105,8 @@ export interface VetVisitPayload {
 }
 
 export interface VetVisitUpdatePayload {
-  pet_id?: number;
-  clinic_id?: number;
+  pet_id?: string;
+  clinic_id?: string;
   vet_name?: string;
   visit_type?: string;
   visit_date?: string;
@@ -119,7 +120,7 @@ export interface VetVisitUpdatePayload {
 }
 
 export interface VetVisitFilters {
-  petId?: number;
+  petId?: string;
   visitType?: string;
   search?: string;
   page?: number;
@@ -132,7 +133,7 @@ export const vetVisitEndpoints = {
       params: filters,
     }),
 
-  get: (id: number, include?: string) =>
+  get: (id: string, include?: string) =>
     apiClient.get<SingleResourceResponse<VetVisit>>(`/api/vet-visits/${id}`, {
       params: include ? { include } : {},
     }),
@@ -140,18 +141,18 @@ export const vetVisitEndpoints = {
   create: (data: VetVisitPayload) =>
     apiClient.post<SingleResourceResponse<VetVisit>>("/api/vet-visits", data),
 
-  update: (id: number, data: VetVisitUpdatePayload) =>
+  update: (id: string, data: VetVisitUpdatePayload) =>
     apiClient.patch<SingleResourceResponse<VetVisit>>(
       `/api/vet-visits/${id}`,
       data,
     ),
 
-  delete: (id: number) => apiClient.delete(`/api/vet-visits/${id}`),
+  delete: (id: string) => apiClient.delete(`/api/vet-visits/${id}`),
 
-  bulkDelete: (ids: number[]) =>
+  bulkDelete: (ids: string[]) =>
     apiClient.delete("/api/vet-visits/bulk", { data: { ids } }),
 
-  addAttachment: (id: number, file: File) => {
+  addAttachment: (id: string, file: File) => {
     const fd = new FormData();
     fd.append("attachment", file);
     return apiClient.post<{ data: VetVisitAttachment }>(
@@ -161,7 +162,7 @@ export const vetVisitEndpoints = {
     );
   },
 
-  removeAttachment: (visitId: number, mediaId: number) =>
+  removeAttachment: (visitId: string, mediaId: number) =>
     apiClient.delete(`/api/vet-visits/${visitId}/attachments/${mediaId}`),
 
   stats: () => apiClient.get<{ data: VetVisitStats }>("/api/vet-visits/stats"),

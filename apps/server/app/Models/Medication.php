@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Database\Factories\MedicationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,9 +19,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property int $id
- * @property int $pet_id
- * @property int|null $vet_visit_id
+ * @property string $id
+ * @property string $pet_id
+ * @property string|null $vet_visit_id
  * @property string $name
  * @property string|null $dosage
  * @property FrequencyType|null $frequency
@@ -38,7 +39,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Medication extends Model
 {
     /** @use HasFactory<MedicationFactory> */
-    use BelongsToHouseholdViaPet, HasFactory, SoftDeletes;
+    use BelongsToHouseholdViaPet, HasFactory, HasUuids, SoftDeletes;
 
     /**
      * @return array<string, mixed>

@@ -24,6 +24,7 @@ class VetVisitResource extends JsonResource
             'type' => 'vet-visits',
             'attributes' => [
                 'petId' => $visit->pet_id,
+                'clinicId' => $visit->clinic_id,
                 'vetName' => $visit->vet_name,
                 'visitDate' => $visit->visit_date->toDateString(),
                 'visitType' => $visit->visit_type->value,

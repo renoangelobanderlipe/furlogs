@@ -85,7 +85,7 @@ function PetWeightCard({ pet }: { pet: Pet }) {
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="font-medium tabular-nums">
-                    {entry.attributes.weightKg} kg
+                    {Number(entry.attributes.weightKg).toFixed(2)} kg
                   </span>
                   {change !== 0 && (
                     <span
@@ -95,7 +95,7 @@ function PetWeightCard({ pet }: { pet: Pet }) {
                       )}
                     >
                       {change > 0 ? "+" : ""}
-                      {change.toFixed(1)} kg
+                      {change.toFixed(2)} kg
                     </span>
                   )}
                   <button

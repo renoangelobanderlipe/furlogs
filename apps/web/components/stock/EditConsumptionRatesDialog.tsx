@@ -33,6 +33,7 @@ import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { FoodProduct } from "@/lib/api/food-stock";
@@ -128,22 +129,24 @@ export function EditConsumptionRatesDialog({
                   <p className="flex-1 text-sm">
                     {rate.dailyAmountGrams}g / day
                   </p>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (product) onDelete(product.id, rate.petId);
-                        }}
-                        disabled={isDeleting}
-                        aria-label="Remove rate"
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>Remove rate</TooltipContent>
-                  </Tooltip>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (product) onDelete(product.id, rate.petId);
+                          }}
+                          disabled={isDeleting}
+                          aria-label="Remove rate"
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Remove rate</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               ))}
             </div>

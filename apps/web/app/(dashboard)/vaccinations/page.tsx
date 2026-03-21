@@ -2,11 +2,16 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  AlertTriangle,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Loader2,
   PlusCircle,
+  Search,
   Syringe,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -35,6 +40,8 @@ import {
   useVaccinations,
 } from "@/hooks/api/useVaccinations";
 import { useVetClinics } from "@/hooks/api/useVetClinics";
+import { useDebounce } from "@/hooks/useDebounce";
+import type { VaccinationStatus } from "@/lib/api/vaccinations";
 import { SPECIES_EMOJI } from "@/lib/constants";
 import { formatShortDate } from "@/lib/format";
 import {
@@ -43,13 +50,71 @@ import {
   vaccinationSchema,
 } from "@/lib/validation/vaccination.schema";
 
+const STATUS_CONFIG: Record<
+  VaccinationStatus,
+  { label: string; classes: string; icon: React.ReactNode }
+> = {
+  up_to_date: {
+    label: "Up to date",
+    classes: "bg-success/15 text-success",
+    icon: <CheckCircle2 className="h-3 w-3" />,
+  },
+  due_soon: {
+    label: "Due soon",
+    classes: "bg-warning/15 text-warning",
+    icon: <Clock className="h-3 w-3" />,
+  },
+  overdue: {
+    label: "Overdue",
+    classes: "bg-destructive/15 text-destructive",
+    icon: <AlertTriangle className="h-3 w-3" />,
+  },
+};
+
+const STATUS_FILTER_OPTIONS: {
+  value: VaccinationStatus | "all";
+  label: string;
+}[] = [
+  { value: "all", label: "All statuses" },
+  { value: "overdue", label: "Overdue" },
+  { value: "due_soon", label: "Due soon" },
+  { value: "up_to_date", label: "Up to date" },
+];
+
 export default function VaccinationsPage() {
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [petFilter, setPetFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<VaccinationStatus | "all">(
+    "all",
+  );
+
+  const debouncedSearch = useDebounce(search, 400);
+  const hasFilters =
+    !!debouncedSearch || petFilter !== "all" || statusFilter !== "all";
+
+  const handlePetFilter = (v: string) => {
+    setPetFilter(v);
+    setPage(1);
+  };
+  const handleStatusFilter = (v: string) => {
+    setStatusFilter(v as VaccinationStatus | "all");
+    setPage(1);
+  };
+
+  const clearFilters = () => {
+    setSearch("");
+    setPetFilter("all");
+    setStatusFilter("all");
+  };
 
   const { data: vaccinationsData, isLoading } = useVaccinations({
     page,
     per_page: 5,
+    ...(debouncedSearch && { search: debouncedSearch }),
+    ...(petFilter !== "all" && { petId: petFilter }),
+    ...(statusFilter !== "all" && { status: statusFilter }),
   });
   const { data: petsData } = usePets();
   const { data: clinicsData } = useVetClinics();
@@ -60,6 +125,11 @@ export default function VaccinationsPage() {
   const pets = petsData?.data ?? [];
   const clinics = clinicsData?.data ?? [];
   const petById = new Map(pets.map((p) => [p.id, p]));
+
+  const overdueCount = vaccinations.filter(
+    (v) => v.attributes.status === "overdue",
+  ).length;
+  const totalCount = meta?.total ?? vaccinations.length;
 
   const {
     register,
@@ -96,56 +166,186 @@ export default function VaccinationsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-5 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between animate-fade-in-up">
-        <h1 className="text-2xl font-bold tracking-tight">Vaccinations</h1>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success/10 shrink-0">
+            <Syringe className="h-5 w-5 text-success" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Vaccinations</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {totalCount > 0
+                ? `${totalCount} record${totalCount !== 1 ? "s" : ""}${overdueCount > 0 ? ` · ${overdueCount} overdue` : ""}`
+                : "Track your pets' vaccination history"}
+            </p>
+          </div>
+        </div>
         <Button size="sm" onClick={() => setDialogOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Vaccination
         </Button>
       </div>
 
+      {/* Overdue alert banner */}
+      {overdueCount > 0 && statusFilter === "all" && !debouncedSearch && (
+        <div
+          className="flex items-center gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 animate-fade-in-up"
+          style={{ animationDelay: "50ms" }}
+        >
+          <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
+          <p className="text-sm text-destructive font-medium">
+            {overdueCount} vaccination{overdueCount !== 1 ? "s are" : " is"}{" "}
+            overdue — schedule a vet visit soon.
+          </p>
+          <button
+            type="button"
+            onClick={() => handleStatusFilter("overdue")}
+            className="ml-auto text-xs text-destructive underline underline-offset-2 shrink-0 hover:no-underline"
+          >
+            View overdue
+          </button>
+        </div>
+      )}
+
+      {/* Search + Filters */}
+      <div
+        className="flex flex-col sm:flex-row gap-2 animate-fade-in-up"
+        style={{ animationDelay: "100ms" }}
+      >
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <Input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search pet or vaccine name…"
+            className="pl-9 bg-background"
+          />
+        </div>
+        <Select value={petFilter} onValueChange={handlePetFilter}>
+          <SelectTrigger className="w-full sm:w-[180px] bg-background">
+            <SelectValue placeholder="All pets" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All pets</SelectItem>
+            {pets.map((p) => (
+              <SelectItem key={p.id} value={String(p.id)}>
+                {SPECIES_EMOJI[p.attributes.species] ?? "🐾"}{" "}
+                {p.attributes.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={handleStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[180px] bg-background">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_FILTER_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {hasFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFilters}
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Clear
+          </Button>
+        )}
+      </div>
+
       {/* Content */}
       {isLoading ? (
         <div className="space-y-3">
           {["v1", "v2", "v3"].map((k) => (
-            <Skeleton key={k} className="h-[68px] rounded-lg" />
+            <Skeleton key={k} className="h-[72px] rounded-xl" />
           ))}
         </div>
       ) : vaccinations.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in-up">
-          <Syringe className="h-12 w-12 text-muted-foreground/40 mb-4" />
-          <h2 className="text-lg font-semibold">No vaccinations recorded</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Start tracking your pets' vaccinations
-          </p>
-          <Button
-            size="sm"
-            className="mt-4"
-            onClick={() => setDialogOpen(true)}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Vaccination
-          </Button>
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
+            <Syringe className="h-8 w-8 text-muted-foreground/40" />
+          </div>
+          {hasFilters ? (
+            <>
+              <h2 className="text-lg font-semibold">
+                No vaccinations match your search
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Try adjusting your search or filters
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={clearFilters}
+              >
+                <X className="mr-2 h-4 w-4" />
+                Clear filters
+              </Button>
+            </>
+          ) : (
+            <>
+              <h2 className="text-lg font-semibold">
+                No vaccinations recorded
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1 max-w-xs">
+                Start tracking your pets' vaccinations to stay on top of their
+                health
+              </p>
+              <Button
+                size="sm"
+                className="mt-4"
+                onClick={() => setDialogOpen(true)}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Vaccination
+              </Button>
+            </>
+          )}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {vaccinations.map((v, i) => {
             const pet = petById.get(v.attributes.petId);
             const species = pet?.attributes.species ?? "";
+            const status = v.attributes.status;
+            const statusConfig = status ? STATUS_CONFIG[status] : null;
             return (
               <div
                 key={v.id}
-                className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 animate-fade-in-up"
+                className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 animate-fade-in-up hover:border-primary/20 transition-colors"
                 style={{ animationDelay: `${i * 60}ms` }}
               >
-                <span className="text-xl shrink-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-xl">
                   {SPECIES_EMOJI[species] ?? "🐾"}
-                </span>
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium">{v.attributes.vaccineName}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold truncate">
+                      {v.attributes.vaccineName}
+                    </p>
+                    {statusConfig && (
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${statusConfig.classes}`}
+                      >
+                        {statusConfig.icon}
+                        {statusConfig.label}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate mt-0.5">
                     {pet?.attributes.name ?? "Unknown"} ·{" "}
                     {formatShortDate(v.attributes.administeredDate)}
                     {(v.relationships?.clinic?.attributes.name ||
@@ -160,9 +360,20 @@ export default function VaccinationsPage() {
                   </p>
                 </div>
                 {v.attributes.nextDueDate && (
-                  <span className="text-xs rounded-full bg-warning/15 text-warning px-2 py-0.5 font-medium shrink-0">
-                    Due {formatShortDate(v.attributes.nextDueDate)}
-                  </span>
+                  <div className="text-right shrink-0">
+                    <p className="text-xs text-muted-foreground">Next due</p>
+                    <p
+                      className={`text-sm font-medium tabular-nums ${
+                        status === "overdue"
+                          ? "text-destructive"
+                          : status === "due_soon"
+                            ? "text-warning"
+                            : "text-foreground"
+                      }`}
+                    >
+                      {formatShortDate(v.attributes.nextDueDate)}
+                    </p>
+                  </div>
                 )}
               </div>
             );
@@ -172,7 +383,7 @@ export default function VaccinationsPage() {
 
       {/* Pagination */}
       {meta && meta.last_page > 1 && (
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center justify-between pt-1">
           <p className="text-sm text-muted-foreground">
             Page {meta.current_page} of {meta.last_page} · {meta.total}{" "}
             vaccinations
@@ -208,7 +419,6 @@ export default function VaccinationsPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="space-y-4 py-2">
-              {/* Pet */}
               <div>
                 <Label>
                   Pet <span className="text-destructive">*</span>
@@ -241,8 +451,6 @@ export default function VaccinationsPage() {
                   </p>
                 )}
               </div>
-
-              {/* Vaccine Name */}
               <div>
                 <Label>
                   Vaccine Name <span className="text-destructive">*</span>
@@ -258,8 +466,6 @@ export default function VaccinationsPage() {
                   </p>
                 )}
               </div>
-
-              {/* Date + Next Due */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>
@@ -285,8 +491,6 @@ export default function VaccinationsPage() {
                   />
                 </div>
               </div>
-
-              {/* Clinic + Batch # */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Clinic</Label>
@@ -324,7 +528,6 @@ export default function VaccinationsPage() {
                 </div>
               </div>
             </div>
-
             <DialogFooter className="mt-4">
               <DialogClose asChild>
                 <Button type="button" variant="outline">

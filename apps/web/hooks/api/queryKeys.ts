@@ -5,6 +5,7 @@ import type { NotificationFilters } from "@/lib/api/notifications";
 import type { PetFilters } from "@/lib/api/pets";
 import type { ReminderFilters } from "@/lib/api/reminders";
 import type { VaccinationFilters } from "@/lib/api/vaccinations";
+import type { VetClinicFilters } from "@/lib/api/vet-clinics";
 import type { VetVisitFilters } from "@/lib/api/vet-visits";
 
 export const QUERY_STALE_TIME = 5 * 60 * 1000; // 5 minutes
@@ -91,7 +92,8 @@ export const calendarKeys = {
 export const vetClinicKeys = {
   all: ["vet-clinics"] as const,
   lists: () => [...vetClinicKeys.all, "list"] as const,
-  list: (page?: number) => [...vetClinicKeys.lists(), { page }] as const,
+  list: (filters?: VetClinicFilters) =>
+    [...vetClinicKeys.lists(), filters] as const,
   detail: (id: string) => [...vetClinicKeys.all, "detail", id] as const,
 };
 

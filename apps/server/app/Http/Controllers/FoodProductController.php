@@ -45,6 +45,7 @@ class FoodProductController extends Controller
     public function store(StoreFoodProductRequest $request): JsonResponse
     {
         $product = $this->foodStockService->createProduct($request->validated());
+        $product->load('consumptionRates');
 
         return (new FoodProductResource($product))->response()->setStatusCode(201);
     }
@@ -52,6 +53,7 @@ class FoodProductController extends Controller
     public function update(UpdateFoodProductRequest $request, FoodProduct $foodProduct): FoodProductResource
     {
         $product = $this->foodStockService->updateProduct($foodProduct, $request->validated());
+        $product->load('consumptionRates');
 
         return new FoodProductResource($product);
     }

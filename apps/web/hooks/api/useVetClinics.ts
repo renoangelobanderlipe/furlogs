@@ -2,15 +2,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { extractApiError } from "@/lib/api/extractApiError";
 import {
+  type VetClinicFilters,
   type VetClinicPayload,
   vetClinicEndpoints,
 } from "@/lib/api/vet-clinics";
 import { QUERY_STALE_TIME, vetClinicKeys } from "./queryKeys";
 
-export function useVetClinics(page = 1) {
+export function useVetClinics(filters: VetClinicFilters = {}) {
   return useQuery({
-    queryKey: vetClinicKeys.list(page),
-    queryFn: () => vetClinicEndpoints.list(page).then((r) => r.data),
+    queryKey: vetClinicKeys.list(filters),
+    queryFn: () => vetClinicEndpoints.list(filters).then((r) => r.data),
     staleTime: QUERY_STALE_TIME,
   });
 }

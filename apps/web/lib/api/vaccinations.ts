@@ -4,6 +4,7 @@ import type {
 } from "@/lib/validation/vaccination.schema";
 import { apiClient } from "./client";
 import type { PaginatedResponse, SingleResourceResponse } from "./pets";
+import type { VetClinic } from "./vet-clinics";
 
 export type VaccinationStatus = "up_to_date" | "due_soon" | "overdue";
 
@@ -41,6 +42,7 @@ export interface Vaccination {
   attributes: VaccinationAttributes;
   relationships?: {
     pet?: { data: { id: string; type: "pets" } };
+    clinic?: VetClinic;
   };
 }
 

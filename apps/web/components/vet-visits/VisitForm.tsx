@@ -24,6 +24,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { usePets } from "@/hooks/api/usePets";
+import { useVetClinics } from "@/hooks/api/useVetClinics";
 import { VISIT_TYPE_COLOR } from "@/lib/api/vet-visits";
 import { cn } from "@/lib/utils";
 import {
@@ -105,6 +106,9 @@ export function VisitForm({
 
   const { data: petsData } = usePets();
   const pets = petsData?.data ?? [];
+
+  const { data: clinicsData } = useVetClinics();
+  const clinics = clinicsData?.data ?? [];
 
   const form = useForm<VetVisitFormValues>({
     resolver: zodResolver(vetVisitSchema),
@@ -228,6 +232,37 @@ export function VisitForm({
                       {pets.map((pet) => (
                         <SelectItem key={pet.id} value={String(pet.id)}>
                           {pet.attributes.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="clinicId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Clinic</FormLabel>
+                  <Select
+                    value={field.value ?? "none"}
+                    onValueChange={(v) =>
+                      field.onChange(v === "none" ? undefined : v)
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a clinic" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {clinics.map((clinic) => (
+                        <SelectItem key={clinic.id} value={clinic.id}>
+                          {clinic.attributes.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -508,12 +543,14 @@ export function VisitForm({
 
             {(() => {
               const pet = pets.find((p) => p.id === values.petId);
+              const clinic = clinics.find((c) => c.id === values.clinicId);
               const visitTypeLabel =
                 VISIT_TYPE_OPTIONS.find((o) => o.value === values.visitType)
                   ?.label ?? values.visitType;
               return (
                 <>
                   <ReviewRow label="Pet" value={pet?.attributes.name} />
+                  <ReviewRow label="Clinic" value={clinic?.attributes.name} />
                   <ReviewRow label="Veterinarian" value={values.vetName} />
                   <Separator className="my-3" />
                   <ReviewRow label="Visit type" value={visitTypeLabel} />

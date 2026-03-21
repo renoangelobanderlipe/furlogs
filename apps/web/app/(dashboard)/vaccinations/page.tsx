@@ -34,6 +34,7 @@ import {
   useCreateVaccination,
   useVaccinations,
 } from "@/hooks/api/useVaccinations";
+import { useVetClinics } from "@/hooks/api/useVetClinics";
 import { SPECIES_EMOJI } from "@/lib/constants";
 import { formatShortDate } from "@/lib/format";
 import {
@@ -51,11 +52,13 @@ export default function VaccinationsPage() {
     per_page: 5,
   });
   const { data: petsData } = usePets();
+  const { data: clinicsData } = useVetClinics();
   const createVaccination = useCreateVaccination();
 
   const vaccinations = vaccinationsData?.data ?? [];
   const meta = vaccinationsData?.meta;
   const pets = petsData?.data ?? [];
+  const clinics = clinicsData?.data ?? [];
   const petById = new Map(pets.map((p) => [p.id, p]));
 
   const {
@@ -68,6 +71,7 @@ export default function VaccinationsPage() {
     resolver: zodResolver(vaccinationSchema),
     defaultValues: {
       petId: undefined,
+      clinicId: undefined,
       vaccineName: "",
       administeredDate: "",
       nextDueDate: "",
@@ -144,6 +148,15 @@ export default function VaccinationsPage() {
                   <p className="text-sm text-muted-foreground">
                     {pet?.attributes.name ?? "Unknown"} ·{" "}
                     {formatShortDate(v.attributes.administeredDate)}
+                    {(v.relationships?.clinic?.attributes.name ||
+                      v.attributes.vetName) && (
+                      <>
+                        {" "}
+                        ·{" "}
+                        {v.relationships?.clinic?.attributes.name ||
+                          v.attributes.vetName}
+                      </>
+                    )}
                   </p>
                 </div>
                 {v.attributes.nextDueDate && (
@@ -273,13 +286,33 @@ export default function VaccinationsPage() {
                 </div>
               </div>
 
-              {/* Vet / Clinic + Batch # */}
+              {/* Clinic + Batch # */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Vet / Clinic</Label>
-                  <Input
-                    {...register("vetName")}
-                    className="mt-1.5 bg-background"
+                  <Label>Clinic</Label>
+                  <Controller
+                    name="clinicId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value ?? "none"}
+                        onValueChange={(v) =>
+                          field.onChange(v === "none" ? undefined : v)
+                        }
+                      >
+                        <SelectTrigger className="mt-1.5 bg-background">
+                          <SelectValue placeholder="Select clinic" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {clinics.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.attributes.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   />
                 </div>
                 <div>

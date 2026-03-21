@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { usePets } from "@/hooks/api/usePets";
+import { useVetClinics } from "@/hooks/api/useVetClinics";
 import {
   type VaccinationFormInput,
   type VaccinationFormValues,
@@ -42,6 +43,9 @@ export function VaccinationForm({
 }: VaccinationFormProps) {
   const { data: petsData } = usePets();
   const pets = petsData?.data ?? [];
+
+  const { data: clinicsData } = useVetClinics();
+  const clinics = clinicsData?.data ?? [];
 
   const form = useForm<VaccinationFormInput, unknown, VaccinationFormValues>({
     resolver: zodResolver(vaccinationSchema),
@@ -139,6 +143,37 @@ export function VaccinationForm({
                   placeholder="Optional"
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="clinicId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Clinic</FormLabel>
+              <Select
+                value={field.value ?? "none"}
+                onValueChange={(v) =>
+                  field.onChange(v === "none" ? undefined : v)
+                }
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a clinic" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {clinics.map((clinic) => (
+                    <SelectItem key={clinic.id} value={clinic.id}>
+                      {clinic.attributes.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

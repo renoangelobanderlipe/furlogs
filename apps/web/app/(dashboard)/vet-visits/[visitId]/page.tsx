@@ -165,6 +165,7 @@ export default function VetVisitDetailPage({ params }: PageProps) {
             isEditMode
             initialValues={{
               petId: visit.attributes.petId,
+              clinicId: visit.attributes.clinicId ?? undefined,
               visitType: visit.attributes.visitType,
               visitDate: visit.attributes.visitDate,
               reason: visit.attributes.reason,

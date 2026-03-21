@@ -84,8 +84,11 @@ export function VaccinationCard({
           </div>
         </div>
 
-        {vetName && (
-          <p className="mt-2 text-xs text-muted-foreground/70">Dr. {vetName}</p>
+        {(vaccination.relationships?.clinic?.attributes.name || vetName) && (
+          <p className="mt-2 text-xs text-muted-foreground/70">
+            {vaccination.relationships?.clinic?.attributes.name ??
+              `Dr. ${vetName}`}
+          </p>
         )}
       </CardContent>
     </Card>

@@ -80,7 +80,10 @@ export const medicationEndpoints = {
       data,
     ),
 
-  updateAdministration: (administrationId: number, data: AdministrationPayload) =>
+  updateAdministration: (
+    administrationId: number,
+    data: AdministrationPayload,
+  ) =>
     apiClient.patch<{ data: MedicationAdministration }>(
       `/api/administrations/${administrationId}`,
       data,

@@ -105,9 +105,11 @@ describe('verified middleware', function () {
     it('blocks an unverified user from accessing verified-middleware-protected routes', function () {
         $user = User::factory()->unverified()->create();
 
-        // GET /api/user is protected by both auth:sanctum and verified
+        // GET /api/pets requires both auth:sanctum and verified middleware.
+        // Note: GET /api/user intentionally does NOT require verified so the
+        // frontend can always read email_verified_at and redirect accordingly.
         $this->actingAs($user)
-            ->getJson('/api/user')
+            ->getJson('/api/pets')
             ->assertForbidden();
     });
 
@@ -115,7 +117,7 @@ describe('verified middleware', function () {
         $user = User::factory()->create(); // email_verified_at is set by default
 
         $this->actingAs($user)
-            ->getJson('/api/user')
+            ->getJson('/api/pets')
             ->assertOk();
     });
 });

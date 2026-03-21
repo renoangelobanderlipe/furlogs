@@ -16,7 +16,7 @@ class MedicationAdministrationPolicy
 
     public function view(User $user, MedicationAdministration $administration): bool
     {
-        return $administration->medication->pet->household_id === $user->current_household_id;
+        return $administration->medication?->pet?->household_id === $user->current_household_id;
     }
 
     public function create(User $user): bool
@@ -26,11 +26,11 @@ class MedicationAdministrationPolicy
 
     public function update(User $user, MedicationAdministration $administration): bool
     {
-        return $administration->medication->pet->household_id === $user->current_household_id;
+        return $administration->medication?->pet?->household_id === $user->current_household_id;
     }
 
     public function delete(User $user, MedicationAdministration $administration): bool
     {
-        return $administration->medication->pet->household_id === $user->current_household_id;
+        return $administration->medication?->pet?->household_id === $user->current_household_id;
     }
 }

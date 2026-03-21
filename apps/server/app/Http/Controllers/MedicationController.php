@@ -23,7 +23,12 @@ class MedicationController extends Controller
         $this->authorize('viewAny', Medication::class);
 
         $medications = Medication::query()
-            ->with(['pet', 'vetVisit'])
+            ->with([
+                'pet',
+                'vetVisit',
+                // Load only the 90-day window that calculateStreak() needs
+                'administrations' => fn ($q) => $q->where('administered_at', '>=', now()->subDays(90)->startOfDay()),
+            ])
             ->when($request->integer('pet_id'), fn ($q, $petId) => $q->where('pet_id', $petId))
             ->when($request->integer('vet_visit_id'), fn ($q, $visitId) => $q->where('vet_visit_id', $visitId))
             ->orderBy('start_date', 'desc')

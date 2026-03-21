@@ -23,11 +23,13 @@ class CalendarController extends Controller
     {
         $validated = $request->validate([
             'start' => ['required', 'date'],
-            'end' => ['required', 'date'],
+            'end' => ['required', 'date', 'after_or_equal:start'],
         ]);
 
         $start = Carbon::parse($validated['start'])->startOfDay();
         $end = Carbon::parse($validated['end'])->endOfDay();
+
+        abort_if($start->diffInDays($end) > 62, 422, 'Date range may not exceed 62 days.');
 
         $events = collect();
 

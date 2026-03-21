@@ -65,7 +65,10 @@ class MedicationService
      */
     public function calculateStreak(Medication $medication): int
     {
-        if ($medication->frequency === FrequencyType::AsNeeded || $medication->frequency === null) {
+        // Only daily/twice_daily have a meaningful day-by-day streak.
+        // Weekly and monthly would always show 0 streak (missed on non-dose days),
+        // and as_needed has no schedule at all.
+        if (! in_array($medication->frequency, [FrequencyType::Daily, FrequencyType::TwiceDaily], true)) {
             return 0;
         }
 
@@ -73,9 +76,11 @@ class MedicationService
         $streak = 0;
         $day = now()->startOfDay();
 
+        // Use withoutGlobalScopes — authorization already verified at controller level.
+        // Load from medication start_date to avoid the 90-day hard ceiling.
         $administrations = MedicationAdministration::withoutGlobalScopes()
             ->where('medication_id', $medication->id)
-            ->where('administered_at', '>=', now()->subDays(90)->startOfDay())
+            ->where('administered_at', '>=', $medication->start_date->startOfDay())
             ->get()
             ->groupBy(fn (MedicationAdministration $a): string => Carbon::parse($a->administered_at)->toDateString());
 

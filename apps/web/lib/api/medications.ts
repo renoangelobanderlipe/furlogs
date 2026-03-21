@@ -80,6 +80,12 @@ export const medicationEndpoints = {
       data,
     ),
 
+  updateAdministration: (administrationId: number, data: AdministrationPayload) =>
+    apiClient.patch<{ data: MedicationAdministration }>(
+      `/api/administrations/${administrationId}`,
+      data,
+    ),
+
   deleteAdministration: (administrationId: number) =>
     apiClient.delete(`/api/administrations/${administrationId}`),
 };

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Medication;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -11,7 +12,10 @@ class StoreMedicationAdministrationRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        /** @var Medication|null $medication */
+        $medication = $this->route('medication');
+
+        return $medication !== null && ($this->user()?->can('update', $medication) ?? false);
     }
 
     protected function prepareForValidation(): void

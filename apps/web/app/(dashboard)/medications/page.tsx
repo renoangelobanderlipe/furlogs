@@ -85,7 +85,6 @@ interface MedicationItemProps {
   index: number;
   onEdit: (m: Medication) => void;
   onDelete: (id: number) => void;
-  logDose: ReturnType<typeof useLogDose>;
 }
 
 function MedicationItem({
@@ -93,8 +92,9 @@ function MedicationItem({
   index,
   onEdit,
   onDelete,
-  logDose,
 }: MedicationItemProps) {
+  // Each card owns its own mutation so pending state is isolated per medication
+  const logDose = useLogDose();
   const { data: todayData } = useTodayAdministrations(
     med.attributes.isActive ? med.id : 0,
   );
@@ -213,7 +213,6 @@ export default function MedicationsPage() {
   const createMedication = useCreateMedication();
   const updateMedication = useUpdateMedication();
   const deleteMedication = useDeleteMedication();
-  const logDose = useLogDose();
 
   const medications = medsData?.data ?? [];
   const meta = medsData?.meta;
@@ -344,7 +343,6 @@ export default function MedicationsPage() {
               index={i}
               onEdit={handleOpenEdit}
               onDelete={(id) => setDeleteMedId(id)}
-              logDose={logDose}
             />
           ))}
         </div>

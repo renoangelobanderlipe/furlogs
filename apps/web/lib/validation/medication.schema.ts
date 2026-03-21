@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { FREQUENCY_OPTIONS } from "@/lib/api/medications";
+import { FREQUENCY_OPTIONS, type FrequencyValue } from "@/lib/api/medications";
 
 const frequencyValues = FREQUENCY_OPTIONS.map((o) => o.value) as [
-  string,
-  ...string[],
+  FrequencyValue,
+  ...FrequencyValue[],
 ];
 
 export const medicationSchema = z.object({

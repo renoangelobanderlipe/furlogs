@@ -31,6 +31,12 @@ class StoreFoodProductRequest extends FormRequest
         if ($this->has('notes')) {
             $this->merge(['notes' => strip_tags((string) $this->input('notes'))]);
         }
+
+        // The column is NOT NULL with a default of 25. A null payload value
+        // means "use the default" — replace it so the DB constraint is not violated.
+        if ($this->has('alert_threshold_pct') && is_null($this->input('alert_threshold_pct'))) {
+            $this->merge(['alert_threshold_pct' => 25]);
+        }
     }
 
     /**

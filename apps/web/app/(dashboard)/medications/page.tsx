@@ -87,12 +87,7 @@ interface MedicationItemProps {
   onDelete: (id: number) => void;
 }
 
-function MedicationItem({
-  med,
-  index,
-  onEdit,
-  onDelete,
-}: MedicationItemProps) {
+function MedicationItem({ med, index, onEdit, onDelete }: MedicationItemProps) {
   // Each card owns its own mutation so pending state is isolated per medication
   const logDose = useLogDose();
   const { data: todayData } = useTodayAdministrations(

@@ -7,13 +7,14 @@ namespace App\Models;
 use Carbon\Carbon;
 use Database\Factories\PetWeightFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int $id
- * @property int $pet_id
+ * @property string $id
+ * @property string $pet_id
  * @property string $weight_kg
  * @property Carbon $recorded_at
  * @property Carbon $created_at
@@ -23,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class PetWeight extends Model
 {
     /** @use HasFactory<PetWeightFactory> */
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     /**
      * @return array<string, string>

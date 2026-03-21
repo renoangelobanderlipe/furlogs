@@ -33,7 +33,7 @@ class UpdateVaccinationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'clinic_id' => ['nullable', 'integer', 'exists:vet_clinics,id'],
+            'clinic_id' => ['nullable', 'uuid', 'exists:vet_clinics,id'],
             'vaccine_name' => ['sometimes', 'string', 'max:255'],
             'administered_date' => ['sometimes', 'date', 'before_or_equal:today'],
             'next_due_date' => ['nullable', 'date', 'after:administered_date'],

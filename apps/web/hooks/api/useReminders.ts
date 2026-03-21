@@ -16,12 +16,12 @@ export function useReminders(filters?: ReminderFilters) {
   });
 }
 
-export function useReminder(id: number) {
+export function useReminder(id: string) {
   return useQuery({
     queryKey: reminderKeys.detail(id),
     queryFn: () => reminderEndpoints.get(id).then((r) => r.data.data),
     staleTime: QUERY_STALE_TIME,
-    enabled: id > 0,
+    enabled: id.length > 0,
   });
 }
 
@@ -51,7 +51,7 @@ export function useUpdateReminder() {
       id,
       data,
     }: {
-      id: number;
+      id: string;
       data: ReminderUpdateFormValues;
     }) => reminderEndpoints.update(id, data).then((r) => r.data.data),
     onSuccess: (reminder) => {
@@ -73,7 +73,7 @@ export function useDeleteReminder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       reminderEndpoints.delete(id).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: reminderKeys.lists() });
@@ -91,7 +91,7 @@ export function useCompleteReminder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       reminderEndpoints.complete(id).then((r) => r.data.data),
     onSuccess: (reminder) => {
       queryClient.invalidateQueries({
@@ -115,7 +115,7 @@ export function useSnoozeReminder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, snoozeDays }: { id: number; snoozeDays: number }) =>
+    mutationFn: ({ id, snoozeDays }: { id: string; snoozeDays: number }) =>
       reminderEndpoints.snooze(id, snoozeDays).then((r) => r.data.data),
     onSuccess: (reminder) => {
       queryClient.invalidateQueries({
@@ -136,7 +136,7 @@ export function useDismissReminder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       reminderEndpoints.dismiss(id).then((r) => r.data.data),
     onSuccess: (reminder) => {
       queryClient.invalidateQueries({

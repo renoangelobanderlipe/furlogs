@@ -139,7 +139,7 @@ export default function WeightHistoryPage() {
       date,
       weight,
     }: {
-      petId: number;
+      petId: string;
       date: string;
       weight: number;
     }) =>
@@ -163,7 +163,7 @@ export default function WeightHistoryPage() {
   const handleAdd = () => {
     if (!form.petId || !form.date || !form.weight) return;
     recordWeight.mutate({
-      petId: Number(form.petId),
+      petId: form.petId,
       date: form.date,
       weight: parseFloat(form.weight),
     });

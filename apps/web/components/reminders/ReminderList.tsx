@@ -37,7 +37,7 @@ function getUrgencyClass(urgency: ReminderUrgency): string {
 }
 
 interface ReminderItemMenuProps {
-  reminderId: number;
+  reminderId: string;
 }
 
 function ReminderItemMenu({ reminderId }: ReminderItemMenuProps) {

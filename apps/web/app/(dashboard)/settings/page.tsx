@@ -82,8 +82,8 @@ function SettingsPageContent() {
   const transferOwnership = useTransferOwnership();
   const deleteHousehold = useDeleteHousehold();
 
-  const [transferTargetId, setTransferTargetId] = useState<number | null>(null);
-  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [transferTargetId, setTransferTargetId] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const transferTargetName =
     household?.members.find((m) => m.id === transferTargetId)?.name ?? "";
 

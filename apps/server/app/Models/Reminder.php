@@ -10,15 +10,16 @@ use App\Traits\BelongsToHousehold;
 use Carbon\Carbon;
 use Database\Factories\ReminderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
- * @property int $id
- * @property int $household_id
- * @property int|null $pet_id
+ * @property string $id
+ * @property string $household_id
+ * @property string|null $pet_id
  * @property ReminderType $type
  * @property string $title
  * @property string|null $description
@@ -27,7 +28,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property int|null $recurrence_days
  * @property ReminderStatus $status
  * @property Carbon|null $last_notified_at
- * @property int|null $source_id
+ * @property string|null $source_id
  * @property string|null $source_type
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -40,7 +41,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Reminder extends Model
 {
     /** @use HasFactory<ReminderFactory> */
-    use BelongsToHousehold, HasFactory;
+    use BelongsToHousehold, HasFactory, HasUuids;
 
     /**
      * @return array<string, mixed>

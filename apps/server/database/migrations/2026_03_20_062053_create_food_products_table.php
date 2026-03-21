@@ -11,8 +11,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('food_products', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('household_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('household_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('brand')->nullable();
             $table->enum('type', ['dry', 'wet', 'treat', 'supplement']);

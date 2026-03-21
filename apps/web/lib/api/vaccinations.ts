@@ -23,7 +23,8 @@ export const VACCINATION_STATUS_LABEL: Record<VaccinationStatus, string> = {
 };
 
 export interface VaccinationAttributes {
-  petId: number;
+  petId: string;
+  clinicId: string | null;
   vaccineName: string;
   administeredDate: string;
   nextDueDate: string | null;
@@ -35,16 +36,16 @@ export interface VaccinationAttributes {
 }
 
 export interface Vaccination {
-  id: number;
+  id: string;
   type: "vaccinations";
   attributes: VaccinationAttributes;
   relationships?: {
-    pet?: { data: { id: number; type: "pets" } };
+    pet?: { data: { id: string; type: "pets" } };
   };
 }
 
 export interface VaccinationFilters {
-  petId?: number;
+  petId?: string;
   status?: VaccinationStatus;
   page?: number;
   per_page?: number;
@@ -56,7 +57,7 @@ export const vaccinationEndpoints = {
       params: filters,
     }),
 
-  get: (id: number) =>
+  get: (id: string) =>
     apiClient.get<SingleResourceResponse<Vaccination>>(
       `/api/vaccinations/${id}`,
     ),
@@ -67,11 +68,11 @@ export const vaccinationEndpoints = {
       data,
     ),
 
-  update: (id: number, data: VaccinationUpdateFormValues) =>
+  update: (id: string, data: VaccinationUpdateFormValues) =>
     apiClient.patch<SingleResourceResponse<Vaccination>>(
       `/api/vaccinations/${id}`,
       data,
     ),
 
-  delete: (id: number) => apiClient.delete(`/api/vaccinations/${id}`),
+  delete: (id: string) => apiClient.delete(`/api/vaccinations/${id}`),
 };

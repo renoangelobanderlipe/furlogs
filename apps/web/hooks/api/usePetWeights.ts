@@ -7,16 +7,16 @@ import { petKeys } from "./queryKeys";
 
 const STALE_TIME = 5 * 60 * 1000; // 5 minutes
 
-export function usePetWeights(petId: number) {
+export function usePetWeights(petId: string) {
   return useQuery({
     queryKey: petKeys.weights(petId),
     queryFn: () => petEndpoints.listWeights(petId).then((r) => r.data),
     staleTime: STALE_TIME,
-    enabled: petId > 0,
+    enabled: petId.length > 0,
   });
 }
 
-export function useRecordWeight(petId: number) {
+export function useRecordWeight(petId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -35,11 +35,11 @@ export function useRecordWeight(petId: number) {
   });
 }
 
-export function useDeletePetWeight(petId: number) {
+export function useDeletePetWeight(petId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (weightId: number) =>
+    mutationFn: (weightId: string) =>
       petEndpoints.deleteWeight(petId, weightId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: petKeys.weights(petId) });

@@ -84,14 +84,14 @@ interface MedicationItemProps {
   med: Medication;
   index: number;
   onEdit: (m: Medication) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 }
 
 function MedicationItem({ med, index, onEdit, onDelete }: MedicationItemProps) {
   // Each card owns its own mutation so pending state is isolated per medication
   const logDose = useLogDose();
   const { data: todayData } = useTodayAdministrations(
-    med.attributes.isActive ? med.id : 0,
+    med.attributes.isActive ? med.id : "",
   );
 
   const dosesPerDay = getDosesPerDay(med.attributes.frequency);
@@ -201,7 +201,7 @@ export default function MedicationsPage() {
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMed, setEditingMed] = useState<Medication | null>(null);
-  const [deleteMedId, setDeleteMedId] = useState<number | null>(null);
+  const [deleteMedId, setDeleteMedId] = useState<string | null>(null);
 
   const { data: medsData, isLoading } = useMedications({ page, per_page: 5 });
   const { data: petsData } = usePets();
@@ -236,7 +236,7 @@ export default function MedicationsPage() {
   const handleOpenEdit = (m: Medication) => {
     setEditingMed(m);
     reset({
-      petId: m.relationships?.pet?.id ?? 0,
+      petId: m.relationships?.pet?.id ?? "",
       name: m.attributes.name,
       dosage: m.attributes.dosage ?? "",
       frequency: (m.attributes.frequency as FrequencyValue) ?? undefined,
@@ -391,7 +391,7 @@ export default function MedicationsPage() {
                 <Select
                   value={petIdValue ? String(petIdValue) : ""}
                   onValueChange={(v) =>
-                    setValue("petId", Number(v), { shouldValidate: true })
+                    setValue("petId", v, { shouldValidate: true })
                   }
                 >
                   <SelectTrigger className="mt-1.5 bg-background">

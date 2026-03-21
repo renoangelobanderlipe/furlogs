@@ -19,8 +19,8 @@ class DashboardController extends Controller
     public function summary(Request $request): JsonResponse
     {
         $user = $request->user();
-        $householdId = (int) $user->current_household_id;
-        $petId = $request->filled('filter.pet') ? (int) $request->input('filter.pet') : null;
+        $householdId = (string) $user->current_household_id;
+        $petId = $request->filled('filter.pet') ? (string) $request->input('filter.pet') : null;
 
         // Pet summaries (1 query)
         $pets = Pet::query()

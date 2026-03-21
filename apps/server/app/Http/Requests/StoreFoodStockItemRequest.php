@@ -35,6 +35,7 @@ class StoreFoodStockItemRequest extends FormRequest
         return [
             'food_product_id' => [
                 'required',
+                'uuid',
                 Rule::exists('food_products', 'id')->where(
                     'household_id',
                     $this->user()->current_household_id,

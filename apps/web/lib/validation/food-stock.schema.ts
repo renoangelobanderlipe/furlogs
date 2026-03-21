@@ -40,9 +40,8 @@ export const productSchema = z.object({
 
 export const purchaseSchema = z.object({
   foodProductId: z
-    .number({ error: "Product is required" })
-    .int()
-    .positive("Product is required"),
+    .string({ error: "Product is required" })
+    .uuid("Product is required"),
   purchasedAt: z
     .string()
     .min(1, "Purchase date is required")
@@ -64,10 +63,7 @@ export const purchaseSchema = z.object({
 });
 
 export const consumptionRateSchema = z.object({
-  petId: z
-    .number({ error: "Pet is required" })
-    .int()
-    .positive("Pet is required"),
+  petId: z.string({ error: "Pet is required" }).uuid("Pet is required"),
   dailyAmountGrams: z
     .number({ error: "Daily amount is required" })
     .min(1, "Must be at least 1 gram"),

@@ -29,8 +29,8 @@ class MedicationController extends Controller
                 // Load only the 90-day window that calculateStreak() needs
                 'administrations' => fn ($q) => $q->where('administered_at', '>=', now()->subDays(90)->startOfDay()),
             ])
-            ->when($request->integer('pet_id'), fn ($q, $petId) => $q->where('pet_id', $petId))
-            ->when($request->integer('vet_visit_id'), fn ($q, $visitId) => $q->where('vet_visit_id', $visitId))
+            ->when($request->query('pet_id'), fn ($q, string $petId) => $q->where('pet_id', $petId))
+            ->when($request->query('vet_visit_id'), fn ($q, string $visitId) => $q->where('vet_visit_id', $visitId))
             ->orderBy('start_date', 'desc')
             ->paginate((int) $request->query('per_page', 5));
 

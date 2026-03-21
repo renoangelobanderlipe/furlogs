@@ -11,7 +11,7 @@ export interface VetClinicAttributes {
 }
 
 export interface VetClinic {
-  id: number;
+  id: string;
   type: "vet-clinics";
   attributes: VetClinicAttributes;
 }
@@ -29,17 +29,17 @@ export const vetClinicEndpoints = {
       params: { page },
     }),
 
-  get: (id: number) =>
+  get: (id: string) =>
     apiClient.get<SingleResourceResponse<VetClinic>>(`/api/vet-clinics/${id}`),
 
   create: (data: VetClinicPayload) =>
     apiClient.post<SingleResourceResponse<VetClinic>>("/api/vet-clinics", data),
 
-  update: (id: number, data: Partial<VetClinicPayload>) =>
+  update: (id: string, data: Partial<VetClinicPayload>) =>
     apiClient.patch<SingleResourceResponse<VetClinic>>(
       `/api/vet-clinics/${id}`,
       data,
     ),
 
-  delete: (id: number) => apiClient.delete(`/api/vet-clinics/${id}`),
+  delete: (id: string) => apiClient.delete(`/api/vet-clinics/${id}`),
 };

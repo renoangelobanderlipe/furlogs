@@ -38,7 +38,7 @@ class UpdateReminderRequest extends FormRequest
         return [
             'pet_id' => [
                 'nullable',
-                'integer',
+                'uuid',
                 Rule::exists('pets', 'id')->where('household_id', $this->user()->current_household_id),
             ],
             'type' => ['sometimes', Rule::enum(ReminderType::class)],

@@ -106,7 +106,7 @@ class FoodStockService
      *
      * @return list<array{item: FoodStockItem, projection: FoodProjectionDTO|null}>
      */
-    public function getProjections(int $householdId): array
+    public function getProjections(string $householdId): array
     {
         $items = FoodStockItem::query()
             ->whereHas('foodProduct', fn ($q) => $q->withoutGlobalScopes()->where('household_id', $householdId))

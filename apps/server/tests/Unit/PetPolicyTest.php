@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Policies\PetPolicy;
 use Spatie\Permission\Models\Role;
 
-function makePolicyUser(int $householdId, string $role): User
+function makePolicyUser(string $householdId, string $role): User
 {
     $user = User::factory()->create(['current_household_id' => $householdId]);
 
@@ -22,7 +22,7 @@ function makePolicyUser(int $householdId, string $role): User
 /**
  * Build a Pet model instance with a specific household_id without triggering global scopes.
  */
-function makePetForHousehold(int $householdId): Pet
+function makePetForHousehold(string $householdId): Pet
 {
     $pet = new Pet;
     $pet->household_id = $householdId;

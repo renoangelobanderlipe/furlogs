@@ -15,8 +15,8 @@ export type ReminderType =
 export type ReminderUrgency = "high" | "medium" | "low";
 
 export interface ReminderAttributes {
-  householdId: number;
-  petId: number | null;
+  householdId: string;
+  petId: string | null;
   petName: string | null;
   type: ReminderType;
   title: string;
@@ -29,14 +29,14 @@ export interface ReminderAttributes {
 }
 
 export interface Reminder {
-  id: number;
+  id: string;
   type: "reminders";
   attributes: ReminderAttributes;
 }
 
 export interface ReminderFilters {
   status?: ReminderStatus;
-  petId?: number;
+  petId?: string;
   type?: ReminderType;
   page?: number;
   per_page?: number;
@@ -48,32 +48,32 @@ export const reminderEndpoints = {
       params: filters,
     }),
 
-  get: (id: number) =>
+  get: (id: string) =>
     apiClient.get<SingleResourceResponse<Reminder>>(`/api/reminders/${id}`),
 
   create: (data: ReminderFormValues) =>
     apiClient.post<SingleResourceResponse<Reminder>>("/api/reminders", data),
 
-  update: (id: number, data: ReminderUpdateFormValues) =>
+  update: (id: string, data: ReminderUpdateFormValues) =>
     apiClient.patch<SingleResourceResponse<Reminder>>(
       `/api/reminders/${id}`,
       data,
     ),
 
-  delete: (id: number) => apiClient.delete(`/api/reminders/${id}`),
+  delete: (id: string) => apiClient.delete(`/api/reminders/${id}`),
 
-  complete: (id: number) =>
+  complete: (id: string) =>
     apiClient.patch<SingleResourceResponse<Reminder>>(
       `/api/reminders/${id}/complete`,
     ),
 
-  snooze: (id: number, snoozeDays: number) =>
+  snooze: (id: string, snoozeDays: number) =>
     apiClient.patch<SingleResourceResponse<Reminder>>(
       `/api/reminders/${id}/snooze`,
       { snooze_days: snoozeDays },
     ),
 
-  dismiss: (id: number) =>
+  dismiss: (id: string) =>
     apiClient.patch<SingleResourceResponse<Reminder>>(
       `/api/reminders/${id}/dismiss`,
     ),

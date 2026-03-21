@@ -11,9 +11,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('household_members', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('household_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('household_id')->constrained()->cascadeOnDelete();
             $table->enum('role', ['owner', 'member'])->default('member');
             $table->timestamp('invited_at')->nullable();
             $table->timestamp('joined_at')->nullable();

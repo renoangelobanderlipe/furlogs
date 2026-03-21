@@ -15,8 +15,8 @@ export const VISIT_TYPE_OPTIONS = [
 ] as const;
 
 export const vetVisitSchema = z.object({
-  petId: z.number({ error: "Pet is required" }).positive(),
-  clinicId: z.number().positive().optional(),
+  petId: z.string({ error: "Pet is required" }).uuid("Pet is required"),
+  clinicId: z.string().uuid().optional(),
   vetName: z
     .string()
     .max(255, "Vet name is too long")

@@ -99,7 +99,7 @@ export default function VetVisitsPage() {
 
     createVisit.mutate(
       {
-        pet_id: Number(form.petId),
+        pet_id: form.petId,
         visit_type: form.type,
         visit_date: form.date,
         reason: form.diagnosis || form.type,

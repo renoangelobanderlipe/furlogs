@@ -9,7 +9,7 @@ interface VisitCardProps {
   visit: VetVisit;
   onClick?: () => void;
   selected?: boolean;
-  onToggleSelect?: (id: number) => void;
+  onToggleSelect?: (id: string) => void;
   selectable?: boolean;
 }
 

@@ -10,6 +10,7 @@ use App\Traits\BelongsToHousehold;
 use Carbon\Carbon;
 use Database\Factories\FoodProductFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,8 +18,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * @property int $id
- * @property int $household_id
+ * @property string $id
+ * @property string $household_id
  * @property string $name
  * @property string|null $brand
  * @property FoodType $type
@@ -34,7 +35,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class FoodProduct extends Model
 {
     /** @use HasFactory<FoodProductFactory> */
-    use BelongsToHousehold, HasFactory, SoftDeletes;
+    use BelongsToHousehold, HasFactory, HasUuids, SoftDeletes;
 
     /**
      * @return array<string, mixed>

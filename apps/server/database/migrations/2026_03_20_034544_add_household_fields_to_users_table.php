@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('current_household_id')
+            $table->foreignUuid('current_household_id')
                 ->nullable()
                 ->after('remember_token')
                 ->constrained('households')
@@ -23,7 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('current_household_id');
+            $table->dropForeign(['current_household_id']);
+            $table->dropColumn('current_household_id');
             $table->dropColumn('timezone');
         });
     }

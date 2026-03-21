@@ -19,12 +19,12 @@ export function useVaccinations(filters?: VaccinationFilters) {
   });
 }
 
-export function useVaccination(id: number) {
+export function useVaccination(id: string) {
   return useQuery({
     queryKey: vaccinationKeys.detail(id),
     queryFn: () => vaccinationEndpoints.get(id).then((r) => r.data.data),
     staleTime: QUERY_STALE_TIME,
-    enabled: id > 0,
+    enabled: id.length > 0,
   });
 }
 
@@ -54,7 +54,7 @@ export function useUpdateVaccination() {
       id,
       data,
     }: {
-      id: number;
+      id: string;
       data: VaccinationUpdateFormValues;
     }) => vaccinationEndpoints.update(id, data).then((r) => r.data.data),
     onSuccess: (vaccination) => {
@@ -79,7 +79,7 @@ export function useDeleteVaccination() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       vaccinationEndpoints.delete(id).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vaccinationKeys.lists() });

@@ -11,9 +11,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('reminders', function (Blueprint $table): void {
-            $table->id();
-            $table->foreignId('household_id')->constrained('households')->cascadeOnDelete();
-            $table->foreignId('pet_id')->nullable()->constrained('pets')->nullOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('household_id')->constrained('households')->cascadeOnDelete();
+            $table->foreignUuid('pet_id')->nullable()->constrained('pets')->nullOnDelete();
             $table->string('type');
             $table->string('title');
             $table->text('description')->nullable();
@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_recurring')->default(false);
             $table->integer('recurrence_days')->nullable();
             $table->string('status')->default('pending');
-            $table->unsignedBigInteger('source_id')->nullable();
+            $table->uuid('source_id')->nullable();
             $table->string('source_type')->nullable();
             $table->timestamps();
 

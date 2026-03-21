@@ -8,6 +8,7 @@ use App\Enums\HouseholdRole;
 use Carbon\Carbon;
 use Database\Factories\HouseholdMemberFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
@@ -20,9 +21,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 class HouseholdMember extends Pivot
 {
     /** @use HasFactory<HouseholdMemberFactory> */
-    use HasFactory;
-
-    public $incrementing = true;
+    use HasFactory, HasUuids;
 
     protected $table = 'household_members';
 

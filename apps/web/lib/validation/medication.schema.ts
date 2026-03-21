@@ -7,7 +7,7 @@ const frequencyValues = FREQUENCY_OPTIONS.map((o) => o.value) as [
 ];
 
 export const medicationSchema = z.object({
-  petId: z.number({ error: "Pet is required" }).positive(),
+  petId: z.string({ error: "Pet is required" }).uuid("Pet is required"),
   name: z
     .string()
     .min(1, "Medication name is required")

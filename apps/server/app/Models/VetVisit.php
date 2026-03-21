@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Database\Factories\VetVisitFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,9 +21,9 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 /**
- * @property int $id
- * @property int $pet_id
- * @property int|null $clinic_id
+ * @property string $id
+ * @property string $pet_id
+ * @property string|null $clinic_id
  * @property string|null $vet_name
  * @property Carbon $visit_date
  * @property VisitType $visit_type
@@ -45,7 +46,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class VetVisit extends Model implements HasMedia
 {
     /** @use HasFactory<VetVisitFactory> */
-    use BelongsToHouseholdViaPet, HasFactory, InteractsWithMedia, SoftDeletes;
+    use BelongsToHouseholdViaPet, HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
 
     /**
      * @return array<string, mixed>

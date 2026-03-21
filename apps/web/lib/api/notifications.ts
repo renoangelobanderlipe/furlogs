@@ -12,11 +12,11 @@ export type NotificationType =
 export interface NotificationData {
   type: NotificationType;
   title: string;
-  pet_id?: number;
+  pet_id?: string;
   pet_name?: string;
   due_date?: string;
   urgency?: NotificationUrgency;
-  food_stock_item_id?: number;
+  food_stock_item_id?: string;
   product_name?: string;
   days_remaining?: number;
   runs_out_date?: string | null;

@@ -34,6 +34,7 @@ class VaccinationResource extends JsonResource
             'type' => 'vaccinations',
             'attributes' => [
                 'petId' => $vaccination->pet_id,
+                'clinicId' => $vaccination->clinic_id,
                 'vaccineName' => $vaccination->vaccine_name,
                 'administeredDate' => $vaccination->administered_date->toDateString(),
                 'nextDueDate' => $vaccination->next_due_date?->toDateString(),

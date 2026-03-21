@@ -11,8 +11,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('food_stock_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('food_product_id')->constrained()->cascadeOnDelete();
+            $table->uuid('id')->primary();
+            $table->foreignUuid('food_product_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['sealed', 'open', 'finished'])->default('sealed');
             $table->date('purchased_at');
             $table->date('opened_at')->nullable();

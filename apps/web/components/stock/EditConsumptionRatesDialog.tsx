@@ -47,8 +47,8 @@ interface EditConsumptionRatesDialogProps {
   onClose: () => void;
   product: FoodProduct | null;
   pets: Pet[];
-  onUpsert: (productId: number, data: ConsumptionRateFormValues) => void;
-  onDelete: (productId: number, petId: number) => void;
+  onUpsert: (productId: string, data: ConsumptionRateFormValues) => void;
+  onDelete: (productId: string, petId: string) => void;
   isUpserting: boolean;
   isDeleting: boolean;
 }
@@ -88,7 +88,7 @@ export function EditConsumptionRatesDialog({
     }
   };
 
-  const getPetName = (petId: number): string => {
+  const getPetName = (petId: string): string => {
     const pet = pets.find((p) => p.id === petId);
     return pet?.attributes.name ?? `Pet #${petId}`;
   };
@@ -168,9 +168,7 @@ export function EditConsumptionRatesDialog({
                         </FormLabel>
                         <Select
                           value={field.value ? String(field.value) : ""}
-                          onValueChange={(v) =>
-                            field.onChange(v ? Number(v) : null)
-                          }
+                          onValueChange={(v) => field.onChange(v ? v : null)}
                         >
                           <FormControl>
                             <SelectTrigger>

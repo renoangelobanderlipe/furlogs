@@ -21,7 +21,7 @@ export function useMedications(filters?: MedicationFilters) {
   });
 }
 
-export function useTodayAdministrations(medicationId: number) {
+export function useTodayAdministrations(medicationId: string) {
   const today = new Date().toISOString().split("T")[0];
   return useQuery({
     queryKey: administrationKeys.forMedication(medicationId, today),
@@ -30,7 +30,7 @@ export function useTodayAdministrations(medicationId: number) {
         .listAdministrations(medicationId, today)
         .then((r) => r.data),
     staleTime: 60_000,
-    enabled: medicationId > 0,
+    enabled: medicationId.length > 0,
   });
 }
 
@@ -41,7 +41,7 @@ export function useLogDose() {
       medicationId,
       data,
     }: {
-      medicationId: number;
+      medicationId: string;
       data: AdministrationPayload;
     }) =>
       medicationEndpoints.logDose(medicationId, data).then((r) => r.data.data),
@@ -61,7 +61,7 @@ export function useLogDose() {
 export function useDeleteAdministration() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => medicationEndpoints.deleteAdministration(id),
+    mutationFn: (id: string) => medicationEndpoints.deleteAdministration(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: administrationKeys.all });
       queryClient.invalidateQueries({ queryKey: medicationKeys.lists() });
@@ -73,12 +73,12 @@ export function useDeleteAdministration() {
   });
 }
 
-export function useMedication(id: number) {
+export function useMedication(id: string) {
   return useQuery({
     queryKey: medicationKeys.detail(id),
     queryFn: () => medicationEndpoints.get(id).then((r) => r.data.data),
     staleTime: QUERY_STALE_TIME,
-    enabled: id > 0,
+    enabled: id.length > 0,
   });
 }
 
@@ -108,7 +108,7 @@ export function useUpdateMedication() {
       id,
       data,
     }: {
-      id: number;
+      id: string;
       data: Partial<MedicationPayload>;
     }) => medicationEndpoints.update(id, data).then((r) => r.data.data),
     onSuccess: (medication) => {
@@ -133,7 +133,7 @@ export function useDeleteMedication() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) =>
+    mutationFn: (id: string) =>
       medicationEndpoints.delete(id).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: medicationKeys.lists() });

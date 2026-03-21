@@ -24,7 +24,7 @@ class VaccinationController extends Controller
 
         $vaccinations = Vaccination::query()
             ->with(['pet', 'clinic'])
-            ->when($request->integer('pet_id'), fn ($q, $petId) => $q->where('pet_id', $petId))
+            ->when($request->query('pet_id'), fn ($q, string $petId) => $q->where('pet_id', $petId))
             ->when($request->query('status'), function ($q, string $status) {
                 $today = now()->toDateString();
                 $soonThreshold = now()->addDays(30)->toDateString();

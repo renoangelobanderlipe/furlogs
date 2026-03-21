@@ -65,7 +65,7 @@ export default function HouseholdPage() {
     );
   }
 
-  function handleRemove(targetUserId: number) {
+  function handleRemove(targetUserId: string) {
     if (!household) return;
     removeMember.mutate({ householdId: household.id, userId: targetUserId });
   }

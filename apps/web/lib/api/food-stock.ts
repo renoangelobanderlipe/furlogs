@@ -11,7 +11,7 @@ export type StockStatus = "sealed" | "open" | "finished";
 export type ProjectionStatus = "good" | "low" | "critical";
 
 export interface FoodConsumptionRate {
-  petId: number;
+  petId: string;
   dailyAmountGrams: number;
 }
 
@@ -29,13 +29,13 @@ export interface FoodProductAttributes {
 }
 
 export interface FoodProduct {
-  id: number;
+  id: string;
   type: "food-products";
   attributes: FoodProductAttributes;
 }
 
 export interface FoodStockItemAttributes {
-  foodProductId: number;
+  foodProductId: string;
   status: StockStatus;
   purchasedAt: string;
   openedAt: string | null;
@@ -50,7 +50,7 @@ export interface FoodStockItemAttributes {
 }
 
 export interface FoodStockItem {
-  id: number;
+  id: string;
   type: "food-stock-items";
   attributes: FoodStockItemAttributes;
   relationships?: {
@@ -128,7 +128,7 @@ export const foodStockEndpoints = {
   listProducts: () =>
     apiClient.get<FoodProductListResponse>("/api/food-products"),
 
-  getProduct: (id: number) =>
+  getProduct: (id: string) =>
     apiClient.get<FoodProductResponse>(`/api/food-products/${id}`),
 
   createProduct: (data: ProductFormValues) =>
@@ -137,21 +137,21 @@ export const foodStockEndpoints = {
       toProductPayload(data),
     ),
 
-  updateProduct: (id: number, data: Partial<ProductFormValues>) =>
+  updateProduct: (id: string, data: Partial<ProductFormValues>) =>
     apiClient.patch<FoodProductResponse>(
       `/api/food-products/${id}`,
       toProductPayload(data),
     ),
 
-  deleteProduct: (id: number) => apiClient.delete(`/api/food-products/${id}`),
+  deleteProduct: (id: string) => apiClient.delete(`/api/food-products/${id}`),
 
-  upsertConsumptionRate: (productId: number, data: ConsumptionRateFormValues) =>
+  upsertConsumptionRate: (productId: string, data: ConsumptionRateFormValues) =>
     apiClient.post<FoodProductResponse>(
       `/api/food-products/${productId}/consumption-rates`,
       toConsumptionRatePayload(data),
     ),
 
-  deleteConsumptionRate: (productId: number, petId: number) =>
+  deleteConsumptionRate: (productId: string, petId: string) =>
     apiClient.delete(
       `/api/food-products/${productId}/consumption-rates/${petId}`,
     ),
@@ -166,15 +166,15 @@ export const foodStockEndpoints = {
       toPurchasePayload(data),
     ),
 
-  openItem: (id: number) =>
+  openItem: (id: string) =>
     apiClient.patch<FoodStockItemResponse>(`/api/food-stock-items/${id}/open`),
 
-  markFinished: (id: number) =>
+  markFinished: (id: string) =>
     apiClient.patch<FoodStockItemResponse>(
       `/api/food-stock-items/${id}/finish`,
     ),
 
-  deleteItem: (id: number) => apiClient.delete(`/api/food-stock-items/${id}`),
+  deleteItem: (id: string) => apiClient.delete(`/api/food-stock-items/${id}`),
 
   // Projections
   getProjections: () =>

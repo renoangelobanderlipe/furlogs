@@ -41,6 +41,22 @@ class HouseholdPolicy
         return $this->isOwnerOf($user, $household);
     }
 
+    /**
+     * Only the current owner may transfer ownership.
+     */
+    public function transferOwnership(User $user, Household $household): bool
+    {
+        return $this->isOwnerOf($user, $household);
+    }
+
+    /**
+     * Only the household owner may delete the household.
+     */
+    public function delete(User $user, Household $household): bool
+    {
+        return $this->isOwnerOf($user, $household);
+    }
+
     private function isOwnerOf(User $user, Household $household): bool
     {
         return $user->current_household_id === $household->id

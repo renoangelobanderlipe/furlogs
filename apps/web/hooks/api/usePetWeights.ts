@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { extractApiError } from "@/lib/api/extractApiError";
 import { petEndpoints } from "@/lib/api/pets";
 import type { WeightFormValues } from "@/lib/validation/pet-weight.schema";
 import { petKeys } from "./queryKeys";
@@ -27,10 +28,31 @@ export function useRecordWeight(petId: number) {
       toast.success("Weight recorded");
     },
     onError: (error: unknown) => {
-      const message =
-        (error as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message ?? "Failed to record weight. Please try again.";
-      toast.error(message);
+      toast.error(
+        extractApiError(error, "Failed to record weight. Please try again."),
+      );
+    },
+  });
+}
+
+export function useDeletePetWeight(petId: number) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (weightId: number) =>
+      petEndpoints.deleteWeight(petId, weightId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: petKeys.weights(petId) });
+      queryClient.invalidateQueries({ queryKey: petKeys.detail(petId) });
+      toast.success("Weight entry deleted");
+    },
+    onError: (error: unknown) => {
+      toast.error(
+        extractApiError(
+          error,
+          "Failed to delete weight entry. Please try again.",
+        ),
+      );
     },
   });
 }

@@ -7,9 +7,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePetWeightRequest;
 use App\Http\Resources\PetWeightResource;
 use App\Models\Pet;
+use App\Models\PetWeight;
 use App\Services\PetService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 class PetWeightController extends Controller
 {
@@ -33,5 +35,14 @@ class PetWeightController extends Controller
         );
 
         return (new PetWeightResource($weight))->response()->setStatusCode(201);
+    }
+
+    public function destroy(Pet $pet, PetWeight $weight): Response
+    {
+        $this->authorize('update', $pet);
+
+        $weight->delete();
+
+        return response()->noContent();
     }
 }

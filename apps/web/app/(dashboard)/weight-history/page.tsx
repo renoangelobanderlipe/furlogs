@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Loader2,
   PlusCircle,
+  Trash2,
   Weight,
 } from "lucide-react";
 import { useState } from "react";
@@ -31,7 +32,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { petKeys } from "@/hooks/api/queryKeys";
 import { usePets } from "@/hooks/api/usePets";
-import { usePetWeights } from "@/hooks/api/usePetWeights";
+import { useDeletePetWeight, usePetWeights } from "@/hooks/api/usePetWeights";
 import type { Pet } from "@/lib/api/pets";
 import { petEndpoints } from "@/lib/api/pets";
 import { SPECIES_EMOJI } from "@/lib/constants";
@@ -42,6 +43,7 @@ const PER_PAGE = 5;
 
 function PetWeightCard({ pet }: { pet: Pet }) {
   const { data: weightsData, isLoading } = usePetWeights(pet.id);
+  const deleteWeight = useDeletePetWeight(pet.id);
   const weights = (weightsData?.data ?? [])
     .slice()
     .sort(
@@ -76,7 +78,7 @@ function PetWeightCard({ pet }: { pet: Pet }) {
             return (
               <div
                 key={entry.id}
-                className="flex items-center justify-between text-sm py-1"
+                className="flex items-center justify-between text-sm py-1 group"
               >
                 <span className="text-muted-foreground">
                   {formatShortDate(entry.attributes.recordedAt)}
@@ -96,6 +98,15 @@ function PetWeightCard({ pet }: { pet: Pet }) {
                       {change.toFixed(1)} kg
                     </span>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => deleteWeight.mutate(entry.id)}
+                    disabled={deleteWeight.isPending}
+                    aria-label="Delete weight entry"
+                    className="invisible group-hover:visible flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               </div>
             );

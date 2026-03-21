@@ -36,7 +36,6 @@ Route::middleware('guest')->prefix('auth')->group(function () {
         ->name('auth.register');
 
     Route::post('login', LoginController::class)
-        // ->middleware('throttle:5,1')
         ->name('auth.login');
 
 });
@@ -64,6 +63,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // User profile
     Route::get('user/notification-preferences', [ProfileController::class, 'notificationPreferences'])->name('user.notification-preferences.show');
     Route::patch('user/notification-preferences', [ProfileController::class, 'updateNotificationPreferences'])->name('user.notification-preferences.update');
+    Route::get('user/export', [ProfileController::class, 'export'])->name('user.export');
     Route::patch('user', [ProfileController::class, 'update'])->name('user.update');
     Route::patch('user/password', [ProfileController::class, 'changePassword'])->middleware('password.confirm')->name('user.password');
 
@@ -80,12 +80,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('households/current', [HouseholdController::class, 'current'])->name('households.current');
     Route::patch('households/{household}', [HouseholdController::class, 'update'])->name('households.update');
     Route::post('households/{household}/invite', [HouseholdController::class, 'invite'])->name('households.invite');
+    Route::post('households/{household}/transfer-ownership/{user}', [HouseholdController::class, 'transferOwnership'])->name('households.transfer-ownership');
     Route::delete('households/{household}/members/{user}', [HouseholdController::class, 'removeMember'])->name('households.members.remove');
+    Route::delete('households/{household}', [HouseholdController::class, 'destroy'])->name('households.destroy');
 
     // Pets
     Route::apiResource('pets', PetController::class);
     Route::post('pets/{pet}/avatar', [PetController::class, 'uploadAvatar']);
-    Route::apiResource('pets.weights', PetWeightController::class)->only(['index', 'store']);
+    Route::apiResource('pets.weights', PetWeightController::class)->only(['index', 'store', 'destroy']);
 
     // Vet Clinics
     Route::apiResource('vet-clinics', VetClinicController::class);

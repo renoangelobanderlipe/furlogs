@@ -42,4 +42,11 @@ export const householdEndpoints = {
     apiClient.delete<HouseholdResponse>(
       `/api/households/${householdId}/members/${userId}`,
     ),
+
+  transferOwnership: (householdId: number, userId: number) =>
+    apiClient.post<HouseholdResponse>(
+      `/api/households/${householdId}/transfer-ownership/${userId}`,
+    ),
+
+  delete: (id: number) => apiClient.delete(`/api/households/${id}`),
 };

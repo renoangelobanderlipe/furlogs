@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Enums\HouseholdRole;
 use App\Models\Household;
 use App\Models\User;
+use App\Notifications\HouseholdInviteNotification;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
@@ -40,12 +41,9 @@ class HouseholdService
      */
     public function getCurrent(User $user): Household
     {
-        /** @var Household $household */
-        $household = Household::query()
+        return Household::query()
             ->with(['householdMembers.user'])
             ->findOrFail($user->current_household_id);
-
-        return $household;
     }
 
     /**
@@ -55,7 +53,7 @@ class HouseholdService
     {
         $household->update(['name' => $name]);
 
-        return $this->getCurrent($household->members()->wherePivot('role', HouseholdRole::Owner)->firstOrFail());
+        return $this->loadHousehold($household);
     }
 
     /**
@@ -64,7 +62,7 @@ class HouseholdService
      *
      * @throws ValidationException
      */
-    public function inviteByEmail(Household $household, string $email): Household
+    public function inviteByEmail(Household $household, string $email, User $actor): Household
     {
         $invitee = User::query()->where('email', $email)->first();
 
@@ -96,6 +94,12 @@ class HouseholdService
         setPermissionsTeamId($household->id);
         Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
         $invitee->assignRole('member');
+
+        $invitee->notify(new HouseholdInviteNotification(
+            inviteUrl: config('app.frontend_url').'/dashboard',
+            householdName: $household->name,
+            inviterName: $actor->name,
+        ));
 
         return $this->loadHousehold($household);
     }
@@ -131,6 +135,58 @@ class HouseholdService
         }
 
         return $this->loadHousehold($household);
+    }
+
+    /**
+     * Transfer ownership from the current owner to an existing member.
+     * The actor becomes a regular member; the target becomes the new owner.
+     *
+     * @throws ValidationException
+     */
+    public function transferOwnership(Household $household, User $actor, User $newOwner): Household
+    {
+        $targetMembership = $household->householdMembers()
+            ->where('user_id', $newOwner->id)
+            ->first();
+
+        if ($targetMembership === null) {
+            throw ValidationException::withMessages([
+                'user' => ['This user is not a member of your household.'],
+            ]);
+        }
+
+        if ($newOwner->id === $actor->id) {
+            throw ValidationException::withMessages([
+                'user' => ['You are already the owner.'],
+            ]);
+        }
+
+        // Swap roles in household_members table
+        $household->householdMembers()
+            ->where('user_id', $actor->id)
+            ->update(['role' => HouseholdRole::Member]);
+
+        $targetMembership->update(['role' => HouseholdRole::Owner]);
+
+        // Sync Spatie permission roles scoped to this household
+        setPermissionsTeamId($household->id);
+        Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
+
+        $actor->syncRoles(['member']);
+        $newOwner->syncRoles(['owner']);
+
+        return $this->loadHousehold($household);
+    }
+
+    /**
+     * Delete the household and all associated data.
+     * DB cascades handle: household_members, pets, vet_clinics, food_products, reminders.
+     * nullOnDelete on users.current_household_id clears member references automatically.
+     */
+    public function delete(Household $household): void
+    {
+        $household->delete();
     }
 
     /**

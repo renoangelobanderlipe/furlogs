@@ -6,6 +6,8 @@ use App\Enums\HouseholdRole;
 use App\Models\Household;
 use App\Models\HouseholdMember;
 use App\Models\User;
+use App\Notifications\HouseholdInviteNotification;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 
 // ---------------------------------------------------------------------------
@@ -135,6 +137,8 @@ it('validates name is required when renaming', function () {
 // ---------------------------------------------------------------------------
 
 it('owner can invite a user by email', function () {
+    Notification::fake();
+
     [$owner, $household] = householdWithOwner();
     $invitee = User::factory()->create();
 
@@ -151,6 +155,8 @@ it('owner can invite a user by email', function () {
     )->toBeTrue();
 
     expect($invitee->fresh()->current_household_id)->toBe($household->id);
+
+    Notification::assertSentTo($invitee, HouseholdInviteNotification::class);
 });
 
 it('invite returns 422 when email has no account', function () {
@@ -253,4 +259,110 @@ it('outsider cannot remove a member from another household', function () {
     $this->actingAs($outsider)
         ->deleteJson("/api/households/{$household->id}/members/{$member->id}")
         ->assertForbidden();
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/households/{household}/transfer-ownership/{user}
+// ---------------------------------------------------------------------------
+
+it('owner can transfer ownership to a member', function () {
+    [$owner, $household] = householdWithOwner();
+    $member = addMemberToHousehold($household);
+
+    $response = $this->actingAs($owner)
+        ->postJson("/api/households/{$household->id}/transfer-ownership/{$member->id}");
+
+    $response->assertOk();
+
+    // New owner's role updated in household_members
+    expect(
+        HouseholdMember::query()
+            ->where('household_id', $household->id)
+            ->where('user_id', $member->id)
+            ->value('role'),
+    )->toBe(HouseholdRole::Owner);
+
+    // Old owner is now a member
+    expect(
+        HouseholdMember::query()
+            ->where('household_id', $household->id)
+            ->where('user_id', $owner->id)
+            ->value('role'),
+    )->toBe(HouseholdRole::Member);
+});
+
+it('member cannot transfer ownership', function () {
+    [$owner, $household] = householdWithOwner();
+    $member = addMemberToHousehold($household);
+    $other = addMemberToHousehold($household);
+
+    $this->actingAs($member)
+        ->postJson("/api/households/{$household->id}/transfer-ownership/{$other->id}")
+        ->assertForbidden();
+});
+
+it('cannot transfer ownership to oneself', function () {
+    [$owner, $household] = householdWithOwner();
+
+    $this->actingAs($owner)
+        ->postJson("/api/households/{$household->id}/transfer-ownership/{$owner->id}")
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.user.0', 'You are already the owner.');
+});
+
+it('cannot transfer ownership to a non-member', function () {
+    [$owner, $household] = householdWithOwner();
+    $outsider = User::factory()->create();
+
+    $this->actingAs($owner)
+        ->postJson("/api/households/{$household->id}/transfer-ownership/{$outsider->id}")
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.user.0', 'This user is not a member of your household.');
+});
+
+// ---------------------------------------------------------------------------
+// DELETE /api/households/{household}
+// ---------------------------------------------------------------------------
+
+it('owner can delete the household', function () {
+    [$owner, $household] = householdWithOwner();
+    $householdId = $household->id;
+
+    $this->actingAs($owner)
+        ->deleteJson("/api/households/{$householdId}")
+        ->assertNoContent();
+
+    expect(Household::query()->find($householdId))->toBeNull();
+    expect($owner->fresh()->current_household_id)->toBeNull();
+});
+
+it('member cannot delete the household', function () {
+    [$owner, $household] = householdWithOwner();
+    $member = addMemberToHousehold($household);
+
+    $this->actingAs($member)
+        ->deleteJson("/api/households/{$household->id}")
+        ->assertForbidden();
+});
+
+it('outsider cannot delete a household', function () {
+    [, $household] = householdWithOwner();
+    $outsider = User::factory()->create();
+
+    $this->actingAs($outsider)
+        ->deleteJson("/api/households/{$household->id}")
+        ->assertForbidden();
+});
+
+it('deleting a household removes all members', function () {
+    [$owner, $household] = householdWithOwner();
+    $member = addMemberToHousehold($household);
+    $householdId = $household->id;
+
+    $this->actingAs($owner)
+        ->deleteJson("/api/households/{$householdId}")
+        ->assertNoContent();
+
+    expect(HouseholdMember::query()->where('household_id', $householdId)->count())->toBe(0);
+    expect($member->fresh()->current_household_id)->toBeNull();
 });

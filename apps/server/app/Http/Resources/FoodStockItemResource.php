@@ -41,6 +41,15 @@ class FoodStockItemResource extends JsonResource
                     'foodProduct',
                     fn () => new FoodProductResource($item->foodProduct),
                 ),
+                'consumptionLog' => $this->whenLoaded(
+                    'consumptionLog',
+                    fn () => $item->consumptionLog ? [
+                        'actualDurationDays' => $item->consumptionLog->actual_duration_days,
+                        'actualDailyRateGrams' => $item->consumptionLog->actual_daily_rate_grams,
+                        'estimatedVsActualDiff' => $item->consumptionLog->estimated_vs_actual_diff,
+                        'createdAt' => $item->consumptionLog->created_at->toISOString(),
+                    ] : null,
+                ),
             ],
         ];
     }

@@ -105,6 +105,9 @@ export const petEndpoints = {
       { weight_kg: weightKg, recorded_at: recordedAt },
     ),
 
+  deleteWeight: (petId: number, weightId: number) =>
+    apiClient.delete(`/api/pets/${petId}/weights/${weightId}`),
+
   uploadAvatar: (petId: number, file: File) => {
     const formData = new FormData();
     formData.append("avatar", file);

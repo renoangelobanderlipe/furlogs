@@ -154,9 +154,24 @@ it('owner can invite a user by email', function () {
         ->exists(),
     )->toBeTrue();
 
-    expect($invitee->fresh()->current_household_id)->toBe($household->id);
+    // Invitee keeps their own active household — inviting does not forcibly switch them.
+    expect($invitee->fresh()->current_household_id)->toBeNull();
 
     Notification::assertSentTo($invitee, HouseholdInviteNotification::class);
+});
+
+it('inviting a user who owns their own household does not change their active household', function () {
+    Notification::fake();
+
+    [$owner, $household] = householdWithOwner();
+    [$invitee, $inviteeHousehold] = householdWithOwner();
+
+    $this->actingAs($owner)
+        ->postJson("/api/households/{$household->id}/invite", ['email' => $invitee->email])
+        ->assertOk();
+
+    // Invitee still points to their own household.
+    expect($invitee->fresh()->current_household_id)->toBe($inviteeHousehold->id);
 });
 
 it('invite returns 422 when email has no account', function () {
@@ -228,6 +243,37 @@ it('member can leave (remove themselves)', function () {
     $response->assertOk();
 
     expect($member->fresh()->current_household_id)->toBeNull();
+});
+
+it('removes member and nulls their current_household_id when it pointed to this household', function () {
+    [$owner, $household] = householdWithOwner();
+    $member = addMemberToHousehold($household);
+
+    $this->actingAs($owner)
+        ->deleteJson("/api/households/{$household->id}/members/{$member->id}")
+        ->assertOk();
+
+    expect($member->fresh()->current_household_id)->toBeNull();
+});
+
+it('removes member but keeps their current_household_id if they already switched away', function () {
+    [$owner, $household] = householdWithOwner();
+    [, $ownHousehold] = householdWithOwner();
+    $member = User::factory()->create(['current_household_id' => $ownHousehold->id]);
+
+    HouseholdMember::factory()->create([
+        'household_id' => $household->id,
+        'user_id' => $member->id,
+        'role' => HouseholdRole::Member,
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($owner)
+        ->deleteJson("/api/households/{$household->id}/members/{$member->id}")
+        ->assertOk();
+
+    // They were viewing their own household, not this one — pointer unchanged.
+    expect($member->fresh()->current_household_id)->toBe($ownHousehold->id);
 });
 
 it('member cannot remove another member', function () {
@@ -318,6 +364,87 @@ it('cannot transfer ownership to a non-member', function () {
         ->postJson("/api/households/{$household->id}/transfer-ownership/{$outsider->id}")
         ->assertUnprocessable()
         ->assertJsonPath('errors.user.0', 'This user is not a member of your household.');
+});
+
+// ---------------------------------------------------------------------------
+// DELETE /api/households/{household}
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// GET /api/user/households
+// ---------------------------------------------------------------------------
+
+it('lists all households the user belongs to', function () {
+    [$user, $householdA] = householdWithOwner();
+    [$owner2, $householdB] = householdWithOwner();
+
+    // Add user to a second household as member
+    HouseholdMember::factory()->create([
+        'household_id' => $householdB->id,
+        'user_id' => $user->id,
+        'role' => HouseholdRole::Member,
+        'joined_at' => now(),
+    ]);
+
+    $response = $this->actingAs($user)->getJson('/api/user/households');
+
+    $response->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.id', $householdA->id)
+        ->assertJsonPath('data.0.role', 'owner')
+        ->assertJsonPath('data.1.id', $householdB->id)
+        ->assertJsonPath('data.1.role', 'member');
+});
+
+it('requires authentication to list user households', function () {
+    $this->getJson('/api/user/households')->assertUnauthorized();
+});
+
+// ---------------------------------------------------------------------------
+// PATCH /api/user/switch-household
+// ---------------------------------------------------------------------------
+
+it('user can switch to a household they belong to', function () {
+    [$user, $householdA] = householdWithOwner();
+    [$owner2, $householdB] = householdWithOwner();
+
+    HouseholdMember::factory()->create([
+        'household_id' => $householdB->id,
+        'user_id' => $user->id,
+        'role' => HouseholdRole::Member,
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->patchJson('/api/user/switch-household', ['household_id' => $householdB->id])
+        ->assertOk()
+        ->assertJsonPath('data.id', $householdB->id);
+
+    expect($user->fresh()->current_household_id)->toBe($householdB->id);
+});
+
+it('cannot switch to a household the user is not a member of', function () {
+    [$user] = householdWithOwner();
+    [, $otherHousehold] = householdWithOwner();
+
+    $this->actingAs($user)
+        ->patchJson('/api/user/switch-household', ['household_id' => $otherHousehold->id])
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.household_id.0', 'You are not a member of this household.');
+});
+
+it('validates household_id is required when switching', function () {
+    [$user] = householdWithOwner();
+
+    $this->actingAs($user)
+        ->patchJson('/api/user/switch-household', [])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['household_id']);
+});
+
+it('requires authentication to switch household', function () {
+    $this->patchJson('/api/user/switch-household', ['household_id' => fake()->uuid()])
+        ->assertUnauthorized();
 });
 
 // ---------------------------------------------------------------------------

@@ -6,8 +6,10 @@ namespace App\Services;
 
 use App\Enums\HouseholdRole;
 use App\Models\Household;
+use App\Models\HouseholdMember;
 use App\Models\User;
 use App\Notifications\HouseholdInviteNotification;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
@@ -89,8 +91,6 @@ class HouseholdService
             'joined_at' => now(),
         ]);
 
-        $invitee->update(['current_household_id' => $household->id]);
-
         setPermissionsTeamId($household->id);
         Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
         $invitee->assignRole('member');
@@ -130,8 +130,16 @@ class HouseholdService
 
         $targetMembership->delete();
 
-        if ($actor->id === $target->id) {
-            $target->update(['current_household_id' => null]);
+        // If the removed user's active household was this one, switch them to their
+        // next remaining membership or null their pointer entirely.
+        if ($target->current_household_id === $household->id) {
+            $nextMembership = HouseholdMember::query()
+                ->where('user_id', $target->id)
+                ->where('household_id', '!=', $household->id)
+                ->orderBy('joined_at')
+                ->first();
+
+            $target->update(['current_household_id' => $nextMembership?->household_id]);
         }
 
         return $this->loadHousehold($household);
@@ -177,6 +185,39 @@ class HouseholdService
         $newOwner->syncRoles(['owner']);
 
         return $this->loadHousehold($household);
+    }
+
+    /**
+     * Return all households the user belongs to, with their role in each.
+     *
+     * @return Collection<int, Household>
+     */
+    public function getUserHouseholds(User $user): Collection
+    {
+        return $user->households()->orderBy('household_members.joined_at')->get();
+    }
+
+    /**
+     * Switch the user's active household. Validates they are a member first.
+     *
+     * @throws ValidationException
+     */
+    public function switchHousehold(User $user, string $householdId): Household
+    {
+        $membership = HouseholdMember::query()
+            ->where('user_id', $user->id)
+            ->where('household_id', $householdId)
+            ->first();
+
+        if ($membership === null) {
+            throw ValidationException::withMessages([
+                'household_id' => ['You are not a member of this household.'],
+            ]);
+        }
+
+        $user->update(['current_household_id' => $householdId]);
+
+        return Household::query()->findOrFail($householdId);
     }
 
     /**

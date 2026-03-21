@@ -6,8 +6,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateHouseholdRequest;
 use App\Http\Requests\InviteMemberRequest;
+use App\Http\Requests\SwitchHouseholdRequest;
 use App\Http\Requests\UpdateHouseholdRequest;
 use App\Http\Resources\HouseholdResource;
+use App\Http\Resources\UserHouseholdResource;
 use App\Models\Household;
 use App\Models\User;
 use App\Services\HouseholdService;
@@ -81,6 +83,23 @@ class HouseholdController extends Controller
         );
 
         return response()->json(['data' => new HouseholdResource($updated)]);
+    }
+
+    public function userHouseholds(Request $request): JsonResponse
+    {
+        $households = $this->householdService->getUserHouseholds($request->user());
+
+        return response()->json(['data' => UserHouseholdResource::collection($households)]);
+    }
+
+    public function switchHousehold(SwitchHouseholdRequest $request): JsonResponse
+    {
+        $household = $this->householdService->switchHousehold(
+            user: $request->user(),
+            householdId: $request->string('household_id')->toString(),
+        );
+
+        return response()->json(['data' => ['id' => $household->id, 'name' => $household->name]]);
     }
 
     public function destroy(Household $household): Response

@@ -102,5 +102,7 @@ export const householdKeys = {
 export const administrationKeys = {
   all: ["administrations"] as const,
   forMedication: (medicationId: number, date?: string) =>
-    [...administrationKeys.all, "medication", medicationId, date] as const,
+    date
+      ? ([...administrationKeys.all, "medication", medicationId, date] as const)
+      : ([...administrationKeys.all, "medication", medicationId] as const),
 };

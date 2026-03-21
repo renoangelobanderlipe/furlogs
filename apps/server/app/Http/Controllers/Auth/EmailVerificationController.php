@@ -35,7 +35,9 @@ class EmailVerificationController extends Controller
             }
         }
 
-        return redirect("{$frontendUrl}/login?verified=1");
+        $destination = $user->current_household_id ? '/pets' : '/onboarding';
+
+        return redirect("{$frontendUrl}{$destination}?verified=1");
     }
 
     public function resend(Request $request): JsonResponse

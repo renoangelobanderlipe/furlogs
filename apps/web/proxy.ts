@@ -34,7 +34,11 @@ export function proxy(request: NextRequest) {
     dashboardRoutes.some((r) => pathname === r || pathname.startsWith(`${r}/`))
   ) {
     if (!hasSession) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      const loginUrl = new URL("/login", request.url);
+      if (searchParams.has("verified")) {
+        loginUrl.searchParams.set("verified", "1");
+      }
+      return NextResponse.redirect(loginUrl);
     }
   }
 

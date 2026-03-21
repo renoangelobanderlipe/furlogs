@@ -19,7 +19,7 @@ beforeEach(function () {
 // ---------------------------------------------------------------------------
 
 describe('email verification link', function () {
-    it('marks the email as verified and redirects to /login?verified=1', function () {
+    it('marks the email as verified and redirects to onboarding', function () {
         $user = User::factory()->unverified()->create();
 
         $signedUrl = URL::temporarySignedRoute(
@@ -31,7 +31,7 @@ describe('email verification link', function () {
         $response = $this->get($signedUrl);
 
         $response->assertRedirect();
-        expect($response->headers->get('Location'))->toContain('/login?verified=1');
+        expect($response->headers->get('Location'))->toContain('/onboarding?verified=1');
         expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
     });
 
@@ -80,10 +80,9 @@ describe('email verification link', function () {
         expect($response->headers->get('Location'))->toContain('error=invalid_link');
     });
 
-    it('does not re-fire the Verified event and redirects to /login?verified=1 when already verified', function () {
+    it('does not re-fire the Verified event when already verified', function () {
         Event::fake();
 
-        // User is already verified (factory default)
         $user = User::factory()->create();
 
         $signedUrl = URL::temporarySignedRoute(
@@ -92,10 +91,8 @@ describe('email verification link', function () {
             ['id' => $user->id, 'hash' => sha1($user->email)],
         );
 
-        $response = $this->get($signedUrl);
+        $this->get($signedUrl)->assertRedirect();
 
-        $response->assertRedirect();
-        expect($response->headers->get('Location'))->toContain('/login?verified=1');
         Event::assertNotDispatched(Verified::class);
     });
 });

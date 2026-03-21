@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, PawPrint } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,6 @@ import {
   type ResetPasswordFormValues,
   resetPasswordSchema,
 } from "@/lib/validation/auth.schema";
-
-import { Suspense } from "react";
 
 function ResetPasswordContent() {
   const router = useRouter();

@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, PawPrint, PlusCircle, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Suspense } from "react";
 import { useCreatePet, usePets, useUploadPetAvatar } from "@/hooks/api/usePets";
 import type { Pet } from "@/lib/api/pets";
 import { petEndpoints } from "@/lib/api/pets";

@@ -376,7 +376,7 @@ it('cannot transfer ownership to a non-member', function () {
 
 it('lists all households the user belongs to', function () {
     [$user, $householdA] = householdWithOwner();
-    [$owner2, $householdB] = householdWithOwner();
+    [, $householdB] = householdWithOwner();
 
     // Add user to a second household as member
     HouseholdMember::factory()->create([
@@ -405,8 +405,8 @@ it('requires authentication to list user households', function () {
 // ---------------------------------------------------------------------------
 
 it('user can switch to a household they belong to', function () {
-    [$user, $householdA] = householdWithOwner();
-    [$owner2, $householdB] = householdWithOwner();
+    [$user] = householdWithOwner();
+    [, $householdB] = householdWithOwner();
 
     HouseholdMember::factory()->create([
         'household_id' => $householdB->id,

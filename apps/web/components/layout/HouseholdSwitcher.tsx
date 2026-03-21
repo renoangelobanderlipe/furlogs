@@ -66,7 +66,7 @@ export function HouseholdSwitcher({
           </div>
         ) : (
           households.map((household) => {
-            const isActive = household.id === user?.current_household_id;
+            const isActive = household.id === active?.id;
             const isPending =
               switchHousehold.isPending &&
               switchHousehold.variables === household.id;

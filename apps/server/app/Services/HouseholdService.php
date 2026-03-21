@@ -130,8 +130,6 @@ class HouseholdService
 
         $targetMembership->delete();
 
-        // If the removed user's active household was this one, switch them to their
-        // next remaining membership or null their pointer entirely.
         if ($target->current_household_id === $household->id) {
             $nextMembership = HouseholdMember::query()
                 ->where('user_id', $target->id)
@@ -194,7 +192,7 @@ class HouseholdService
      */
     public function getUserHouseholds(User $user): Collection
     {
-        return $user->households()->orderBy('household_members.joined_at')->get();
+        return $user->households()->orderByPivot('joined_at')->get();
     }
 
     /**
@@ -204,12 +202,9 @@ class HouseholdService
      */
     public function switchHousehold(User $user, string $householdId): Household
     {
-        $membership = HouseholdMember::query()
-            ->where('user_id', $user->id)
-            ->where('household_id', $householdId)
-            ->first();
+        $household = $user->households()->find($householdId);
 
-        if ($membership === null) {
+        if ($household === null) {
             throw ValidationException::withMessages([
                 'household_id' => ['You are not a member of this household.'],
             ]);
@@ -217,7 +212,7 @@ class HouseholdService
 
         $user->update(['current_household_id' => $householdId]);
 
-        return Household::query()->findOrFail($householdId);
+        return $household;
     }
 
     /**

@@ -17,16 +17,12 @@ class UserHouseholdResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var Household $household */
-        $household = $this->resource;
-
-        /** @var HouseholdRole|string $role */
-        $role = $household->pivot->role ?? HouseholdRole::Member;
+        $role = $this->pivot->role ?? HouseholdRole::Member;
 
         return [
-            'id' => $household->id,
-            'name' => $household->name,
-            'role' => $role instanceof HouseholdRole ? $role->value : $role,
+            'id' => $this->id,
+            'name' => $this->name,
+            'role' => $role->value,
         ];
     }
 }

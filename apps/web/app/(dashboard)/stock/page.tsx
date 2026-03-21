@@ -353,10 +353,7 @@ export default function StockPage() {
                   size="sm"
                   variant="outline"
                   className="mt-4"
-                  onClick={() => {
-                    setLogPurchaseProductId(null);
-                    setLogPurchaseOpen(true);
-                  }}
+                  onClick={() => setLogPurchaseFor(null)}
                 >
                   <ShoppingCart className="mr-2 h-3.5 w-3.5" />
                   Log Purchase

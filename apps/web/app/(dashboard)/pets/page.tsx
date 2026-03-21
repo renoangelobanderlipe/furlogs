@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Suspense } from "react";
 import { useCreatePet, usePets, useUploadPetAvatar } from "@/hooks/api/usePets";
 import type { Pet } from "@/lib/api/pets";
 import { petEndpoints } from "@/lib/api/pets";
@@ -56,7 +57,7 @@ function formatAge(birthday: string | null, age: number | null): string {
   return yr === 1 ? "1 year" : `${yr} years`;
 }
 
-export default function PetsPage() {
+function PetsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -530,5 +531,13 @@ export default function PetsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function PetsPage() {
+  return (
+    <Suspense>
+      <PetsContent />
+    </Suspense>
   );
 }

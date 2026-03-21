@@ -17,7 +17,9 @@ import {
   resetPasswordSchema,
 } from "@/lib/validation/auth.schema";
 
-export default function ResetPasswordPage() {
+import { Suspense } from "react";
+
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
@@ -156,5 +158,13 @@ export default function ResetPasswordPage() {
         </p>
       </CardContent>
     </Card>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

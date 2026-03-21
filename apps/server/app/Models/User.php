@@ -42,7 +42,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Household::class, 'current_household_id');
     }
 
-    /** @return BelongsToMany<Household, $this> */
+    /** @return BelongsToMany<Household, $this, HouseholdMember> */
     public function households(): BelongsToMany
     {
         return $this->belongsToMany(Household::class, 'household_members')

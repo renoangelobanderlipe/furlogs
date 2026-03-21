@@ -21,7 +21,7 @@ class UserHouseholdResource extends JsonResource
         $household = $this->resource;
 
         /** @var HouseholdRole|string $role */
-        $role = $household->pivot?->role ?? HouseholdRole::Member;
+        $role = $household->pivot->role ?? HouseholdRole::Member;
 
         return [
             'id' => $household->id,

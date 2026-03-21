@@ -192,14 +192,16 @@ export function PetForm({
           control={control}
           render={({ field }) => (
             <Select
-              value={field.value ?? ""}
-              onValueChange={(v) => field.onChange(v || undefined)}
+              value={field.value ?? "none"}
+              onValueChange={(v) =>
+                field.onChange(v === "none" ? undefined : v)
+              }
             >
               <SelectTrigger id="size" className="bg-card">
                 <SelectValue placeholder="Not specified" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Not specified</SelectItem>
+                <SelectItem value="none">Not specified</SelectItem>
                 {SIZE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
                     {opt.label}

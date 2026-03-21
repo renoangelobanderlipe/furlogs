@@ -40,6 +40,7 @@ import { SPECIES_EMOJI } from "@/lib/constants";
 import { formatCurrency, formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { PetFormValues } from "@/lib/validation/pet.schema";
+import { useHouseholdStore } from "@/stores/useHouseholdStore";
 
 type Tab = "overview" | "vet-visits" | "vaccinations" | "medications";
 
@@ -55,6 +56,8 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const selectPet = useHouseholdStore((s) => s.selectPet);
 
   const { data: pet, isLoading, isError } = usePet(id);
   const updatePet = useUpdatePet();
@@ -150,6 +153,17 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
       })
     : "—";
 
+  const navigateWithPetFilter = (path: string) => {
+    selectPet(id, name);
+    router.push(path);
+  };
+
+  const tabCounts: Partial<Record<Tab, number>> = {
+    "vet-visits": vetVisitsData?.data?.length ?? 0,
+    vaccinations: vaccinationsData?.data?.length ?? 0,
+    medications: medicationsData?.data?.length ?? 0,
+  };
+
   const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [
     { key: "overview", label: "Overview", icon: PawPrint },
     { key: "vet-visits", label: "Vet Visits", icon: Stethoscope },
@@ -174,14 +188,6 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
         <span>/</span>
         <span className="text-foreground">{name}</span>
       </nav>
-
-      {/* Back button */}
-      <Button asChild variant="ghost" size="sm" className="mb-4 gap-2">
-        <NextLink href="/pets">
-          <ArrowLeft className="h-4 w-4" />
-          Back to pets
-        </NextLink>
-      </Button>
 
       {/* Hero section */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -222,22 +228,23 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
         </div>
 
         <div className="flex gap-2">
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsEditDialogOpen(true)}
             aria-label="Edit pet"
-            className="flex h-12 w-12 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
             <Pencil className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsDeleteDialogOpen(true)}
             aria-label="Delete pet"
-            className="flex h-12 w-12 items-center justify-center rounded-md text-destructive transition-colors hover:bg-destructive/10"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
           >
             <Trash2 className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -257,13 +264,25 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
           >
             <t.icon className="h-4 w-4" />
             {t.label}
+            {t.key !== "overview" && (tabCounts[t.key] ?? 0) > 0 && (
+              <span
+                className={cn(
+                  "ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+                  activeTab === t.key
+                    ? "bg-primary/15 text-primary"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                {tabCounts[t.key]}
+              </span>
+            )}
           </button>
         ))}
       </div>
 
       {/* Tab: Overview */}
       {activeTab === "overview" && (
-        <div>
+        <div className="animate-fade-in-up">
           <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
             <StatCard label="Age" value={ageDisplay} icon={<PawPrint />} />
             <StatCard
@@ -299,7 +318,7 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
 
       {/* Tab: Vet Visits */}
       {activeTab === "vet-visits" && (
-        <div className="space-y-3">
+        <div className="space-y-3 animate-fade-in-up">
           {visitsLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: skeleton list
@@ -312,8 +331,12 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
               <p className="text-sm text-muted-foreground mt-1">
                 Vet visits for {name} will appear here
               </p>
-              <Button asChild size="sm" className="mt-4">
-                <NextLink href="/vet-visits">Go to Vet Visits</NextLink>
+              <Button
+                size="sm"
+                className="mt-4"
+                onClick={() => navigateWithPetFilter("/vet-visits")}
+              >
+                Add a Vet Visit
               </Button>
             </div>
           ) : (
@@ -349,7 +372,7 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
 
       {/* Tab: Vaccinations */}
       {activeTab === "vaccinations" && (
-        <div>
+        <div className="animate-fade-in-up">
           {vaccsLoading ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -364,8 +387,12 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
               <p className="text-sm text-muted-foreground mt-1">
                 Vaccination records for {name} will appear here
               </p>
-              <Button asChild size="sm" className="mt-4">
-                <NextLink href="/vaccinations">Go to Vaccinations</NextLink>
+              <Button
+                size="sm"
+                className="mt-4"
+                onClick={() => navigateWithPetFilter("/vaccinations")}
+              >
+                Add a Vaccination
               </Button>
             </div>
           ) : (
@@ -380,7 +407,7 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
 
       {/* Tab: Medications */}
       {activeTab === "medications" && (
-        <div className="space-y-3">
+        <div className="space-y-3 animate-fade-in-up">
           {medsLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: skeleton list
@@ -393,8 +420,12 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
               <p className="text-sm text-muted-foreground mt-1">
                 Medications for {name} will appear here
               </p>
-              <Button asChild size="sm" className="mt-4">
-                <NextLink href="/medications">Go to Medications</NextLink>
+              <Button
+                size="sm"
+                className="mt-4"
+                onClick={() => navigateWithPetFilter("/medications")}
+              >
+                Add a Medication
               </Button>
             </div>
           ) : (

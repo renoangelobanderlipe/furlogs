@@ -58,3 +58,21 @@ export function formatRelativeDueDate(dueDate: string): string {
   if (diffDays === 1) return "Tomorrow";
   return due.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
+
+/**
+ * Formats a pet's age from birthday or pre-calculated age value.
+ * Returns months for pets under 1 year, years otherwise.
+ */
+export function formatAge(birthday: string | null, age: number | null): string {
+  if (age !== null) return age === 1 ? "1 year" : `${age} years`;
+  if (!birthday) return "—";
+  const birth = new Date(birthday);
+  const now = new Date();
+  const totalMonths =
+    (now.getFullYear() - birth.getFullYear()) * 12 +
+    (now.getMonth() - birth.getMonth());
+  if (totalMonths < 12)
+    return totalMonths <= 1 ? "1 month" : `${totalMonths} months`;
+  const yr = Math.floor(totalMonths / 12);
+  return yr === 1 ? "1 year" : `${yr} years`;
+}

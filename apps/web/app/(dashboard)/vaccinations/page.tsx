@@ -49,6 +49,7 @@ import {
   type VaccinationFormValues,
   vaccinationSchema,
 } from "@/lib/validation/vaccination.schema";
+import { useHouseholdStore } from "@/stores/useHouseholdStore";
 
 const STATUS_CONFIG: Record<
   VaccinationStatus,
@@ -82,10 +83,13 @@ const STATUS_FILTER_OPTIONS: {
 ];
 
 export default function VaccinationsPage() {
+  const initialVaccPetId = useHouseholdStore((s) =>
+    s.isPetFilterActive && s.selectedPetId ? s.selectedPetId : "all",
+  );
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [petFilter, setPetFilter] = useState("all");
+  const [petFilter, setPetFilter] = useState(initialVaccPetId);
   const [statusFilter, setStatusFilter] = useState<VaccinationStatus | "all">(
     "all",
   );

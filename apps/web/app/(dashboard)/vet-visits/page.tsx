@@ -28,6 +28,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -442,18 +443,21 @@ export default function VetVisitsPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Log Vet Visit</DialogTitle>
+            <DialogDescription>
+              Record a vet appointment for your pet.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Pet <span className="text-destructive">*</span>
                 </Label>
                 <Select
                   value={form.petId}
                   onValueChange={(v) => setForm((p) => ({ ...p, petId: v }))}
                 >
-                  <SelectTrigger className="mt-1.5 bg-background">
+                  <SelectTrigger className="mt-1.5 bg-muted/50">
                     <SelectValue placeholder="Select pet" />
                   </SelectTrigger>
                   <SelectContent>
@@ -467,14 +471,14 @@ export default function VetVisitsPage() {
                 </Select>
               </div>
               <div>
-                <Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Type <span className="text-destructive">*</span>
                 </Label>
                 <Select
                   value={form.type}
                   onValueChange={(v) => setForm((p) => ({ ...p, type: v }))}
                 >
-                  <SelectTrigger className="mt-1.5 bg-background">
+                  <SelectTrigger className="mt-1.5 bg-muted/50">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
@@ -489,7 +493,7 @@ export default function VetVisitsPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Date <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -498,11 +502,13 @@ export default function VetVisitsPage() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, date: e.target.value }))
                   }
-                  className="mt-1.5 bg-background"
+                  className="mt-1.5 bg-muted/50"
                 />
               </div>
               <div>
-                <Label>Cost (₱)</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Cost (₱)
+                </Label>
                 <Input
                   type="number"
                   value={form.cost}
@@ -510,19 +516,21 @@ export default function VetVisitsPage() {
                     setForm((p) => ({ ...p, cost: e.target.value }))
                   }
                   placeholder="0"
-                  className="mt-1.5 bg-background"
+                  className="mt-1.5 bg-muted/50"
                 />
               </div>
             </div>
             <div>
-              <Label>Clinic</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Clinic
+              </Label>
               <Select
                 value={form.clinic}
                 onValueChange={(v) =>
                   setForm((p) => ({ ...p, clinic: v === "none" ? "" : v }))
                 }
               >
-                <SelectTrigger className="mt-1.5 bg-background">
+                <SelectTrigger className="mt-1.5 bg-muted/50">
                   <SelectValue placeholder="Select clinic" />
                 </SelectTrigger>
                 <SelectContent>
@@ -536,22 +544,27 @@ export default function VetVisitsPage() {
               </Select>
             </div>
             <div>
-              <Label>Diagnosis / Notes</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Diagnosis / Notes
+              </Label>
               <Textarea
                 value={form.diagnosis}
                 onChange={(e) =>
                   setForm((p) => ({ ...p, diagnosis: e.target.value }))
                 }
-                className="mt-1.5 bg-background"
+                className="mt-1.5 bg-muted/50"
                 rows={2}
               />
             </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="ghost" size="sm">
+                Cancel
+              </Button>
             </DialogClose>
             <Button
+              size="sm"
               onClick={handleAdd}
               disabled={
                 !form.petId || !form.date || !form.type || createVisit.isPending

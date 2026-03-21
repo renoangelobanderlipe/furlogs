@@ -31,6 +31,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -428,17 +429,20 @@ export default function WeightHistoryPage() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Record Weight</DialogTitle>
+            <DialogDescription>
+              Log your pet's current weight.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Pet <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={form.petId}
                 onValueChange={(v) => setForm((p) => ({ ...p, petId: v }))}
               >
-                <SelectTrigger className="mt-1.5 bg-background">
+                <SelectTrigger className="mt-1.5 bg-muted/50">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
@@ -453,7 +457,7 @@ export default function WeightHistoryPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Date <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -462,11 +466,11 @@ export default function WeightHistoryPage() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, date: e.target.value }))
                   }
-                  className="mt-1.5 bg-background"
+                  className="mt-1.5 bg-muted/50"
                 />
               </div>
               <div>
-                <Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Weight (kg) <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -477,16 +481,19 @@ export default function WeightHistoryPage() {
                     setForm((p) => ({ ...p, weight: e.target.value }))
                   }
                   placeholder="0.0"
-                  className="mt-1.5 bg-background"
+                  className="mt-1.5 bg-muted/50"
                 />
               </div>
             </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="ghost" size="sm">
+                Cancel
+              </Button>
             </DialogClose>
             <Button
+              size="sm"
               onClick={handleAdd}
               disabled={
                 !form.petId ||

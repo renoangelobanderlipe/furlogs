@@ -2,6 +2,9 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  Camera,
+  FileText,
+  Heart,
   Loader2,
   MoreVertical,
   PlusCircle,
@@ -9,6 +12,7 @@ import {
   Stethoscope,
   Syringe,
   Upload,
+  User,
   X,
 } from "lucide-react";
 import Image from "next/image";
@@ -25,6 +29,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -325,265 +330,287 @@ function PetsContent() {
 
       {/* Add Pet Dialog */}
       <Dialog open={dialogOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Pet</DialogTitle>
+            <DialogDescription>
+              Add a new companion to your household.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            <div className="space-y-4 py-2">
-              {/* Photo upload */}
-              <div className="flex flex-col items-center gap-1.5">
-                <div className="relative">
-                  <div
-                    {...getRootProps()}
-                    className={cn(
-                      "flex h-24 w-24 flex-col items-center justify-center rounded-full border-2 border-dashed bg-muted/30 text-muted-foreground transition-colors cursor-pointer overflow-hidden",
-                      isDragActive
-                        ? "border-primary text-primary bg-primary/5"
-                        : "border-border hover:border-primary/50 hover:text-primary",
-                    )}
-                  >
-                    <input {...getInputProps()} />
-                    {avatarPreview ? (
-                      <Image
-                        src={avatarPreview}
-                        alt="Preview"
-                        width={96}
-                        height={96}
-                        unoptimized
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <>
-                        <Upload className="h-5 w-5" />
-                        <span className="text-[9px] mt-0.5">
-                          {isDragActive ? "Drop" : "Photo"}
-                        </span>
-                      </>
+            <div className="space-y-5 py-4">
+              {/* Profile hero — photo + name */}
+              <div className="rounded-2xl border border-border/50 bg-gradient-to-br from-primary/5 to-muted/20 p-5">
+                <div className="flex items-center gap-4">
+                  {/* Photo */}
+                  <div className="relative shrink-0">
+                    <div
+                      {...getRootProps()}
+                      className={cn(
+                        "flex h-20 w-20 flex-col items-center justify-center rounded-full cursor-pointer overflow-hidden transition-all",
+                        isDragActive
+                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background text-primary bg-primary/10"
+                          : "ring-2 ring-border ring-offset-2 ring-offset-background bg-muted/50 text-muted-foreground hover:ring-primary/60 hover:text-primary",
+                      )}
+                    >
+                      <input {...getInputProps()} />
+                      {avatarPreview ? (
+                        <Image
+                          src={avatarPreview}
+                          alt="Preview"
+                          width={80}
+                          height={80}
+                          unoptimized
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <Camera className="h-5 w-5" />
+                          <span className="text-[9px] mt-1 font-medium">
+                            {isDragActive ? "Drop" : "Photo"}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {avatarPreview && (
+                      <button
+                        type="button"
+                        onClick={clearAvatar}
+                        className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     )}
                   </div>
-                  {avatarPreview && (
-                    <button
-                      type="button"
-                      onClick={clearAvatar}
-                      className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-sm"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  )}
+                  {/* Name */}
+                  <div className="flex-1 min-w-0">
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Pet Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      {...register("name")}
+                      placeholder="e.g., Biscuit"
+                      className="mt-1.5 bg-background/60 text-base font-medium"
+                    />
+                    {errors.name && (
+                      <p className="text-xs text-destructive mt-1">
+                        {errors.name.message}
+                      </p>
+                    )}
+                    <p className="text-[10px] text-muted-foreground mt-1.5">
+                      JPG, PNG or WebP · Max 5 MB
+                    </p>
+                  </div>
                 </div>
-                <p className="text-[10px] text-muted-foreground">
-                  JPG, PNG or WebP · Max 5 MB
-                </p>
               </div>
 
               {/* Basic Info section */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <div>
+                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                  <User className="h-3 w-3" />
                   Basic Info
-                </span>
-                <div className="flex-1 h-px bg-border" />
-              </div>
+                </p>
+                <div className="rounded-xl border border-border/50 bg-muted/20 p-4 space-y-4">
+                  {/* Species + Sex */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Species <span className="text-destructive">*</span>
+                      </Label>
+                      <Controller
+                        name="species"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value ?? ""}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="mt-1.5 bg-muted/50">
+                              <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {SPECIES_OPTIONS.map((s) => (
+                                <SelectItem key={s.value} value={s.value}>
+                                  {SPECIES_EMOJI[s.value]} {s.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {errors.species && (
+                        <p className="text-xs text-destructive mt-1">
+                          {errors.species.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Sex <span className="text-destructive">*</span>
+                      </Label>
+                      <Controller
+                        name="sex"
+                        control={control}
+                        render={({ field }) => (
+                          <Select
+                            value={field.value ?? ""}
+                            onValueChange={field.onChange}
+                          >
+                            <SelectTrigger className="mt-1.5 bg-muted/50">
+                              <SelectValue placeholder="Select" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {SEX_OPTIONS.map((s) => (
+                                <SelectItem key={s.value} value={s.value}>
+                                  {s.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                      {errors.sex && (
+                        <p className="text-xs text-destructive mt-1">
+                          {errors.sex.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
-              {/* Name */}
-              <div>
-                <Label>
-                  Name <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  {...register("name")}
-                  placeholder="e.g., Biscuit"
-                  className="mt-1.5 bg-background"
-                />
-                {errors.name && (
-                  <p className="text-xs text-destructive mt-1">
-                    {errors.name.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Species + Sex */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>
-                    Species <span className="text-destructive">*</span>
-                  </Label>
-                  <Controller
-                    name="species"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        value={field.value ?? ""}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="mt-1.5 bg-background">
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SPECIES_OPTIONS.map((s) => (
-                            <SelectItem key={s.value} value={s.value}>
-                              {SPECIES_EMOJI[s.value]} {s.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.species && (
-                    <p className="text-xs text-destructive mt-1">
-                      {errors.species.message}
-                    </p>
-                  )}
+                  {/* Breed */}
+                  <div>
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Breed
+                    </Label>
+                    <Input
+                      {...register("breed")}
+                      placeholder="e.g., Golden Retriever"
+                      className="mt-1.5 bg-muted/50"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>
-                    Sex <span className="text-destructive">*</span>
-                  </Label>
-                  <Controller
-                    name="sex"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        value={field.value ?? ""}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="mt-1.5 bg-background">
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SEX_OPTIONS.map((s) => (
-                            <SelectItem key={s.value} value={s.value}>
-                              {s.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.sex && (
-                    <p className="text-xs text-destructive mt-1">
-                      {errors.sex.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Breed */}
-              <div>
-                <Label>Breed</Label>
-                <Input
-                  {...register("breed")}
-                  placeholder="e.g., Golden Retriever"
-                  className="mt-1.5 bg-background"
-                />
               </div>
 
               {/* Health & Vitals section */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Health &amp; Vitals
-                </span>
-                <div className="flex-1 h-px bg-border" />
-              </div>
-
-              {/* Birthday + Weight */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Birthday</Label>
-                  <Input
-                    type="date"
-                    {...register("birthday")}
-                    className="mt-1.5 bg-background"
-                  />
-                  {errors.birthday && (
-                    <p className="text-xs text-destructive mt-1">
-                      {errors.birthday.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label>Weight (kg)</Label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={latestWeight}
-                    onChange={(e) => setLatestWeight(e.target.value)}
-                    placeholder="0.0"
-                    className="mt-1.5 bg-background"
-                  />
-                </div>
-              </div>
-
-              {/* Size */}
               <div>
-                <Label>Size</Label>
-                <Controller
-                  name="size"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      value={field.value ?? "none"}
-                      onValueChange={(v) =>
-                        field.onChange(v === "none" ? undefined : v)
-                      }
-                    >
-                      <SelectTrigger className="mt-1.5 bg-background">
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Not specified</SelectItem>
-                        {SIZE_OPTIONS.map((s) => (
-                          <SelectItem
-                            key={s.value}
-                            value={s.value}
-                            className="capitalize"
-                          >
-                            {s.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
+                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                  <Heart className="h-3 w-3" />
+                  Health &amp; Vitals
+                </p>
+                <div className="rounded-xl border border-border/50 bg-muted/20 p-4 space-y-4">
+                  {/* Birthday + Weight */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Birthday
+                      </Label>
+                      <Input
+                        type="date"
+                        {...register("birthday")}
+                        className="mt-1.5 bg-muted/50"
+                      />
+                      {errors.birthday && (
+                        <p className="text-xs text-destructive mt-1">
+                          {errors.birthday.message}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Weight (kg)
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.1"
+                        value={latestWeight}
+                        onChange={(e) => setLatestWeight(e.target.value)}
+                        placeholder="0.0"
+                        className="mt-1.5 bg-muted/50"
+                      />
+                    </div>
+                  </div>
 
-              {/* Neutered Switch */}
-              <div className="flex items-center gap-3">
-                <Switch
-                  id="isNeutered"
-                  checked={isNeuteredValue}
-                  onCheckedChange={(v) => setValue("isNeutered", v)}
-                />
-                <Label htmlFor="isNeutered">Is Neutered / Spayed</Label>
+                  {/* Size */}
+                  <div>
+                    <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Size
+                    </Label>
+                    <Controller
+                      name="size"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          value={field.value ?? "none"}
+                          onValueChange={(v) =>
+                            field.onChange(v === "none" ? undefined : v)
+                          }
+                        >
+                          <SelectTrigger className="mt-1.5 bg-muted/50">
+                            <SelectValue placeholder="Select size" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Not specified</SelectItem>
+                            {SIZE_OPTIONS.map((s) => (
+                              <SelectItem
+                                key={s.value}
+                                value={s.value}
+                                className="capitalize"
+                              >
+                                {s.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+
+                  {/* Neutered Switch */}
+                  <div className="flex items-center gap-3 rounded-lg border border-border/50 px-4 py-3">
+                    <Switch
+                      id="isNeutered"
+                      checked={isNeuteredValue}
+                      onCheckedChange={(v) => setValue("isNeutered", v)}
+                    />
+                    <Label
+                      htmlFor="isNeutered"
+                      className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                    >
+                      Is Neutered / Spayed
+                    </Label>
+                  </div>
+                </div>
               </div>
 
               {/* Notes section */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Notes
-                </span>
-                <div className="flex-1 h-px bg-border" />
-              </div>
-
-              {/* Notes */}
               <div>
-                <Textarea
-                  {...register("notes")}
-                  placeholder="Any allergies, special needs..."
-                  className="bg-background"
-                  rows={3}
-                />
+                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                  <FileText className="h-3 w-3" />
+                  Notes
+                </p>
+                <div className="rounded-xl border border-border/50 bg-muted/20 p-4">
+                  <Textarea
+                    {...register("notes")}
+                    placeholder="Any allergies, special needs..."
+                    className="bg-muted/50"
+                    rows={3}
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Allergies, special diet, behavioral notes...
+                  </p>
+                </div>
               </div>
             </div>
 
-            <DialogFooter className="mt-4">
+            <DialogFooter className="flex flex-row items-center justify-between gap-2 border-t border-border pt-5 mt-1">
               <DialogClose asChild>
-                <Button type="button" variant="outline">
+                <Button type="button" variant="ghost" size="sm">
                   Cancel
                 </Button>
               </DialogClose>
               <Button
                 type="submit"
+                size="sm"
                 disabled={createPet.isPending || uploadAvatar.isPending}
               >
                 {(createPet.isPending || uploadAvatar.isPending) && (

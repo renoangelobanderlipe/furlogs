@@ -20,6 +20,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -420,11 +421,14 @@ export default function VaccinationsPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Add Vaccination</DialogTitle>
+            <DialogDescription>
+              Track your pet's immunization history.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="space-y-4 py-2">
               <div>
-                <Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Pet <span className="text-destructive">*</span>
                 </Label>
                 <Controller
@@ -435,7 +439,7 @@ export default function VaccinationsPage() {
                       value={field.value ? String(field.value) : ""}
                       onValueChange={(v) => field.onChange(v)}
                     >
-                      <SelectTrigger className="mt-1.5 bg-background">
+                      <SelectTrigger className="mt-1.5 bg-muted/50">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
@@ -456,13 +460,13 @@ export default function VaccinationsPage() {
                 )}
               </div>
               <div>
-                <Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Vaccine Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   {...register("vaccineName")}
                   placeholder="e.g., DHPP, FVRCP"
-                  className="mt-1.5 bg-background"
+                  className="mt-1.5 bg-muted/50"
                 />
                 {errors.vaccineName && (
                   <p className="text-xs text-destructive mt-1">
@@ -472,13 +476,13 @@ export default function VaccinationsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Date <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     type="date"
                     {...register("administeredDate")}
-                    className="mt-1.5 bg-background"
+                    className="mt-1.5 bg-muted/50"
                   />
                   {errors.administeredDate && (
                     <p className="text-xs text-destructive mt-1">
@@ -487,17 +491,21 @@ export default function VaccinationsPage() {
                   )}
                 </div>
                 <div>
-                  <Label>Next Due</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Next Due
+                  </Label>
                   <Input
                     type="date"
                     {...register("nextDueDate")}
-                    className="mt-1.5 bg-background"
+                    className="mt-1.5 bg-muted/50"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Clinic</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Clinic
+                  </Label>
                   <Controller
                     name="clinicId"
                     control={control}
@@ -508,7 +516,7 @@ export default function VaccinationsPage() {
                           field.onChange(v === "none" ? undefined : v)
                         }
                       >
-                        <SelectTrigger className="mt-1.5 bg-background">
+                        <SelectTrigger className="mt-1.5 bg-muted/50">
                           <SelectValue placeholder="Select clinic" />
                         </SelectTrigger>
                         <SelectContent>
@@ -524,21 +532,27 @@ export default function VaccinationsPage() {
                   />
                 </div>
                 <div>
-                  <Label>Batch #</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Batch #
+                  </Label>
                   <Input
                     {...register("batchNumber")}
-                    className="mt-1.5 bg-background"
+                    className="mt-1.5 bg-muted/50"
                   />
                 </div>
               </div>
             </div>
-            <DialogFooter className="mt-4">
+            <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline">
+                <Button type="button" variant="ghost" size="sm">
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={createVaccination.isPending}>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={createVaccination.isPending}
+              >
                 {createVaccination.isPending && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}

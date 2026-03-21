@@ -22,6 +22,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -539,11 +540,14 @@ export default function MedicationsPage() {
             <DialogTitle>
               {editingMed ? "Edit Medication" : "Add Medication"}
             </DialogTitle>
+            <DialogDescription>
+              Log a treatment plan for your pet.
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="space-y-4 py-2">
               <div>
-                <Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Pet <span className="text-destructive">*</span>
                 </Label>
                 <Select
@@ -552,7 +556,7 @@ export default function MedicationsPage() {
                     setValue("petId", v, { shouldValidate: true })
                   }
                 >
-                  <SelectTrigger className="mt-1.5 bg-background">
+                  <SelectTrigger className="mt-1.5 bg-muted/50">
                     <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
@@ -571,13 +575,13 @@ export default function MedicationsPage() {
                 )}
               </div>
               <div>
-                <Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Medication Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   {...register("name")}
                   placeholder="e.g., Heartgard"
-                  className="mt-1.5 bg-background"
+                  className="mt-1.5 bg-muted/50"
                 />
                 {errors.name && (
                   <p className="text-xs text-destructive mt-1">
@@ -587,13 +591,13 @@ export default function MedicationsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Dosage <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     {...register("dosage")}
                     placeholder="e.g., 1 tablet"
-                    className="mt-1.5 bg-background"
+                    className="mt-1.5 bg-muted/50"
                   />
                   {errors.dosage && (
                     <p className="text-xs text-destructive mt-1">
@@ -602,7 +606,9 @@ export default function MedicationsPage() {
                   )}
                 </div>
                 <div>
-                  <Label>Frequency</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Frequency
+                  </Label>
                   <Select
                     value={frequencyValue ?? ""}
                     onValueChange={(v) =>
@@ -611,7 +617,7 @@ export default function MedicationsPage() {
                       })
                     }
                   >
-                    <SelectTrigger className="mt-1.5 bg-background">
+                    <SelectTrigger className="mt-1.5 bg-muted/50">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
@@ -631,13 +637,13 @@ export default function MedicationsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Start Date <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     type="date"
                     {...register("startDate")}
-                    className="mt-1.5 bg-background"
+                    className="mt-1.5 bg-muted/50"
                   />
                   {errors.startDate && (
                     <p className="text-xs text-destructive mt-1">
@@ -646,22 +652,24 @@ export default function MedicationsPage() {
                   )}
                 </div>
                 <div>
-                  <Label>End Date</Label>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    End Date
+                  </Label>
                   <Input
                     type="date"
                     {...register("endDate")}
-                    className="mt-1.5 bg-background"
+                    className="mt-1.5 bg-muted/50"
                   />
                 </div>
               </div>
             </div>
-            <DialogFooter className="mt-4">
+            <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline">
+                <Button type="button" variant="ghost" size="sm">
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={isPending}>
+              <Button type="submit" size="sm" disabled={isPending}>
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {editingMed ? "Save Changes" : "Save"}
               </Button>

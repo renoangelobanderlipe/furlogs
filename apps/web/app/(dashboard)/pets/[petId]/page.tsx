@@ -33,6 +33,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -746,9 +747,12 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
 
       {/* ── Edit dialog ─────────────────────────────────────────── */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit {name}</DialogTitle>
+            <DialogDescription>
+              Update your pet's profile and health details.
+            </DialogDescription>
           </DialogHeader>
           <PetForm
             defaultValues={{

@@ -20,6 +20,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -319,11 +320,19 @@ export default function VetClinicsPage() {
             <DialogTitle>
               {editingClinic ? "Edit Vet Clinic" : "Add Vet Clinic"}
             </DialogTitle>
+            <DialogDescription>
+              {editingClinic
+                ? "Update clinic details."
+                : "Add a clinic to your trusted vet network."}
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-2">
               <div>
-                <Label htmlFor="clinic-name">
+                <Label
+                  htmlFor="clinic-name"
+                  className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                >
                   Clinic Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -333,12 +342,17 @@ export default function VetClinicsPage() {
                     setForm((p) => ({ ...p, name: e.target.value }))
                   }
                   placeholder="e.g., City Animal Hospital"
-                  className="mt-1.5 bg-background"
+                  className="mt-1.5 bg-muted/50"
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="clinic-address">Address</Label>
+                <Label
+                  htmlFor="clinic-address"
+                  className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                >
+                  Address
+                </Label>
                 <Input
                   id="clinic-address"
                   value={form.address}
@@ -346,11 +360,16 @@ export default function VetClinicsPage() {
                     setForm((p) => ({ ...p, address: e.target.value }))
                   }
                   placeholder="e.g., 123 Main St, Manila"
-                  className="mt-1.5 bg-background"
+                  className="mt-1.5 bg-muted/50"
                 />
               </div>
               <div>
-                <Label htmlFor="clinic-phone">Phone</Label>
+                <Label
+                  htmlFor="clinic-phone"
+                  className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                >
+                  Phone
+                </Label>
                 <Input
                   id="clinic-phone"
                   type="tel"
@@ -359,11 +378,16 @@ export default function VetClinicsPage() {
                     setForm((p) => ({ ...p, phone: e.target.value }))
                   }
                   placeholder="e.g., +63 2 1234 5678"
-                  className="mt-1.5 bg-background"
+                  className="mt-1.5 bg-muted/50"
                 />
               </div>
               <div>
-                <Label htmlFor="clinic-notes">Notes</Label>
+                <Label
+                  htmlFor="clinic-notes"
+                  className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
+                >
+                  Notes
+                </Label>
                 <Textarea
                   id="clinic-notes"
                   value={form.notes}
@@ -371,18 +395,22 @@ export default function VetClinicsPage() {
                     setForm((p) => ({ ...p, notes: e.target.value }))
                   }
                   placeholder="Opening hours, preferred vet, etc."
-                  className="mt-1.5 bg-background resize-none"
+                  className="mt-1.5 bg-muted/50 resize-none"
                   rows={3}
                 />
               </div>
             </div>
-            <DialogFooter className="mt-4">
+            <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline">
+                <Button type="button" variant="ghost" size="sm">
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={isPending || !form.name.trim()}>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isPending || !form.name.trim()}
+              >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {editingClinic ? "Save Changes" : "Add Clinic"}
               </Button>

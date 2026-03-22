@@ -86,6 +86,8 @@ class FoodStockItemController extends Controller
 
     public function projections(Request $request): AnonymousResourceCollection
     {
+        $this->authorize('viewAny', FoodStockItem::class);
+
         $householdId = $request->user()->current_household_id;
 
         $projections = $this->foodStockService->getProjections($householdId);

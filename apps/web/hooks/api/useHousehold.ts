@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { extractApiError } from "@/lib/api/extractApiError";
 import { type HouseholdData, householdEndpoints } from "@/lib/api/households";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useHouseholdStore } from "@/stores/useHouseholdStore";
 import { householdKeys, QUERY_STALE_TIME } from "./queryKeys";
 
 export function useHousehold() {
@@ -112,11 +114,18 @@ export function useTransferOwnership() {
 
 export function useDeleteHousehold() {
   const queryClient = useQueryClient();
+  const fetchUser = useAuthStore((s) => s.fetchUser);
+  const clearPetFilter = useHouseholdStore((s) => s.clearPetFilter);
+  const router = useRouter();
 
   return useMutation({
     mutationFn: (householdId: string) => householdEndpoints.delete(householdId),
-    onSuccess: () => {
+    onSuccess: async () => {
+      clearPetFilter();
       queryClient.clear();
+      await fetchUser();
+      toast.success("Household deleted.");
+      router.push("/onboarding");
     },
     onError: (error: unknown) => {
       toast.error(
@@ -138,11 +147,14 @@ export function useUserHouseholds() {
 export function useSwitchHousehold() {
   const queryClient = useQueryClient();
   const fetchUser = useAuthStore((s) => s.fetchUser);
+  const clearPetFilter = useHouseholdStore((s) => s.clearPetFilter);
 
   return useMutation({
     mutationFn: (householdId: string) =>
       householdEndpoints.switchHousehold(householdId).then((r) => r.data.data),
     onSuccess: async (household) => {
+      // Clear pet filter first so stale petId doesn't leak into the new household's queries.
+      clearPetFilter();
       // Re-hydrate the auth store so current_household_id is up to date,
       // then invalidate all cached queries so they refetch in the background.
       await fetchUser();

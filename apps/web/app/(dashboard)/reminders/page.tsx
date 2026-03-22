@@ -12,11 +12,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { usePets } from "@/hooks/api/usePets";
-import { useCreateReminder, useReminders } from "@/hooks/api/useReminders";
+import {
+  useCreateReminder,
+  useReminders,
+  useUpdateReminder,
+} from "@/hooks/api/useReminders";
+import type { Reminder } from "@/lib/api/reminders";
 import type { ReminderFormValues } from "@/lib/validation/reminder.schema";
 
 export default function RemindersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [filter, setFilter] = useState<"pending" | "completed" | "all">(
     "pending",
   );
@@ -34,6 +40,7 @@ export default function RemindersPage() {
   const { data: remindersData, isLoading } = useReminders(filters);
   const { data: petsData } = usePets();
   const createReminder = useCreateReminder();
+  const updateReminder = useUpdateReminder();
 
   const reminders = remindersData?.data ?? [];
   const pets = petsData?.data ?? [];
@@ -45,6 +52,14 @@ export default function RemindersPage() {
     createReminder.mutate(values, {
       onSuccess: () => setDialogOpen(false),
     });
+  };
+
+  const handleEditSubmit = (values: ReminderFormValues) => {
+    if (!editingReminder) return;
+    updateReminder.mutate(
+      { id: editingReminder.id, data: values },
+      { onSuccess: () => setEditingReminder(null) },
+    );
   };
 
   return (
@@ -85,6 +100,7 @@ export default function RemindersPage() {
           reminders={reminders}
           isLoading={isLoading}
           onAddClick={() => setDialogOpen(true)}
+          onEdit={(r) => setEditingReminder(r)}
         />
 
         {lastPage > 1 && (
@@ -128,6 +144,39 @@ export default function RemindersPage() {
             onSuccess={handleSubmit}
             onCancel={() => setDialogOpen(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Reminder Dialog */}
+      <Dialog
+        open={editingReminder !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingReminder(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Reminder</DialogTitle>
+          </DialogHeader>
+          {editingReminder && (
+            <ReminderForm
+              key={editingReminder.id}
+              pets={pets}
+              isLoading={updateReminder.isPending}
+              initialValues={{
+                petId: editingReminder.attributes.petId ?? null,
+                type: editingReminder.attributes.type,
+                title: editingReminder.attributes.title,
+                description: editingReminder.attributes.description ?? "",
+                dueDate: editingReminder.attributes.dueDate,
+                isRecurring: editingReminder.attributes.isRecurring,
+                recurrenceDays:
+                  editingReminder.attributes.recurrenceDays ?? null,
+              }}
+              onSuccess={handleEditSubmit}
+              onCancel={() => setEditingReminder(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -41,6 +41,8 @@ export interface MedicationPayload {
 export interface MedicationFilters {
   petId?: string;
   vetVisitId?: string;
+  search?: string;
+  isActive?: boolean;
   page?: number;
   per_page?: number;
 }

@@ -8,14 +8,18 @@ import {
   ChevronRight,
   Clock,
   Loader2,
+  MoreHorizontal,
+  Pencil,
   PlusCircle,
   Search,
   Syringe,
+  Trash2,
   X,
 } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   Dialog,
   DialogClose,
@@ -25,6 +29,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -38,6 +48,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePets } from "@/hooks/api/usePets";
 import {
   useCreateVaccination,
+  useDeleteVaccination,
+  useUpdateVaccination,
   useVaccinations,
 } from "@/hooks/api/useVaccinations";
 import { useVetClinics } from "@/hooks/api/useVetClinics";
@@ -48,7 +60,9 @@ import { formatShortDate } from "@/lib/format";
 import {
   type VaccinationFormInput,
   type VaccinationFormValues,
+  type VaccinationUpdateFormValues,
   vaccinationSchema,
+  vaccinationUpdateSchema,
 } from "@/lib/validation/vaccination.schema";
 import { useHouseholdStore } from "@/stores/useHouseholdStore";
 
@@ -89,6 +103,8 @@ export default function VaccinationsPage() {
   );
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [petFilter, setPetFilter] = useState(initialVaccPetId);
   const [statusFilter, setStatusFilter] = useState<VaccinationStatus | "all">(
@@ -124,6 +140,8 @@ export default function VaccinationsPage() {
   const { data: petsData } = usePets();
   const { data: clinicsData } = useVetClinics();
   const createVaccination = useCreateVaccination();
+  const updateVaccination = useUpdateVaccination();
+  const deleteVaccination = useDeleteVaccination();
 
   const vaccinations = vaccinationsData?.data ?? [];
   const meta = vaccinationsData?.meta;
@@ -155,9 +173,36 @@ export default function VaccinationsPage() {
     },
   });
 
+  const {
+    register: registerEdit,
+    handleSubmit: handleEditSubmit,
+    control: editControl,
+    reset: resetEdit,
+    formState: { errors: editErrors },
+  } = useForm<
+    Partial<VaccinationFormInput>,
+    unknown,
+    VaccinationUpdateFormValues
+  >({
+    resolver: zodResolver(vaccinationUpdateSchema),
+  });
+
   const handleClose = (open: boolean) => {
     setDialogOpen(open);
     if (!open) reset();
+  };
+
+  const openEdit = (v: (typeof vaccinations)[number]) => {
+    resetEdit({
+      petId: v.attributes.petId,
+      clinicId: v.relationships?.clinic?.id ?? undefined,
+      vaccineName: v.attributes.vaccineName,
+      administeredDate: v.attributes.administeredDate,
+      nextDueDate: v.attributes.nextDueDate ?? "",
+      vetName: v.attributes.vetName ?? "",
+      batchNumber: v.attributes.batchNumber ?? "",
+    });
+    setEditingId(v.id);
   };
 
   const onSubmit = (values: VaccinationFormValues) => {
@@ -168,6 +213,19 @@ export default function VaccinationsPage() {
         setPage(1);
       },
     });
+  };
+
+  const onEditSubmit = (values: VaccinationUpdateFormValues) => {
+    if (!editingId) return;
+    updateVaccination.mutate(
+      { id: editingId, data: values },
+      {
+        onSuccess: () => {
+          setEditingId(null);
+          resetEdit();
+        },
+      },
+    );
   };
 
   return (
@@ -380,6 +438,29 @@ export default function VaccinationsPage() {
                     </p>
                   </div>
                 )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => openEdit(v)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => setDeletingId(v.id)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             );
           })}
@@ -562,6 +643,147 @@ export default function VaccinationsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Vaccination Dialog */}
+      <Dialog
+        open={editingId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingId(null);
+            resetEdit();
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Vaccination</DialogTitle>
+            <DialogDescription>
+              Update this vaccination record.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit(onEditSubmit)} noValidate>
+            <div className="space-y-4 py-2">
+              <div>
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Vaccine Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  {...registerEdit("vaccineName")}
+                  placeholder="e.g., DHPP, FVRCP"
+                  className="mt-1.5 bg-muted/50"
+                />
+                {editErrors.vaccineName && (
+                  <p className="text-xs text-destructive mt-1">
+                    {editErrors.vaccineName.message}
+                  </p>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Date <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    {...registerEdit("administeredDate")}
+                    className="mt-1.5 bg-muted/50"
+                  />
+                  {editErrors.administeredDate && (
+                    <p className="text-xs text-destructive mt-1">
+                      {editErrors.administeredDate.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Next Due
+                  </Label>
+                  <Input
+                    type="date"
+                    {...registerEdit("nextDueDate")}
+                    className="mt-1.5 bg-muted/50"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Clinic
+                  </Label>
+                  <Controller
+                    name="clinicId"
+                    control={editControl}
+                    render={({ field }) => (
+                      <Select
+                        value={field.value ?? "none"}
+                        onValueChange={(v) =>
+                          field.onChange(v === "none" ? undefined : v)
+                        }
+                      >
+                        <SelectTrigger className="mt-1.5 bg-muted/50">
+                          <SelectValue placeholder="Select clinic" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {clinics.map((c) => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.attributes.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Batch #
+                  </Label>
+                  <Input
+                    {...registerEdit("batchNumber")}
+                    className="mt-1.5 bg-muted/50"
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setEditingId(null);
+                  resetEdit();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={updateVaccination.isPending}
+              >
+                {updateVaccination.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Save
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={deletingId !== null}
+        title="Delete vaccination?"
+        description="This will permanently remove this vaccination record. This action cannot be undone."
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (deletingId) deleteVaccination.mutate(deletingId);
+          setDeletingId(null);
+        }}
+        onCancel={() => setDeletingId(null)}
+      />
     </div>
   );
 }

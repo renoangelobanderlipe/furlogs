@@ -9,7 +9,7 @@ import type {
   VaccinationFormValues,
   VaccinationUpdateFormValues,
 } from "@/lib/validation/vaccination.schema";
-import { QUERY_STALE_TIME, vaccinationKeys } from "./queryKeys";
+import { dashboardKeys, QUERY_STALE_TIME, vaccinationKeys } from "./queryKeys";
 
 export function useVaccinations(filters?: VaccinationFilters) {
   return useQuery({
@@ -36,6 +36,7 @@ export function useCreateVaccination() {
       vaccinationEndpoints.create(data).then((r) => r.data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vaccinationKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Vaccination recorded!");
     },
     onError: (error: unknown) => {
@@ -83,6 +84,7 @@ export function useDeleteVaccination() {
       vaccinationEndpoints.delete(id).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vaccinationKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Vaccination record deleted");
     },
     onError: (error: unknown) => {

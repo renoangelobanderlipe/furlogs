@@ -161,7 +161,7 @@ function MedicationItem({ med, index, onEdit, onDelete }: MedicationItemProps) {
                   onClick={() =>
                     logDose.mutate({ medicationId: med.id, data: {} })
                   }
-                  disabled={logDose.isPending}
+                  disabled={allDosesToday || logDose.isPending}
                   aria-label="Log dose taken"
                   className="flex h-8 w-8 items-center justify-center rounded-lg text-success transition-colors hover:bg-success/10 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -251,7 +251,11 @@ export default function MedicationsPage() {
   const pets = petsData?.data ?? [];
 
   const totalCount = meta?.total ?? medications.length;
-  const activeCount = medications.filter((m) => m.attributes.isActive).length;
+  // When filtered to active-only, meta.total is the true server-side count.
+  const activeCount =
+    statusFilter === "active"
+      ? (meta?.total ?? medications.filter((m) => m.attributes.isActive).length)
+      : medications.filter((m) => m.attributes.isActive).length;
 
   const {
     register,

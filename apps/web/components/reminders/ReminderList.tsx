@@ -1,7 +1,7 @@
 "use client";
 
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import { Check, ChevronDown, Clock, MoreVertical } from "lucide-react";
+import { Check, ChevronDown, Clock, MoreVertical, Pencil } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -38,9 +38,10 @@ function getUrgencyClass(urgency: ReminderUrgency): string {
 
 interface ReminderItemMenuProps {
   reminderId: string;
+  onEdit?: () => void;
 }
 
-function ReminderItemMenu({ reminderId }: ReminderItemMenuProps) {
+function ReminderItemMenu({ reminderId, onEdit }: ReminderItemMenuProps) {
   const complete = useCompleteReminder();
   const snooze = useSnoozeReminder();
   const dismiss = useDismissReminder();
@@ -58,6 +59,12 @@ function ReminderItemMenu({ reminderId }: ReminderItemMenuProps) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+        {onEdit && (
+          <DropdownMenuItem onClick={onEdit}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onClick={() => complete.mutate(reminderId)}
           disabled={complete.isPending}
@@ -86,9 +93,10 @@ function ReminderItemMenu({ reminderId }: ReminderItemMenuProps) {
 
 interface ReminderItemProps {
   reminder: Reminder;
+  onEdit?: (reminder: Reminder) => void;
 }
 
-function ReminderItem({ reminder }: ReminderItemProps) {
+function ReminderItem({ reminder, onEdit }: ReminderItemProps) {
   const { attributes } = reminder;
   const dueDateLabel = formatRelativeDueDate(attributes.dueDate);
   const isOverdue = dueDateLabel === "Overdue";
@@ -149,7 +157,10 @@ function ReminderItem({ reminder }: ReminderItemProps) {
             <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
           </AccordionPrimitive.Trigger>
 
-          <ReminderItemMenu reminderId={reminder.id} />
+          <ReminderItemMenu
+            reminderId={reminder.id}
+            onEdit={onEdit ? () => onEdit(reminder) : undefined}
+          />
         </div>
       </AccordionPrimitive.Header>
 
@@ -202,6 +213,7 @@ interface ReminderListProps {
   emptyTitle?: string;
   emptyDescription?: string;
   onAddClick?: () => void;
+  onEdit?: (reminder: Reminder) => void;
 }
 
 export function ReminderList({
@@ -210,6 +222,7 @@ export function ReminderList({
   emptyTitle = "No reminders",
   emptyDescription = "Add a reminder to keep track of important pet care tasks.",
   onAddClick,
+  onEdit,
 }: ReminderListProps) {
   if (isLoading) {
     return <ReminderListSkeleton />;
@@ -233,7 +246,7 @@ export function ReminderList({
   return (
     <Accordion type="multiple" className="w-full">
       {reminders.map((reminder) => (
-        <ReminderItem key={reminder.id} reminder={reminder} />
+        <ReminderItem key={reminder.id} reminder={reminder} onEdit={onEdit} />
       ))}
     </Accordion>
   );

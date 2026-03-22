@@ -47,7 +47,7 @@ function getNotificationHref(notification: AppNotification): string {
     case "vaccination_reminder":
       return "/vaccinations";
     case "medication_reminder":
-      return "/vet-visits";
+      return "/medications";
     case "vet_follow_up":
       return "/vet-visits";
     case "low_stock":

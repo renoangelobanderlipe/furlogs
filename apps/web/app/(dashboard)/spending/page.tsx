@@ -18,6 +18,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSpendingStats } from "@/hooks/api/useSpending";
 import { formatCurrency } from "@/lib/format";
 
@@ -92,7 +93,7 @@ function CustomTooltip({
 }
 
 export default function SpendingPage() {
-  const { data: stats } = useSpendingStats();
+  const { data: stats, isLoading } = useSpendingStats();
 
   const vetTotal = stats?.vetYtdSpend ?? 0;
   const foodTotal = stats?.foodYtdSpend ?? 0;
@@ -125,6 +126,27 @@ export default function SpendingPage() {
   const topCategoryPct = hasData
     ? Math.round((Math.max(vetTotal, foodTotal) / total) * 100)
     : 0;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 max-w-6xl mx-auto">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-xl" />
+          <div className="space-y-1.5">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {["s1", "s2", "s3"].map((k) => (
+            <Skeleton key={k} className="h-[88px] rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-10 rounded-xl" />
+        <Skeleton className="h-[300px] rounded-xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 max-w-6xl mx-auto">

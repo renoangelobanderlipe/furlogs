@@ -18,6 +18,16 @@ import { EditConsumptionRatesDialog } from "@/components/stock/EditConsumptionRa
 import { InventoryTable } from "@/components/stock/InventoryTable";
 import { LogPurchaseDialog } from "@/components/stock/LogPurchaseDialog";
 import { PurchaseHistoryFeed } from "@/components/stock/PurchaseHistoryFeed";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -86,6 +96,7 @@ export default function StockPage() {
   const [ratesProduct, setRatesProduct] = useState<FoodProduct | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FoodProduct | null>(null);
   const [finishingItemId, setFinishingItemId] = useState<string | null>(null);
+  const [confirmFinishId, setConfirmFinishId] = useState<string | null>(null);
   const [openingItemId, setOpeningItemId] = useState<string | null>(null);
 
   const { data: products = [], isLoading: productsLoading } = useFoodProducts();
@@ -395,12 +406,9 @@ export default function StockPage() {
                           projItem.item.attributes.foodProductId,
                         )
                       }
-                      onMarkFinished={() => {
-                        setFinishingItemId(projItem.item.id);
-                        markFinished.mutate(projItem.item.id, {
-                          onSettled: () => setFinishingItemId(null),
-                        });
-                      }}
+                      onMarkFinished={() =>
+                        setConfirmFinishId(projItem.item.id)
+                      }
                       onLogNewBag={() =>
                         handleLogNewBag(projItem.item.attributes.foodProductId)
                       }
@@ -629,6 +637,40 @@ export default function StockPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm Mark Finished */}
+      <AlertDialog
+        open={confirmFinishId !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmFinishId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark bag as finished?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will close the current bag and remove it from active
+              tracking. Make sure the bag is truly empty before confirming.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmFinishId) {
+                  setFinishingItemId(confirmFinishId);
+                  markFinished.mutate(confirmFinishId, {
+                    onSettled: () => setFinishingItemId(null),
+                  });
+                }
+                setConfirmFinishId(null);
+              }}
+            >
+              Mark Finished
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

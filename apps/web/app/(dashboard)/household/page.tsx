@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   useHousehold,
@@ -92,7 +93,14 @@ export default function HouseholdPage() {
       </div>
 
       {/* Household name */}
-      <section className="space-y-4 rounded-lg border p-6">
+      <section className="relative overflow-hidden space-y-4 rounded-lg border p-6">
+        <PawWatermark
+          size={80}
+          opacity={0.045}
+          rotate={12}
+          flip
+          className="-bottom-4 -right-4"
+        />
         <h2 className="text-base font-semibold">Household Name</h2>
         {isLoading ? (
           <div className="space-y-2">
@@ -125,7 +133,14 @@ export default function HouseholdPage() {
       </section>
 
       {/* Members list */}
-      <section className="space-y-4 rounded-lg border p-6">
+      <section className="relative overflow-hidden space-y-4 rounded-lg border p-6">
+        <PawWatermark
+          size={80}
+          opacity={0.04}
+          rotate={-15}
+          flip
+          className="-top-4 -right-4"
+        />
         <h2 className="text-base font-semibold">Members</h2>
 
         {isLoading ? (
@@ -224,7 +239,13 @@ export default function HouseholdPage() {
 
       {/* Invite member — owner only */}
       {(isOwner || isLoading) && (
-        <section className="space-y-4 rounded-lg border p-6">
+        <section className="relative overflow-hidden space-y-4 rounded-lg border p-6">
+          <PawWatermark
+            size={70}
+            opacity={0.04}
+            rotate={20}
+            className="-bottom-3 -left-3"
+          />
           <h2 className="text-base font-semibold">Invite a Member</h2>
           <p className="text-sm text-muted-foreground">
             Add someone to your household by their FurLog account email.

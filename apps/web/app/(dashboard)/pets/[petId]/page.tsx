@@ -37,6 +37,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMedications } from "@/hooks/api/useMedications";
 import { useDeletePet, usePet, useUpdatePet } from "@/hooks/api/usePets";
@@ -250,6 +251,12 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
         {/* Decorative background circles */}
         <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 translate-x-1/3 -translate-y-1/3 rounded-full bg-primary/5" />
         <div className="pointer-events-none absolute right-16 top-16 h-40 w-40 rounded-full bg-primary/5" />
+        <PawWatermark
+          size={120}
+          opacity={0.04}
+          rotate={18}
+          className="-bottom-6 -left-6 auth-paw-1"
+        />
 
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start">
           {/* Avatar */}

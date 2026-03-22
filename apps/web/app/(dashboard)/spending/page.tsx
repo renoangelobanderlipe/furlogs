@@ -18,6 +18,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSpendingStats } from "@/hooks/api/useSpending";
 import { formatCurrency } from "@/lib/format";
@@ -52,7 +53,14 @@ function CustomTooltip({
   const total = vet + food;
 
   return (
-    <div className="rounded-xl border border-border bg-card p-3 shadow-xl min-w-[156px]">
+    <div className="relative overflow-hidden rounded-xl border border-border bg-card p-3 shadow-xl min-w-[156px]">
+      <PawWatermark
+        size={52}
+        opacity={0.055}
+        rotate={10}
+        flip
+        className="-bottom-2 -right-2"
+      />
       <p className="text-xs font-semibold text-foreground mb-2.5">{label}</p>
       {total === 0 ? (
         <p className="text-xs text-muted-foreground">No spending</p>

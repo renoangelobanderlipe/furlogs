@@ -1,6 +1,7 @@
 "use client";
 
 import { Paperclip, Stethoscope } from "lucide-react";
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import { type VetVisit, VISIT_TYPE_LABEL } from "@/lib/api/vet-visits";
 import { formatCurrency, formatShortDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -42,10 +43,17 @@ export function VisitCard({
   return (
     <div
       className={cn(
-        "rounded-xl border bg-card h-full flex flex-col",
+        "relative overflow-hidden rounded-xl border bg-card h-full flex flex-col",
         selected ? "border-primary ring-2 ring-primary/20" : "border-border",
       )}
     >
+      <PawWatermark
+        size={64}
+        opacity={0.05}
+        rotate={12}
+        flip
+        className="-bottom-3 -right-3"
+      />
       <button
         type="button"
         onClick={handleClick}

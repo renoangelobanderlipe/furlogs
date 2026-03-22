@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import NextLink from "next/link";
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import type { Pet } from "@/lib/api/pets";
 import { SPECIES_EMOJI } from "@/lib/constants";
 import { formatAge } from "@/lib/format";
@@ -31,9 +32,16 @@ export function PetCard({ pet, animationIndex = 0, status }: PetCardProps) {
   return (
     <NextLink
       href={`/pets/${pet.id}`}
-      className="group relative block rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 animate-fade-in-up active:scale-[0.98] no-underline"
+      className="group relative overflow-hidden block rounded-2xl border border-border bg-card p-6 transition-all hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 animate-fade-in-up active:scale-[0.98] no-underline"
       style={{ animationDelay: `${animationIndex * 80}ms` }}
     >
+      <PawWatermark
+        size={72}
+        opacity={0.05}
+        rotate={18}
+        className="-bottom-4 -left-4"
+      />
+
       {/* Status badge */}
       {status && (
         <span

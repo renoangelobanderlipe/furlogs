@@ -12,6 +12,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import {
   Sheet,
   SheetContent,
@@ -348,8 +349,15 @@ export function SettingsDrawer() {
           width: `${320 * (safeFontSize / 16)}px`,
           zoom: 16 / safeFontSize,
         }}
-        className="p-0 overflow-y-auto flex flex-col gap-0 [&>button]:hidden"
+        className="p-0 overflow-y-auto flex flex-col gap-0 [&>button]:hidden relative"
       >
+        <PawWatermark
+          size={130}
+          opacity={0.032}
+          rotate={-20}
+          flip
+          className="top-4 right-4 auth-paw-2"
+        />
         {/* ── Header ── */}
         <SheetHeader className="flex flex-row items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-10">
           <div className="flex flex-col gap-0.5">

@@ -11,7 +11,7 @@ A multi-user pet care management application for tracking your pets' health, vet
 | Layer | Technology |
 |---|---|
 | Frontend | Next.js 16.2 (App Router), React 19, TypeScript 5 |
-| UI | MUI 7, Tailwind CSS, Radix UI, Recharts, FullCalendar |
+| UI | MUI 7, Biome 2, Recharts, FullCalendar |
 | State | TanStack Query v5, Zustand |
 | Backend | Laravel 13, PHP 8.3+, PostgreSQL |
 | Auth | Laravel Sanctum 4 (stateful SPA, cookie-based) |
@@ -25,15 +25,18 @@ A multi-user pet care management application for tracking your pets' health, vet
 
 ## Features
 
-- **Household collaboration** — Invite family members, manage roles, shared pet data
-- **Pet management** — Profiles, avatars, weight history
-- **Vet care** — Vet visits with file attachments, vaccinations, medications
+- **Household collaboration** — Invite family members via signed token, manage roles, switch between households
+- **Pet management** — Profiles, avatars, weight history with charting
+- **Vet care** — Vet visits with file attachments, vaccinations, medications with dose tracking and adherence streaks
+- **Vet clinics** — Manage and associate clinics with visits
 - **Reminders** — Snooze, dismiss, and complete care reminders
-- **Notifications** — In-app notification center with read/unread tracking
-- **Calendar** — Unified view of appointments and upcoming events
+- **Notifications** — In-app notification center with read/unread tracking and per-type preferences
+- **Calendar** — Unified view of appointments and upcoming events (FullCalendar)
 - **Food stock** — Track food products, consumption rates, and stock projections
+- **Spending analytics** — Monthly and per-pet cost breakdowns with charts
 - **Dashboard** — Household summary stats at a glance
 - **Settings** — Profile, notification preferences, household management
+- **PWA** — Installable with manifest and favicon
 
 ---
 
@@ -100,7 +103,7 @@ bun run format:web   # Biome format
 ### Backend (`apps/server`)
 
 ```bash
-# From apps/server/ or via root scripts
+# From apps/server/ or via root bun run scripts
 bun run test:server          # Run Pest test suite
 vendor/bin/pint --dirty      # Format changed PHP files
 vendor/bin/phpstan analyse   # Static analysis
@@ -115,9 +118,11 @@ php artisan <command>        # Any Artisan command
 
 The web app uses Next.js 16 App Router with route groups:
 
-- `app/(auth)/` — Login, register, email verification, password reset
-- `app/(dashboard)/` — All authenticated pages (pets, vet visits, calendar, etc.)
+- `app/(marketing)/` — Public landing page
+- `app/(auth)/` — Login, register, email verification, 2FA challenge, password reset
 - `app/(onboarding)/` — First-time household setup
+- `app/(dashboard)/` — All authenticated pages (pets, vet visits, calendar, etc.)
+- `app/invites/[token]/` — Household invite acceptance (auth-aware, outside dashboard layout)
 
 Data fetching is handled by TanStack Query via an Axios client. Client state (auth, theme, household) lives in Zustand stores.
 
@@ -149,16 +154,18 @@ Key resource groups:
 
 | Group | Endpoints |
 |---|---|
-| Auth | `/auth/register`, `/auth/login`, `/auth/logout`, email verification |
-| User | `/user`, `/user/password`, `/user/notification-preferences` |
-| Households | `/households`, `/households/{id}/invite`, `/households/{id}/members` |
+| Auth | `/auth/register`, `/auth/login`, `/auth/logout`, email verification, 2FA |
+| User | `/user`, `/user/password`, `/user/preferences` |
+| Households | `/households`, invites (send/accept/cancel), members, leave, switch |
 | Pets | `/pets`, `/pets/{id}/avatar`, `/pets/{id}/weights` |
-| Vet Care | `/vet-visits`, `/vaccinations`, `/medications`, `/vet-clinics` |
+| Vet Care | `/vet-visits`, `/vaccinations`, `/medications`, `/medications/{id}/doses`, `/vet-clinics` |
 | Reminders | `/reminders` (with complete/snooze/dismiss actions) |
 | Notifications | `/notifications` |
 | Food | `/food-products`, `/food-stock-items`, `/food-stock/projections` |
+| Spending | `/spending/summary` |
 | Dashboard | `/dashboard/summary` |
 | Calendar | `/calendar/events` |
+| Export | `/export/my-data` |
 
 ---
 

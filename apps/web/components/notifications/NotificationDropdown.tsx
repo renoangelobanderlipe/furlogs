@@ -4,6 +4,7 @@ import {
   Bell,
   CheckCircle2,
   Hospital,
+  Loader2,
   Package,
   Pill,
   Syringe,
@@ -201,7 +202,7 @@ export function NotificationDropdown() {
         <div className="max-h-96 overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-10">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-10">

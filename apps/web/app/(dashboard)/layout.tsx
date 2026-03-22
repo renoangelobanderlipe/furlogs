@@ -1,7 +1,7 @@
 "use client";
 
 import type { InternalAxiosRequestConfig } from "axios";
-import { Loader2 } from "lucide-react";
+import { PawLoader } from "@/components/ui/PawLoader";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PasswordConfirmDialog } from "@/components/auth/PasswordConfirmDialog";
@@ -105,7 +105,11 @@ export default function DashboardLayout({
   if (isLoading && !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <PawLoader
+          size={160}
+          message="Loading FurLog"
+          detail="Fetching your pets & household…"
+        />
       </div>
     );
   }

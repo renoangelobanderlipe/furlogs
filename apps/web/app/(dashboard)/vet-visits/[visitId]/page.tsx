@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useRef, useState } from "react";
@@ -75,7 +75,7 @@ export default function VetVisitDetailPage({ params }: PageProps) {
           <VisitCardSkeleton />
         </div>
         <div className="flex justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       </div>
     );

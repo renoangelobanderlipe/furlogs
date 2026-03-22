@@ -32,9 +32,7 @@ class UpdateVaccinationRequest extends FormRequest
         if (! $this->has('administered_date')) {
             /** @var Vaccination $vaccination */
             $vaccination = $this->route('vaccination');
-            if ($vaccination?->administered_date) {
-                $this->merge(['administered_date' => $vaccination->administered_date->toDateString()]);
-            }
+            $this->merge(['administered_date' => $vaccination->administered_date->toDateString()]);
         }
     }
 

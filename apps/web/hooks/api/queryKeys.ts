@@ -114,3 +114,7 @@ export const spendingKeys = {
   all: ["spending"] as const,
   stats: (year?: number) => [...spendingKeys.all, "stats", year] as const,
 };
+
+export const invitationKeys = {
+  detail: (token: string) => ["invitations", "detail", token] as const,
+};

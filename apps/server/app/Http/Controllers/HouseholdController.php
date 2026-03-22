@@ -11,11 +11,13 @@ use App\Http\Requests\UpdateHouseholdRequest;
 use App\Http\Resources\HouseholdResource;
 use App\Http\Resources\UserHouseholdResource;
 use App\Models\Household;
+use App\Models\HouseholdInvitation;
 use App\Models\User;
 use App\Services\HouseholdService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 
 class HouseholdController extends Controller
 {
@@ -50,13 +52,30 @@ class HouseholdController extends Controller
 
     public function invite(InviteMemberRequest $request, Household $household): JsonResponse
     {
-        $updated = $this->householdService->inviteByEmail(
+        $this->householdService->inviteByEmail(
             household: $household,
             email: $request->string('email')->toString(),
             actor: $request->user(),
         );
 
-        return response()->json(['data' => new HouseholdResource($updated)]);
+        return response()->json(['message' => 'Invitation sent.'], 201);
+    }
+
+    public function cancelInvitation(Request $request, Household $household, HouseholdInvitation $invitation): JsonResponse
+    {
+        $this->authorize('cancelInvitation', $household);
+
+        abort_unless($invitation->household_id === $household->id, 404);
+
+        if (! $invitation->isPending()) {
+            throw ValidationException::withMessages([
+                'invitation' => ['Only pending invitations can be cancelled.'],
+            ]);
+        }
+
+        $invitation->delete();
+
+        return response()->json(['message' => 'Invitation cancelled.']);
     }
 
     public function transferOwnership(Request $request, Household $household, User $user): JsonResponse

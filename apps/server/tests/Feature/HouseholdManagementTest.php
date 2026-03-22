@@ -3,11 +3,14 @@
 declare(strict_types=1);
 
 use App\Enums\HouseholdRole;
+use App\Enums\InvitationStatus;
 use App\Models\Household;
+use App\Models\HouseholdInvitation;
 use App\Models\HouseholdMember;
 use App\Models\User;
 use App\Notifications\HouseholdInviteNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 // ---------------------------------------------------------------------------
@@ -145,19 +148,38 @@ it('owner can invite a user by email', function () {
     $response = $this->actingAs($owner)
         ->postJson("/api/households/{$household->id}/invite", ['email' => $invitee->email]);
 
-    $response->assertOk()
-        ->assertJsonCount(2, 'data.members');
+    $response->assertCreated()
+        ->assertJsonPath('message', 'Invitation sent.');
+
+    // A pending invitation row is created, NOT a HouseholdMember row.
+    expect(HouseholdInvitation::query()
+        ->where('household_id', $household->id)
+        ->where('invitee_id', $invitee->id)
+        ->where('status', InvitationStatus::Pending)
+        ->exists(),
+    )->toBeTrue();
 
     expect(HouseholdMember::query()
         ->where('household_id', $household->id)
         ->where('user_id', $invitee->id)
         ->exists(),
-    )->toBeTrue();
+    )->toBeFalse();
 
-    // Invitee keeps their own active household — inviting does not forcibly switch them.
+    // Invitee's current household is not touched.
     expect($invitee->fresh()->current_household_id)->toBeNull();
 
-    Notification::assertSentTo($invitee, HouseholdInviteNotification::class);
+    // Email is queued via notification class (mail channel only).
+    Notification::assertSentTo($invitee, HouseholdInviteNotification::class, function (HouseholdInviteNotification $notification) {
+        expect($notification->via(new stdClass))->toBe(['mail']);
+
+        return true;
+    });
+
+    // DB notification is written synchronously by the service.
+    $record = $invitee->notifications()->first();
+    expect($record)->not->toBeNull();
+    expect($record->data['type'])->toBe('household_invite');
+    expect($record->data)->toHaveKeys(['title', 'inviter_name', 'household_name', 'invite_url', 'invitation_token']);
 });
 
 it('inviting a user who owns their own household does not change their active household', function () {
@@ -168,7 +190,7 @@ it('inviting a user who owns their own household does not change their active ho
 
     $this->actingAs($owner)
         ->postJson("/api/households/{$household->id}/invite", ['email' => $invitee->email])
-        ->assertOk();
+        ->assertCreated();
 
     // Invitee still points to their own household.
     expect($invitee->fresh()->current_household_id)->toBe($inviteeHousehold->id);
@@ -479,6 +501,102 @@ it('outsider cannot delete a household', function () {
     $this->actingAs($outsider)
         ->deleteJson("/api/households/{$household->id}")
         ->assertForbidden();
+});
+
+// ---------------------------------------------------------------------------
+// Household invite — notification DB storage & API shape
+// ---------------------------------------------------------------------------
+
+/**
+ * Mirror what HouseholdService::inviteByEmail() does: write the DB notification
+ * synchronously so tests don't need a queue worker.
+ */
+function sendInviteNotification(User $invitee, Household $household, User $owner): void
+{
+    $token = bin2hex(random_bytes(32));
+
+    $invitee->notifications()->create([
+        'id' => Str::uuid()->toString(),
+        'type' => HouseholdInviteNotification::class,
+        'data' => [
+            'type' => 'household_invite',
+            'title' => "{$owner->name} invited you to join {$household->name}",
+            'inviter_name' => $owner->name,
+            'household_name' => $household->name,
+            'invite_url' => config('app.frontend_url').'/invitations/'.$token,
+            'invitation_token' => $token,
+        ],
+    ]);
+}
+
+it('household invite notification is persisted to the database', function () {
+    [$owner, $household] = householdWithOwner();
+    $invitee = User::factory()->create();
+
+    sendInviteNotification($invitee, $household, $owner);
+
+    expect($invitee->notifications()->count())->toBe(1);
+
+    $record = $invitee->notifications()->first();
+    expect($record->data['type'])->toBe('household_invite');
+    expect($record->data['title'])->toContain($household->name);
+    expect($record->data['inviter_name'])->toBe($owner->name);
+    expect($record->data['household_name'])->toBe($household->name);
+    expect($record->data['invite_url'])->not->toBeEmpty();
+    expect($record->read_at)->toBeNull();
+});
+
+it('household invite notification appears in the notifications API with correct shape', function () {
+    [$owner, $household] = householdWithOwner();
+    $invitee = User::factory()->create();
+
+    sendInviteNotification($invitee, $household, $owner);
+
+    $response = $this->actingAs($invitee)
+        ->getJson('/api/notifications');
+
+    $response->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.type', 'household_invite')
+        ->assertJsonPath('data.0.readAt', null)
+        ->assertJsonPath('data.0.data.type', 'household_invite')
+        ->assertJsonPath('data.0.data.inviter_name', $owner->name)
+        ->assertJsonPath('data.0.data.household_name', $household->name);
+
+    expect($response->json('data.0.data.title'))->toContain($household->name);
+});
+
+it('household invite increments the unread notification count', function () {
+    [$owner, $household] = householdWithOwner();
+    $invitee = User::factory()->create();
+
+    $this->actingAs($invitee)
+        ->getJson('/api/notifications/unread-count')
+        ->assertOk()
+        ->assertJsonPath('data.count', 0);
+
+    sendInviteNotification($invitee, $household, $owner);
+
+    $this->actingAs($invitee)
+        ->getJson('/api/notifications/unread-count')
+        ->assertOk()
+        ->assertJsonPath('data.count', 1);
+});
+
+it('household invite notification can be marked as read', function () {
+    [$owner, $household] = householdWithOwner();
+    $invitee = User::factory()->create();
+
+    sendInviteNotification($invitee, $household, $owner);
+
+    $notificationId = $invitee->notifications()->first()->getKey();
+
+    $this->actingAs($invitee)
+        ->patchJson("/api/notifications/{$notificationId}")
+        ->assertOk()
+        ->assertJsonPath('message', 'Notification marked as read.');
+
+    expect($invitee->unreadNotifications()->count())->toBe(0);
 });
 
 it('deleting a household removes all members', function () {

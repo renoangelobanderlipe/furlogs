@@ -8,6 +8,7 @@ import {
   Package,
   Pill,
   Syringe,
+  Users,
 } from "lucide-react";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,6 +16,10 @@ import { Button } from "@/components/ui/button";
 import { PawWatermark } from "@/components/ui/paw-watermark";
 import { Popover, PopoverContent } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import {
+  useAcceptInvitation,
+  useDeclineInvitation,
+} from "@/hooks/api/useInvitations";
 import {
   useMarkAllRead,
   useMarkRead,
@@ -24,6 +29,7 @@ import type {
   AppNotification,
   NotificationType,
 } from "@/lib/api/notifications";
+import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 
@@ -38,6 +44,8 @@ function getNotificationIcon(type: NotificationType) {
     case "low_stock":
     case "critical_stock":
       return <Package className="h-4 w-4" />;
+    case "household_invite":
+      return <Users className="h-4 w-4" />;
     default:
       return <Bell className="h-4 w-4" />;
   }
@@ -55,24 +63,11 @@ function getNotificationHref(notification: AppNotification): string {
     case "low_stock":
     case "critical_stock":
       return "/stock";
+    case "household_invite":
+      return "/household";
     default:
       return "/notifications";
   }
-}
-
-function formatRelativeTime(dateStr: string): string {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60_000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 interface NotificationItemProps {
@@ -80,10 +75,110 @@ interface NotificationItemProps {
   onClose: () => void;
 }
 
+function HouseholdInviteNotificationItem({
+  notification,
+  onClose,
+}: NotificationItemProps) {
+  const acceptMutation = useAcceptInvitation();
+  const declineMutation = useDeclineInvitation();
+  const isUnread = notification.readAt === null;
+  const token = notification.data.invitation_token;
+  const isMutating = acceptMutation.isPending || declineMutation.isPending;
+
+  const handleAccept = () => {
+    if (!token) return;
+    // Backend marks the notification read atomically on accept.
+    acceptMutation.mutate(token, {
+      onSettled: () => onClose(),
+    });
+  };
+
+  const handleDecline = () => {
+    if (!token) return;
+    declineMutation.mutate(token, {
+      onSettled: () => onClose(),
+    });
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex w-full flex-col gap-2 px-3 py-2.5 text-left",
+        isUnread
+          ? "border-l-2 border-l-primary bg-primary/5"
+          : "border-l-2 border-l-transparent",
+      )}
+    >
+      <div className="flex items-start gap-2">
+        <span
+          className={cn(
+            "mt-0.5 flex-shrink-0",
+            isUnread ? "text-primary" : "text-muted-foreground",
+          )}
+        >
+          <Users className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p
+            className={cn(
+              "text-sm leading-snug",
+              isUnread ? "font-semibold" : "font-normal",
+            )}
+          >
+            {notification.data.title}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {formatRelativeTime(notification.createdAt)}
+          </p>
+        </div>
+      </div>
+      {token && (
+        <div className="flex gap-2 pl-6">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 flex-1 text-xs"
+            onClick={handleDecline}
+            disabled={isMutating}
+          >
+            {declineMutation.isPending ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              "Decline"
+            )}
+          </Button>
+          <Button
+            size="sm"
+            className="h-7 flex-1 text-xs"
+            onClick={handleAccept}
+            disabled={isMutating}
+          >
+            {acceptMutation.isPending ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              "Accept"
+            )}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NotificationItem({ notification, onClose }: NotificationItemProps) {
   const router = useRouter();
   const markRead = useMarkRead();
   const isUnread = notification.readAt === null;
+
+  if (notification.data.type === "household_invite") {
+    return (
+      <HouseholdInviteNotificationItem
+        notification={notification}
+        onClose={onClose}
+      />
+    );
+  }
+
   const href = getNotificationHref(notification);
 
   const handleClick = () => {
@@ -139,12 +234,12 @@ export function NotificationDropdown() {
   const markAllRead = useMarkAllRead();
 
   const notifications = data?.data ?? [];
-  const unreadCount = notifications.filter((n) => n.readAt === null).length;
+  const unreadIds = notifications
+    .filter((n) => n.readAt === null)
+    .map((n) => n.id);
+  const unreadCount = unreadIds.length;
 
   const handleMarkAllRead = () => {
-    const unreadIds = notifications
-      .filter((n) => n.readAt === null)
-      .map((n) => n.id);
     markAllRead.mutate(unreadIds.length > 0 ? unreadIds : undefined);
   };
 

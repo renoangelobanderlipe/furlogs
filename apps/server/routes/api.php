@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FoodProductController;
 use App\Http\Controllers\FoodStockItemController;
 use App\Http\Controllers\HouseholdController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\MedicationAdministrationController;
 use App\Http\Controllers\MedicationController;
 use App\Http\Controllers\NotificationController;
@@ -96,6 +97,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('households/{household}/transfer-ownership/{user}', [HouseholdController::class, 'transferOwnership'])->name('households.transfer-ownership');
     Route::delete('households/{household}/members/{user}', [HouseholdController::class, 'removeMember'])->name('households.members.remove');
     Route::delete('households/{household}', [HouseholdController::class, 'destroy'])->name('households.destroy');
+    Route::delete('households/{household}/invitations/{invitation}', [HouseholdController::class, 'cancelInvitation'])->name('households.invitations.cancel');
+
+    // Invitations
+    Route::get('invitations/{token}', [InvitationController::class, 'show'])->name('invitations.show');
+    Route::post('invitations/{token}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
+    Route::post('invitations/{token}/decline', [InvitationController::class, 'decline'])->name('invitations.decline');
 
     // Pets
     Route::apiResource('pets', PetController::class);

@@ -5,21 +5,18 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use App\Models\Reminder;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class MedicationReminderNotification extends Notification implements ShouldQueue
+// TODO: Re-add `implements ShouldQueue` + `use Queueable` + `$this->onQueue('notifications')`
+//       once Laravel Cloud supports queue workers. Removed temporarily because queued jobs
+//       sit in the jobs table unprocessed without a running worker.
+class MedicationReminderNotification extends Notification
 {
-    use Queueable;
-
     public function __construct(
         public readonly Reminder $reminder,
         public readonly string $petName,
-    ) {
-        $this->onQueue('notifications');
-    }
+    ) {}
 
     /**
      * @return array<int, string>

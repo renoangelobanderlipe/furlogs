@@ -12,3 +12,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('notifications:check-stock-alerts')->dailyAt('08:00');
 Schedule::command('notifications:dispatch-reminders')->dailyAt('08:00');
+Schedule::command('invitations:prune')->daily();

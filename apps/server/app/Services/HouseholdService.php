@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\HouseholdRole;
+use App\Enums\InvitationStatus;
 use App\Models\Household;
+use App\Models\HouseholdInvitation;
 use App\Models\HouseholdMember;
 use App\Models\User;
 use App\Notifications\HouseholdInviteNotification;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
@@ -59,12 +62,13 @@ class HouseholdService
     }
 
     /**
-     * Add a user to the household by email. Raises a ValidationException if the
-     * email has no account or the user is already a member.
+     * Send an invitation to a user by email. Creates a pending HouseholdInvitation
+     * rather than immediately adding them as a member. The invitee must accept the
+     * invitation before they gain household access.
      *
      * @throws ValidationException
      */
-    public function inviteByEmail(Household $household, string $email, User $actor): Household
+    public function inviteByEmail(Household $household, string $email, User $actor): void
     {
         $invitee = User::query()->where('email', $email)->first();
 
@@ -84,24 +88,49 @@ class HouseholdService
             ]);
         }
 
-        $household->householdMembers()->create([
-            'user_id' => $invitee->id,
-            'role' => HouseholdRole::Member,
-            'invited_at' => now(),
-            'joined_at' => now(),
+        $hasPendingInvitation = HouseholdInvitation::query()
+            ->where('household_id', $household->id)
+            ->where('invitee_id', $invitee->id)
+            ->where('status', InvitationStatus::Pending)
+            ->exists();
+
+        if ($hasPendingInvitation) {
+            throw ValidationException::withMessages([
+                'email' => ['A pending invitation already exists for this user.'],
+            ]);
+        }
+
+        $token = bin2hex(random_bytes(32));
+
+        HouseholdInvitation::query()->create([
+            'household_id' => $household->id,
+            'inviter_id' => $actor->id,
+            'invitee_id' => $invitee->id,
+            'token' => $token,
+            'status' => InvitationStatus::Pending,
+            'expires_at' => now()->addDays(7),
         ]);
 
-        setPermissionsTeamId($household->id);
-        Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
-        $invitee->assignRole('member');
+        // Write the in-app notification synchronously so it appears in the bell immediately.
+        $invitee->notifications()->create([
+            'id' => Str::uuid()->toString(),
+            'type' => HouseholdInviteNotification::class,
+            'data' => [
+                'type' => 'household_invite',
+                'title' => "{$actor->name} invited you to join {$household->name}",
+                'inviter_name' => $actor->name,
+                'household_name' => $household->name,
+                'invite_url' => config('app.frontend_url').'/invitations/'.$token,
+                'invitation_token' => $token,
+            ],
+        ]);
 
+        // Queue the email separately so it doesn't block the request.
         $invitee->notify(new HouseholdInviteNotification(
-            inviteUrl: config('app.frontend_url').'/dashboard',
+            token: $token,
             householdName: $household->name,
             inviterName: $actor->name,
         ));
-
-        return $this->loadHousehold($household);
     }
 
     /**

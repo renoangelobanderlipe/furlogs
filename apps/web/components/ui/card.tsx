@@ -1,19 +1,29 @@
 import * as React from "react";
-
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      "relative overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm",
       className,
     )}
     {...props}
-  />
+  >
+    {/* Top-right paw watermark — clipped by overflow-hidden */}
+    <PawWatermark
+      size={88}
+      opacity={0.038}
+      rotate={-18}
+      flip
+      style={{ top: -10, right: -12 }}
+    />
+    {children}
+  </div>
 ));
 Card.displayName = "Card";
 

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import {
   Sheet,
   SheetContent,
@@ -63,9 +64,22 @@ export function ProfileDrawer({ children }: ProfileDrawerProps) {
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent
         side="right"
-        className="w-72 p-0 flex flex-col bg-card border-l border-border"
+        className="w-72 p-0 flex flex-col bg-card border-l border-border relative overflow-hidden"
       >
         <SheetTitle className="sr-only">Profile</SheetTitle>
+        <PawWatermark
+          size={140}
+          opacity={0.038}
+          rotate={-18}
+          flip
+          className="-top-8 -right-8 auth-paw-2"
+        />
+        <PawWatermark
+          size={100}
+          opacity={0.03}
+          rotate={20}
+          className="-bottom-6 -left-6 auth-paw-1"
+        />
         {/* Avatar + user info */}
         <div className="flex flex-col items-center gap-3 px-6 pt-10 pb-5">
           <div className="relative">

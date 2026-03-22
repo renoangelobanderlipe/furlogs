@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { MiniCalendar } from "@/components/calendar/MiniCalendar";
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import { StatCard } from "@/components/ui/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardSummary } from "@/hooks/api/useDashboard";
@@ -207,9 +208,16 @@ export default function DashboardPage() {
         <div className="space-y-4">
           {/* Reminders */}
           <div
-            className="rounded-lg border border-border bg-card p-4 animate-fade-in-up"
+            className="relative overflow-hidden rounded-lg border border-border bg-card p-4 animate-fade-in-up"
             style={{ animationDelay: "100ms" }}
           >
+            <PawWatermark
+              size={72}
+              opacity={0.045}
+              rotate={14}
+              flip
+              className="-bottom-3 -right-3"
+            />
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold">Upcoming Reminders</h2>
               <Link
@@ -258,9 +266,15 @@ export default function DashboardPage() {
 
           {/* Food Stock */}
           <div
-            className="rounded-lg border border-border bg-card p-4 animate-fade-in-up"
+            className="relative overflow-hidden rounded-lg border border-border bg-card p-4 animate-fade-in-up"
             style={{ animationDelay: "200ms" }}
           >
+            <PawWatermark
+              size={72}
+              opacity={0.04}
+              rotate={20}
+              className="-top-3 -left-3"
+            />
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold">Food Stock Status</h2>
               <Link
@@ -338,18 +352,31 @@ export default function DashboardPage() {
         <div className="space-y-4">
           {/* Mini Calendar */}
           <div
-            className="rounded-lg border border-border bg-card p-4 animate-fade-in-up"
+            className="relative overflow-hidden rounded-lg border border-border bg-card p-4 animate-fade-in-up"
             style={{ animationDelay: "150ms" }}
           >
+            <PawWatermark
+              size={72}
+              opacity={0.04}
+              rotate={18}
+              className="-bottom-3 -left-3"
+            />
             <h2 className="font-semibold mb-3">{currentMonthLabel}</h2>
             <MiniCalendar />
           </div>
 
           {/* Recent Vet Visits */}
           <div
-            className="rounded-lg border border-border bg-card p-4 animate-fade-in-up"
+            className="relative overflow-hidden rounded-lg border border-border bg-card p-4 animate-fade-in-up"
             style={{ animationDelay: "250ms" }}
           >
+            <PawWatermark
+              size={72}
+              opacity={0.045}
+              rotate={-16}
+              flip
+              className="-top-3 -right-3"
+            />
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold">Recent Vet Visits</h2>
               <Link

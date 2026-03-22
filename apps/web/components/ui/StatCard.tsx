@@ -1,5 +1,6 @@
 "use client";
 
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import { cn } from "@/lib/utils";
 
 type StatVariant = "default" | "warning" | "error" | "success" | "info";
@@ -36,10 +37,17 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border bg-card p-4 animate-fade-in-up",
+        "relative overflow-hidden rounded-lg border border-border bg-card p-4 animate-fade-in-up",
         className,
       )}
     >
+      <PawWatermark
+        size={60}
+        opacity={0.055}
+        rotate={15}
+        flip
+        className="-bottom-3 -right-3"
+      />
       <div className="flex items-center gap-3">
         {icon && (
           <div

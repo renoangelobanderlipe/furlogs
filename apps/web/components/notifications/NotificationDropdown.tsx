@@ -11,6 +11,7 @@ import {
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import { Popover, PopoverContent } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -169,7 +170,18 @@ export function NotificationDropdown() {
             : undefined
         }
       />
-      <PopoverContent align="end" className="w-80 p-0" sideOffset={8}>
+      <PopoverContent
+        align="end"
+        className="w-80 p-0 relative overflow-hidden"
+        sideOffset={8}
+      >
+        <PawWatermark
+          size={90}
+          opacity={0.045}
+          rotate={15}
+          flip
+          className="-bottom-5 -right-5"
+        />
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
           <h3 className="text-sm font-semibold">Notifications</h3>

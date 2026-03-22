@@ -9,6 +9,7 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { SettingsApplier } from "@/components/layout/SettingsApplier";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
+import { PawWatermark } from "@/components/ui/paw-watermark";
 import { apiClient } from "@/lib/api/client";
 import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -124,10 +125,33 @@ export default function DashboardLayout({
           <main
             className={
               compact
-                ? "flex-1 p-3 pb-20 md:p-3 md:pb-3"
-                : "flex-1 p-4 pb-20 md:p-6 md:pb-6"
+                ? "relative flex-1 overflow-hidden p-3 pb-20 md:p-3 md:pb-3"
+                : "relative flex-1 overflow-hidden p-4 pb-20 md:p-6 md:pb-6"
             }
           >
+            {/* Paw watermarks — behind all page content */}
+            <PawWatermark
+              size={260}
+              opacity={0.032}
+              rotate={-22}
+              flip
+              strokeWidth={1}
+              className="-top-8 -right-8 auth-paw-2"
+            />
+            <PawWatermark
+              size={300}
+              opacity={0.028}
+              rotate={20}
+              strokeWidth={1}
+              className="-bottom-10 -left-10 auth-paw-1"
+            />
+            <PawWatermark
+              size={180}
+              opacity={0.02}
+              strokeWidth={1}
+              className="top-1/2 -right-10 auth-paw-3"
+              style={{ transform: "translateY(-50%) rotate(8deg) scaleX(-1)" }}
+            />
             {children}
           </main>
         </div>

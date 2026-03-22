@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  AlignLeft,
+  AlignRight,
   Columns2,
   Contrast,
   Info,
@@ -9,8 +9,10 @@ import {
   Moon,
   RotateCcw,
   Settings,
+  Sun,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useShallow } from "zustand/react/shallow";
 import {
   Sheet,
   SheetContent,
@@ -165,37 +167,98 @@ const LAYOUTS: { value: LayoutMode; label: string; icon: React.ReactNode }[] = [
 ];
 
 // ── Sub-components ─────────────────────────────────────────────
-interface ToggleCardProps {
+
+const TOGGLE_ACTIVE = "border-primary/25 bg-primary/10";
+const TOGGLE_INACTIVE = "border-border bg-card hover:border-border/80";
+
+interface ToggleControlProps {
   icon: React.ReactNode;
   label: string;
   checked: boolean;
   onCheckedChange: (v: boolean) => void;
   info?: string;
+  variant?: "card" | "row";
 }
 
-function ToggleCard({
+function ToggleControl({
   icon,
   label,
   checked,
   onCheckedChange,
   info,
-}: ToggleCardProps) {
+  variant = "card",
+}: ToggleControlProps) {
+  const iconEl = (
+    <span
+      className={cn(
+        "transition-colors",
+        checked ? "text-primary" : "text-muted-foreground",
+      )}
+    >
+      {icon}
+    </span>
+  );
+  const switchEl = (
+    <Switch
+      checked={checked}
+      onCheckedChange={onCheckedChange}
+      aria-label={label}
+    />
+  );
+
+  if (variant === "row") {
+    return (
+      <div
+        className={cn(
+          "flex items-center justify-between rounded-xl border px-3.5 py-3 transition-colors",
+          checked ? TOGGLE_ACTIVE : TOGGLE_INACTIVE,
+        )}
+      >
+        <div className="flex items-center gap-2.5">
+          {iconEl}
+          <span
+            className={cn(
+              "text-sm font-medium transition-colors",
+              checked ? "text-foreground" : "text-muted-foreground",
+            )}
+          >
+            {label}
+          </span>
+        </div>
+        {switchEl}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3">
+    <div
+      className={cn(
+        "flex flex-col gap-2 rounded-xl border p-3 transition-colors",
+        checked ? TOGGLE_ACTIVE : TOGGLE_INACTIVE,
+      )}
+    >
       <div className="flex items-center justify-between">
-        <span className="text-muted-foreground">{icon}</span>
-        <Switch
-          checked={checked}
-          onCheckedChange={onCheckedChange}
-          aria-label={label}
-        />
+        {iconEl}
+        {switchEl}
       </div>
       <div className="flex items-center gap-1">
-        <span className="text-xs font-medium">{label}</span>
+        <span
+          className={cn(
+            "text-xs font-medium transition-colors",
+            checked ? "text-foreground" : "text-muted-foreground",
+          )}
+        >
+          {label}
+        </span>
         {info && (
-          <span title={info} className="cursor-help">
-            <Info className="h-3 w-3 text-muted-foreground" />
-          </span>
+          <button
+            type="button"
+            aria-label={info}
+            title={info}
+            className="cursor-help text-muted-foreground"
+          >
+            <Info className="h-3 w-3" />
+          </button>
         )}
       </div>
     </div>
@@ -204,17 +267,15 @@ function ToggleCard({
 
 function SectionBadge({ children }: { children: React.ReactNode }) {
   return (
-    <div className="inline-flex items-center rounded-full border border-border px-2.5 py-0.5">
-      <span className="text-[11px] font-medium text-foreground">
-        {children}
-      </span>
-    </div>
+    <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+      {children}
+    </p>
   );
 }
 
 function SubLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-medium text-muted-foreground">{children}</p>
+    <p className="text-xs font-medium text-muted-foreground/80">{children}</p>
   );
 }
 
@@ -222,26 +283,51 @@ function SubLabel({ children }: { children: React.ReactNode }) {
 export function SettingsDrawer() {
   const { theme, setTheme } = useTheme();
 
-  const contrast = useAppSettingsStore((s) => s.contrast);
-  const rtl = useAppSettingsStore((s) => s.rtl);
-  const compact = useAppSettingsStore((s) => s.compact);
-  const navVisible = useAppSettingsStore((s) => s.navVisible);
-  const layout = useAppSettingsStore((s) => s.layout);
-  const colorScheme = useAppSettingsStore((s) => s.colorScheme);
-  const preset = useAppSettingsStore((s) => s.preset);
-  const fontFamily = useAppSettingsStore((s) => s.fontFamily);
-  const fontSize = useAppSettingsStore((s) => s.fontSize);
+  const {
+    contrast,
+    rtl,
+    compact,
+    navVisible,
+    layout,
+    colorScheme,
+    preset,
+    fontFamily,
+    fontSize,
+    setContrast,
+    setRtl,
+    setCompact,
+    setNavVisible,
+    setLayout,
+    setColorScheme,
+    setPreset,
+    setFontFamily,
+    setFontSize,
+    reset,
+  } = useAppSettingsStore(
+    useShallow((s) => ({
+      contrast: s.contrast,
+      rtl: s.rtl,
+      compact: s.compact,
+      navVisible: s.navVisible,
+      layout: s.layout,
+      colorScheme: s.colorScheme,
+      preset: s.preset,
+      fontFamily: s.fontFamily,
+      fontSize: s.fontSize,
+      setContrast: s.setContrast,
+      setRtl: s.setRtl,
+      setCompact: s.setCompact,
+      setNavVisible: s.setNavVisible,
+      setLayout: s.setLayout,
+      setColorScheme: s.setColorScheme,
+      setPreset: s.setPreset,
+      setFontFamily: s.setFontFamily,
+      setFontSize: s.setFontSize,
+      reset: s.reset,
+    })),
+  );
 
-  const setContrast = useAppSettingsStore((s) => s.setContrast);
-  const setRtl = useAppSettingsStore((s) => s.setRtl);
-  const setCompact = useAppSettingsStore((s) => s.setCompact);
-  const setNavVisible = useAppSettingsStore((s) => s.setNavVisible);
-  const setLayout = useAppSettingsStore((s) => s.setLayout);
-  const setColorScheme = useAppSettingsStore((s) => s.setColorScheme);
-  const setPreset = useAppSettingsStore((s) => s.setPreset);
-  const setFontFamily = useAppSettingsStore((s) => s.setFontFamily);
-  const setFontSize = useAppSettingsStore((s) => s.setFontSize);
-  const reset = useAppSettingsStore((s) => s.reset);
+  const safeFontSize = fontSize > 0 ? fontSize : 16;
 
   return (
     <Sheet>
@@ -258,11 +344,22 @@ export function SettingsDrawer() {
 
       <SheetContent
         side={rtl ? "left" : "right"}
-        className="w-80 p-0 overflow-y-auto flex flex-col gap-0 [&>button]:hidden"
+        style={{
+          width: `${320 * (safeFontSize / 16)}px`,
+          zoom: 16 / safeFontSize,
+        }}
+        className="p-0 overflow-y-auto flex flex-col gap-0 [&>button]:hidden"
       >
         {/* ── Header ── */}
-        <SheetHeader className="flex flex-row items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-background z-10">
-          <SheetTitle className="text-base font-semibold">Settings</SheetTitle>
+        <SheetHeader className="flex flex-row items-center justify-between px-5 py-4 border-b border-border sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+          <div className="flex flex-col gap-0.5">
+            <SheetTitle className="text-base font-semibold">
+              Settings
+            </SheetTitle>
+            <p className="text-[11px] text-muted-foreground">
+              Customize your experience
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => {
@@ -276,16 +373,22 @@ export function SettingsDrawer() {
           </button>
         </SheetHeader>
 
-        <div className="flex flex-col gap-6 p-5">
+        <div className="flex flex-col gap-5 p-5">
           {/* ── Mode & Contrast ── */}
           <div className="grid grid-cols-2 gap-3">
-            <ToggleCard
-              icon={<Moon className="h-4 w-4" />}
+            <ToggleControl
+              icon={
+                theme === "dark" ? (
+                  <Moon className="h-4 w-4" />
+                ) : (
+                  <Sun className="h-4 w-4" />
+                )
+              }
               label="Mode"
               checked={theme === "dark"}
               onCheckedChange={(v) => setTheme(v ? "dark" : "light")}
             />
-            <ToggleCard
+            <ToggleControl
               icon={<Contrast className="h-4 w-4" />}
               label="Contrast"
               checked={contrast}
@@ -295,13 +398,13 @@ export function SettingsDrawer() {
 
           {/* ── RTL & Compact ── */}
           <div className="grid grid-cols-2 gap-3">
-            <ToggleCard
-              icon={<AlignLeft className="h-4 w-4" />}
-              label="Right to left"
+            <ToggleControl
+              icon={<AlignRight className="h-4 w-4" />}
+              label="RTL"
               checked={rtl}
               onCheckedChange={setRtl}
             />
-            <ToggleCard
+            <ToggleControl
               icon={<Columns2 className="h-4 w-4" />}
               label="Compact"
               checked={compact}
@@ -310,22 +413,20 @@ export function SettingsDrawer() {
             />
           </div>
 
-          {/* ── Nav ── */}
-          <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
-            <div className="flex items-center gap-2.5">
-              <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Nav</span>
-            </div>
-            <Switch
-              checked={navVisible}
-              onCheckedChange={setNavVisible}
-              aria-label="Toggle navigation sidebar"
-            />
-          </div>
+          {/* ── Navigation ── */}
+          <ToggleControl
+            variant="row"
+            icon={<LayoutDashboard className="h-4 w-4" />}
+            label="Navigation"
+            checked={navVisible}
+            onCheckedChange={setNavVisible}
+          />
+
+          <hr className="border-border/50" />
 
           {/* ── Layout ── */}
           <div className="flex flex-col gap-3">
-            <SubLabel>Layout</SubLabel>
+            <SectionBadge>Layout</SectionBadge>
             <div className="grid grid-cols-3 gap-2">
               {LAYOUTS.map(({ value, label, icon }) => (
                 <button
@@ -333,17 +434,23 @@ export function SettingsDrawer() {
                   type="button"
                   onClick={() => setLayout(value)}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-lg border p-2.5 transition-all hover:border-primary/50",
+                    "flex flex-col items-center gap-2 rounded-xl border p-2.5 transition-all hover:border-primary/40",
                     layout === value
-                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                      ? "border-primary bg-primary/10 ring-1 ring-primary/20"
                       : "border-border bg-card",
                   )}
-                  title={label}
                   aria-label={label}
                   aria-pressed={layout === value}
                 >
                   <div className="h-8 w-full">{icon}</div>
-                  <span className="text-[10px] font-medium text-muted-foreground">
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium transition-colors",
+                      layout === value
+                        ? "text-primary"
+                        : "text-muted-foreground",
+                    )}
+                  >
                     {label}
                   </span>
                 </button>
@@ -351,9 +458,9 @@ export function SettingsDrawer() {
             </div>
           </div>
 
-          {/* ── Color scheme ── */}
+          {/* ── Color Scheme ── */}
           <div className="flex flex-col gap-3">
-            <SubLabel>Color</SubLabel>
+            <SectionBadge>Color Scheme</SectionBadge>
             <div className="grid grid-cols-2 gap-2">
               {(["integrate", "apparent"] as ColorScheme[]).map((scheme) => (
                 <button
@@ -361,9 +468,9 @@ export function SettingsDrawer() {
                   type="button"
                   onClick={() => setColorScheme(scheme)}
                   className={cn(
-                    "flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all capitalize hover:border-primary/50",
+                    "flex flex-col items-center gap-2 rounded-xl border px-3 py-3.5 transition-all hover:border-primary/40",
                     colorScheme === scheme
-                      ? "border-primary bg-primary/5 text-primary ring-1 ring-primary/20"
+                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/20"
                       : "border-border bg-card text-muted-foreground hover:text-foreground",
                   )}
                   aria-pressed={colorScheme === scheme}
@@ -371,7 +478,7 @@ export function SettingsDrawer() {
                   {scheme === "integrate" ? (
                     <svg
                       viewBox="0 0 16 16"
-                      className="h-4 w-4"
+                      className="h-5 w-5"
                       fill="none"
                       aria-hidden="true"
                     >
@@ -395,7 +502,7 @@ export function SettingsDrawer() {
                   ) : (
                     <svg
                       viewBox="0 0 16 16"
-                      className="h-4 w-4"
+                      className="h-5 w-5"
                       fill="none"
                       aria-hidden="true"
                     >
@@ -417,76 +524,90 @@ export function SettingsDrawer() {
                       />
                     </svg>
                   )}
-                  {scheme}
+                  <span className="text-[11px] font-medium capitalize">
+                    {scheme}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
+
+          <hr className="border-border/50" />
 
           {/* ── Presets ── */}
           <div className="flex flex-col gap-3">
             <SectionBadge>Presets</SectionBadge>
             <div className="grid grid-cols-3 gap-2">
               {PRESETS.map(({ value, bg, accent, label }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setPreset(value)}
-                  className={cn(
-                    "relative flex h-14 w-full items-end justify-start overflow-hidden rounded-lg border p-1.5 transition-all",
-                    bg,
-                    preset === value
-                      ? "border-primary ring-2 ring-primary/30"
-                      : "border-border/50 hover:border-primary/40",
-                  )}
-                  title={label}
-                  aria-label={`${label} preset`}
-                  aria-pressed={preset === value}
-                >
-                  {/* mini sidebar preview inside each swatch */}
-                  <div className="absolute inset-0 flex">
-                    <div
-                      className={cn(
-                        "w-2.5 h-full opacity-80 rounded-l-lg",
-                        accent,
-                      )}
-                    />
-                    <div className="flex-1 flex flex-col gap-0.5 p-1">
+                <div key={value} className="flex flex-col items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setPreset(value)}
+                    className={cn(
+                      "relative flex h-14 w-full overflow-hidden rounded-xl border p-1.5 transition-all hover:scale-[1.04]",
+                      bg,
+                      preset === value
+                        ? "border-primary/50 ring-2 ring-primary/40 shadow-lg shadow-primary/10"
+                        : "border-transparent hover:border-primary/30",
+                    )}
+                    aria-label={`${label} preset`}
+                    aria-pressed={preset === value}
+                  >
+                    <div className="absolute inset-0 flex">
                       <div
                         className={cn(
-                          "h-1 w-4/5 rounded-full opacity-60",
+                          "w-2.5 h-full opacity-80 rounded-l-xl",
                           accent,
                         )}
                       />
-                      <div className="h-1 w-3/5 rounded-full bg-white/20" />
-                      <div className="h-1 w-2/5 rounded-full bg-white/20" />
+                      <div className="flex-1 flex flex-col gap-0.5 p-1">
+                        <div
+                          className={cn(
+                            "h-1 w-4/5 rounded-full opacity-60",
+                            accent,
+                          )}
+                        />
+                        <div className="h-1 w-3/5 rounded-full bg-white/20" />
+                        <div className="h-1 w-2/5 rounded-full bg-white/20" />
+                      </div>
                     </div>
-                  </div>
-                  {/* selected checkmark */}
-                  {preset === value && (
-                    <div className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white/20">
-                      <svg
-                        viewBox="0 0 12 12"
-                        className="h-2.5 w-2.5 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        aria-hidden="true"
-                      >
-                        <polyline points="1.5,6 4.5,9 10.5,3" />
-                      </svg>
-                    </div>
-                  )}
-                </button>
+                    {preset === value && (
+                      <div className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-white/30 backdrop-blur-sm">
+                        <svg
+                          viewBox="0 0 12 12"
+                          className="h-2.5 w-2.5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                          aria-hidden="true"
+                        >
+                          <polyline points="1.5,6 4.5,9 10.5,3" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium leading-none transition-colors",
+                      preset === value
+                        ? "text-foreground"
+                        : "text-muted-foreground/70",
+                    )}
+                  >
+                    {label}
+                  </span>
+                </div>
               ))}
             </div>
           </div>
+
+          <hr className="border-border/50" />
 
           {/* ── Font ── */}
           <div className="flex flex-col gap-4">
             <SectionBadge>Font</SectionBadge>
 
-            {/* Family — 2×2 grid matching screenshot */}
+            {/* Family */}
             <div className="flex flex-col gap-2">
               <SubLabel>Family</SubLabel>
               <div className="grid grid-cols-2 gap-2">
@@ -498,9 +619,9 @@ export function SettingsDrawer() {
                       type="button"
                       onClick={() => setFontFamily(value)}
                       className={cn(
-                        "flex flex-col items-center gap-1 rounded-lg border py-4 px-3 transition-all hover:border-primary/50",
+                        "flex flex-col items-center gap-1 rounded-xl border py-4 px-3 transition-all hover:border-primary/40",
                         active
-                          ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                          ? "border-primary bg-primary/10 ring-1 ring-primary/20"
                           : "border-border bg-card",
                       )}
                       aria-label={`${label} font`}
@@ -508,8 +629,8 @@ export function SettingsDrawer() {
                     >
                       <span
                         className={cn(
-                          "text-2xl font-semibold leading-none",
-                          active ? "text-foreground" : "text-muted-foreground",
+                          "text-3xl font-bold leading-none transition-colors",
+                          active ? "text-primary" : "text-muted-foreground",
                         )}
                         style={{ fontFamily: FONT_STACKS[value] }}
                       >
@@ -517,7 +638,7 @@ export function SettingsDrawer() {
                       </span>
                       <span
                         className={cn(
-                          "text-[11px] font-medium leading-none mt-1",
+                          "text-[11px] font-medium leading-none mt-1 transition-colors",
                           active ? "text-foreground" : "text-muted-foreground",
                         )}
                       >
@@ -529,55 +650,55 @@ export function SettingsDrawer() {
               </div>
             </div>
 
-            {/* Size — slider with live px badge */}
+            {/* Size */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <SubLabel>Size</SubLabel>
-                <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium tabular-nums">
+                <span className="rounded-lg border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-semibold tabular-nums text-primary">
                   {fontSize}px
                 </span>
               </div>
-              <div className="relative flex items-center">
-                <input
-                  type="range"
-                  min={12}
-                  max={20}
-                  step={1}
-                  value={fontSize}
-                  onChange={(e) => setFontSize(Number(e.target.value))}
-                  aria-label="Font size"
-                  className={cn(
-                    "w-full h-1.5 rounded-full appearance-none cursor-pointer",
-                    "bg-muted",
-                    // thumb styles
-                    "[&::-webkit-slider-thumb]:appearance-none",
-                    "[&::-webkit-slider-thumb]:h-4",
-                    "[&::-webkit-slider-thumb]:w-4",
-                    "[&::-webkit-slider-thumb]:rounded-full",
-                    "[&::-webkit-slider-thumb]:bg-primary",
-                    "[&::-webkit-slider-thumb]:shadow-sm",
-                    "[&::-webkit-slider-thumb]:border-2",
-                    "[&::-webkit-slider-thumb]:border-background",
-                    "[&::-webkit-slider-thumb]:cursor-pointer",
-                    // Firefox
-                    "[&::-moz-range-thumb]:h-4",
-                    "[&::-moz-range-thumb]:w-4",
-                    "[&::-moz-range-thumb]:rounded-full",
-                    "[&::-moz-range-thumb]:bg-primary",
-                    "[&::-moz-range-thumb]:border-2",
-                    "[&::-moz-range-thumb]:border-background",
-                    "[&::-moz-range-thumb]:cursor-pointer",
-                  )}
-                  style={{
-                    background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${((fontSize - 12) / (20 - 12)) * 100}%, hsl(var(--muted)) ${((fontSize - 12) / (20 - 12)) * 100}%, hsl(var(--muted)) 100%)`,
-                  }}
-                />
-              </div>
-              {/* Size labels */}
+              <input
+                type="range"
+                min={12}
+                max={20}
+                step={1}
+                value={fontSize}
+                onChange={(e) => setFontSize(Number(e.target.value))}
+                aria-label="Font size"
+                className={cn(
+                  "w-full h-1.5 rounded-full appearance-none cursor-pointer",
+                  "[&::-webkit-slider-thumb]:appearance-none",
+                  "[&::-webkit-slider-thumb]:h-4",
+                  "[&::-webkit-slider-thumb]:w-4",
+                  "[&::-webkit-slider-thumb]:rounded-full",
+                  "[&::-webkit-slider-thumb]:bg-primary",
+                  "[&::-webkit-slider-thumb]:shadow-sm",
+                  "[&::-webkit-slider-thumb]:border-2",
+                  "[&::-webkit-slider-thumb]:border-background",
+                  "[&::-webkit-slider-thumb]:cursor-pointer",
+                  "[&::-moz-range-thumb]:h-4",
+                  "[&::-moz-range-thumb]:w-4",
+                  "[&::-moz-range-thumb]:rounded-full",
+                  "[&::-moz-range-thumb]:bg-primary",
+                  "[&::-moz-range-thumb]:border-2",
+                  "[&::-moz-range-thumb]:border-background",
+                  "[&::-moz-range-thumb]:cursor-pointer",
+                )}
+                style={{
+                  background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${((fontSize - 12) / (20 - 12)) * 100}%, hsl(var(--muted)) ${((fontSize - 12) / (20 - 12)) * 100}%, hsl(var(--muted)) 100%)`,
+                }}
+              />
               <div className="flex items-center justify-between px-0.5">
-                <span className="text-[10px] text-muted-foreground">12px</span>
-                <span className="text-[10px] text-muted-foreground">16px</span>
-                <span className="text-[10px] text-muted-foreground">20px</span>
+                <span className="text-[10px] text-muted-foreground/60">
+                  12px
+                </span>
+                <span className="text-[10px] text-muted-foreground/60">
+                  16px
+                </span>
+                <span className="text-[10px] text-muted-foreground/60">
+                  20px
+                </span>
               </div>
             </div>
           </div>

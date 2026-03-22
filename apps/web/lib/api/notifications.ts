@@ -7,7 +7,8 @@ export type NotificationType =
   | "medication_reminder"
   | "vet_follow_up"
   | "low_stock"
-  | "critical_stock";
+  | "critical_stock"
+  | "household_invite";
 
 export interface NotificationData {
   type: NotificationType;
@@ -20,6 +21,10 @@ export interface NotificationData {
   product_name?: string;
   days_remaining?: number;
   runs_out_date?: string | null;
+  inviter_name?: string;
+  household_name?: string;
+  invite_url?: string;
+  invitation_token?: string;
 }
 
 export interface AppNotification {

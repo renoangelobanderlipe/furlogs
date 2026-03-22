@@ -57,6 +57,14 @@ class HouseholdPolicy
         return $this->isOwnerOf($user, $household);
     }
 
+    /**
+     * Only the household owner may cancel a pending invitation.
+     */
+    public function cancelInvitation(User $user, Household $household): bool
+    {
+        return $this->isOwnerOf($user, $household);
+    }
+
     private function isOwnerOf(User $user, Household $household): bool
     {
         return $user->current_household_id === $household->id

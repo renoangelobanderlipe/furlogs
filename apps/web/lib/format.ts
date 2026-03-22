@@ -70,6 +70,25 @@ export function formatRelativeDueDate(dueDate: string): string {
 }
 
 /**
+ * Formats an ISO datetime string as a relative label:
+ * "just now", "5m ago", "3h ago", "2d ago", or short date (e.g. "Mar 20").
+ */
+export function formatRelativeTime(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60_000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+/**
  * Formats a pet's age from birthday or pre-calculated age value.
  * Returns months for pets under 1 year, years otherwise.
  */

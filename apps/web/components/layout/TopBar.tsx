@@ -11,6 +11,7 @@ import {
   Stethoscope,
   Sun,
   Syringe,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -73,6 +74,12 @@ const TYPE_CONFIG: Record<
     color: "text-destructive",
     bg: "bg-destructive/10",
     label: "Critical Stock",
+  },
+  household_invite: {
+    icon: Users,
+    color: "text-primary",
+    bg: "bg-primary/10",
+    label: "Household Invite",
   },
 };
 

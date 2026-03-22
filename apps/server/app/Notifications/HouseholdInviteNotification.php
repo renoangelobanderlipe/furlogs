@@ -4,22 +4,19 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class HouseholdInviteNotification extends Notification implements ShouldQueue
+// TODO: Re-add `implements ShouldQueue` + `use Queueable` + `$this->onQueue('notifications')`
+//       once Laravel Cloud supports queue workers. Removed temporarily because queued jobs
+//       sit in the jobs table unprocessed without a running worker.
+class HouseholdInviteNotification extends Notification
 {
-    use Queueable;
-
     public function __construct(
-        public readonly string $inviteUrl,
+        public readonly string $token,
         public readonly string $householdName,
         public readonly string $inviterName,
-    ) {
-        $this->onQueue('notifications');
-    }
+    ) {}
 
     /**
      * @return array<int, string>
@@ -34,9 +31,14 @@ class HouseholdInviteNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("You're invited to join {$this->householdName} on FurLog")
             ->markdown('notifications.household-invite', [
-                'inviteUrl' => $this->inviteUrl,
+                'inviteUrl' => $this->inviteUrl(),
                 'householdName' => $this->householdName,
                 'inviterName' => $this->inviterName,
             ]);
+    }
+
+    private function inviteUrl(): string
+    {
+        return config('app.frontend_url').'/invitations/'.$this->token;
     }
 }

@@ -7,6 +7,7 @@ import {
   Package,
   Pill,
   Syringe,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,8 @@ function getNotificationIcon(type: NotificationType) {
     case "low_stock":
     case "critical_stock":
       return <Package className="h-5 w-5" />;
+    case "household_invite":
+      return <Users className="h-5 w-5" />;
     default:
       return <Bell className="h-5 w-5" />;
   }

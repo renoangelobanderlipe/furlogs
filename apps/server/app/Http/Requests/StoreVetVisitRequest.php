@@ -37,7 +37,11 @@ class StoreVetVisitRequest extends FormRequest
                 'uuid',
                 Rule::exists('pets', 'id')->where('household_id', $this->user()->current_household_id),
             ],
-            'clinic_id' => ['nullable', 'uuid', 'exists:vet_clinics,id'],
+            'clinic_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('vet_clinics', 'id')->where('household_id', $this->user()->current_household_id),
+            ],
             'vet_name' => ['nullable', 'string', 'max:255'],
             'visit_type' => ['required', 'string', Rule::enum(VisitType::class)],
             'visit_date' => ['required', 'date', 'before_or_equal:today'],

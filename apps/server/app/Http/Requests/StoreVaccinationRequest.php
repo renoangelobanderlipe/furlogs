@@ -36,7 +36,11 @@ class StoreVaccinationRequest extends FormRequest
                 'uuid',
                 Rule::exists('pets', 'id')->where('household_id', $this->user()->current_household_id),
             ],
-            'clinic_id' => ['nullable', 'uuid', 'exists:vet_clinics,id'],
+            'clinic_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('vet_clinics', 'id')->where('household_id', $this->user()->current_household_id),
+            ],
             'vaccine_name' => ['required', 'string', 'max:255'],
             'administered_date' => ['required', 'date', 'before_or_equal:today'],
             'next_due_date' => ['nullable', 'date', 'after:administered_date'],

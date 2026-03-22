@@ -24,7 +24,9 @@ export function useAcceptInvitation() {
       toast.success("You have joined the household!");
       queryClient.invalidateQueries({ queryKey: notificationKeys.all });
       queryClient.invalidateQueries({ queryKey: householdKeys.current() });
-      queryClient.invalidateQueries({ queryKey: householdKeys.userHouseholds() });
+      queryClient.invalidateQueries({
+        queryKey: householdKeys.userHouseholds(),
+      });
       router.push("/dashboard");
     },
     onError: (error: unknown) => {

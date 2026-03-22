@@ -70,7 +70,6 @@ function getNotificationHref(notification: AppNotification): string {
   }
 }
 
-
 interface NotificationItemProps {
   notification: AppNotification;
   onClose: () => void;

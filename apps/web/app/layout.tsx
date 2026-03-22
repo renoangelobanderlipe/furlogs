@@ -78,7 +78,6 @@ export default async function RootLayout({
             attribute="class"
             defaultTheme="dark"
             enableSystem={false}
-            nonce={nonce}
           >
             {children}
             <Toaster position="top-right" richColors />

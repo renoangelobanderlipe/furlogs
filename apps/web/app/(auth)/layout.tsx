@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "FurLog — Sign In",
+  robots: { index: false, follow: false },
 };
 
 function PawDecor({

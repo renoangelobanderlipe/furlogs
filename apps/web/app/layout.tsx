@@ -8,6 +8,7 @@ import {
   Public_Sans,
 } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { SITE_URL } from "@/lib/constants";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import "./globals.css";
@@ -25,6 +26,7 @@ const geistMono = Geist_Mono({
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  preload: false,
 });
 
 const publicSans = Public_Sans({
@@ -35,18 +37,23 @@ const publicSans = Public_Sans({
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],
+  preload: false,
 });
 
 const nunitoSans = Nunito_Sans({
   variable: "--font-nunito-sans",
   subsets: ["latin"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "FurLog — Pet Care Management",
-  description: "Track your pets' health, vet visits, and daily care.",
+  description:
+    "FurLog is a multi-user pet care app. Track vet visits, medications, vaccinations, food stock, weight history, and reminders — shared across your whole household.",
   icons: {
-    icon: "/icon.svg",
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: "/icon.svg",
   },
 };
 

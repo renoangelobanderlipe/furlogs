@@ -7,6 +7,7 @@ import {
   Nunito_Sans,
   Public_Sans,
 } from "next/font/google";
+import { headers } from "next/headers";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_URL } from "@/lib/constants";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -57,14 +58,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html
       lang="en"
+      nonce={nonce}
       className={`dark ${geistSans.variable} ${geistMono.variable} ${inter.variable} ${publicSans.variable} ${dmSans.variable} ${nunitoSans.variable}`}
       suppressHydrationWarning
     >
@@ -74,6 +78,7 @@ export default function RootLayout({
             attribute="class"
             defaultTheme="dark"
             enableSystem={false}
+            nonce={nonce}
           >
             {children}
             <Toaster position="top-right" richColors />

@@ -23,7 +23,7 @@ interface ConfirmDialogProps {
   isLoading?: boolean;
 }
 
-export function ConfirmDialog({
+export const ConfirmDialog = ({
   open,
   title,
   description,
@@ -31,7 +31,7 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   isLoading = false,
-}: ConfirmDialogProps) {
+}: ConfirmDialogProps) => {
   return (
     <AlertDialog open={open} onOpenChange={(o) => !o && onCancel()}>
       <AlertDialogContent>
@@ -54,4 +54,4 @@ export function ConfirmDialog({
       </AlertDialogContent>
     </AlertDialog>
   );
-}
+};

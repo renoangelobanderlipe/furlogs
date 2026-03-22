@@ -27,7 +27,7 @@ function getMonthRange(year: number, month: number) {
   return { start, end };
 }
 
-export function MiniCalendar() {
+export const MiniCalendar = () => {
   const today = new Date();
   const viewYear = today.getFullYear();
   const viewMonth = today.getMonth();
@@ -104,4 +104,4 @@ export function MiniCalendar() {
       </div>
     </div>
   );
-}
+};

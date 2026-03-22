@@ -83,11 +83,11 @@ const TYPE_CONFIG: Record<
   },
 };
 
-export function TopBar({
+export const TopBar = ({
   isHorizontalNav = false,
 }: {
   isHorizontalNav?: boolean;
-}) {
+}) => {
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [tab, setTab] = useState<"all" | "unread">("all");
@@ -397,4 +397,4 @@ export function TopBar({
       </div>
     </header>
   );
-}
+};

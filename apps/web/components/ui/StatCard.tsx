@@ -24,7 +24,7 @@ const variantIconClass: Record<StatVariant, string> = {
   info: "text-primary",
 };
 
-export function StatCard({
+export const StatCard = ({
   label,
   value,
   subtitle,
@@ -32,7 +32,7 @@ export function StatCard({
   variant,
   status,
   className,
-}: StatCardProps) {
+}: StatCardProps) => {
   const v = variant ?? status ?? "default";
   return (
     <div
@@ -69,4 +69,4 @@ export function StatCard({
       </div>
     </div>
   );
-}
+};

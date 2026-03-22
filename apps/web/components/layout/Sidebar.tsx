@@ -12,7 +12,7 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const pathname = usePathname();
 
   const NavItem = ({
@@ -116,4 +116,4 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </button>
     </aside>
   );
-}
+};

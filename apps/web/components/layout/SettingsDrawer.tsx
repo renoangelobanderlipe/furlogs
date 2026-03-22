@@ -188,7 +188,7 @@ function ToggleControl({
   onCheckedChange,
   info,
   variant = "card",
-}: ToggleControlProps) {
+}: ToggleControlProps) => {
   const iconEl = (
     <span
       className={cn(
@@ -281,7 +281,7 @@ function SubLabel({ children }: { children: React.ReactNode }) {
 }
 
 // ── Main component ─────────────────────────────────────────────
-export function SettingsDrawer() {
+export const SettingsDrawer = () => {
   const { theme, setTheme } = useTheme();
 
   const {
@@ -328,8 +328,6 @@ export function SettingsDrawer() {
     })),
   );
 
-  const safeFontSize = fontSize > 0 ? fontSize : 16;
-
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -345,11 +343,8 @@ export function SettingsDrawer() {
 
       <SheetContent
         side={rtl ? "left" : "right"}
-        style={{
-          width: `${320 * (safeFontSize / 16)}px`,
-          zoom: 16 / safeFontSize,
-        }}
-        className="p-0 overflow-y-auto flex flex-col gap-0 [&>button]:hidden relative"
+        aria-describedby={undefined}
+        className="w-80 p-0 overflow-y-auto flex flex-col gap-0 [&>button]:hidden relative"
       >
         <PawWatermark
           size={130}
@@ -714,4 +709,4 @@ export function SettingsDrawer() {
       </SheetContent>
     </Sheet>
   );
-}
+};

@@ -22,7 +22,7 @@ const steps = [
   },
 ] as const;
 
-export function HowItWorksSection() {
+export const HowItWorksSection = () => {
   return (
     <section
       id="how-it-works"
@@ -102,4 +102,4 @@ export function HowItWorksSection() {
       </div>
     </section>
   );
-}
+};

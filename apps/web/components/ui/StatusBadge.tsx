@@ -33,10 +33,10 @@ interface StatusBadgeProps extends VariantProps<typeof statusBadgeVariants> {
   className?: string;
 }
 
-export function StatusBadge({ status, label, className }: StatusBadgeProps) {
+export const StatusBadge = ({ status, label, className }: StatusBadgeProps) => {
   return (
     <span className={cn(statusBadgeVariants({ status }), className)}>
       {label}
     </span>
   );
-}
+};

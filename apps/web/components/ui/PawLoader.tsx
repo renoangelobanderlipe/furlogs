@@ -19,7 +19,7 @@ const STEP = DURATION / PAW_POSITIONS.length;
 
 const DOT_DELAYS = ["0s", "0.4s", "0.8s"];
 
-export function PawLoader({
+export const PawLoader = ({
   size = 180,
   message = "Loading FurLog",
   detail,
@@ -29,7 +29,7 @@ export function PawLoader({
   message?: string;
   /** Optional secondary detail line */
   detail?: string;
-}) {
+}) => {
   // Keep the aspect ratio of viewBox 200 × 80
   const h = Math.round(size * (80 / 200));
 
@@ -99,4 +99,4 @@ export function PawLoader({
       )}
     </output>
   );
-}
+};

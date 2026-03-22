@@ -1,7 +1,7 @@
 import { PawPrint } from "lucide-react";
 import Link from "next/link";
 
-export function LandingFooter() {
+export const LandingFooter = () => {
   return (
     <footer className="border-t border-white/[0.06] bg-background">
       {/* Subtle top gradient glow */}
@@ -52,4 +52,4 @@ export function LandingFooter() {
       </div>
     </footer>
   );
-}
+};

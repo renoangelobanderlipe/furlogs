@@ -17,9 +17,9 @@ interface HouseholdSwitcherProps {
   collapsed?: boolean;
 }
 
-export function HouseholdSwitcher({
+export const HouseholdSwitcher = ({
   collapsed = false,
-}: HouseholdSwitcherProps) {
+}: HouseholdSwitcherProps) => {
   const user = useAuthStore((s) => s.user);
   const { data: households = [], isLoading } = useUserHouseholds();
   const switchHousehold = useSwitchHousehold();
@@ -115,4 +115,4 @@ export function HouseholdSwitcher({
       </PopoverContent>
     </Popover>
   );
-}
+};

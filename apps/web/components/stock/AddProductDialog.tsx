@@ -44,13 +44,13 @@ interface AddProductDialogProps {
   editProduct?: FoodProduct | null;
 }
 
-export function AddProductDialog({
+export const AddProductDialog = ({
   open,
   onClose,
   onSubmit,
   isLoading,
   editProduct,
-}: AddProductDialogProps) {
+}: AddProductDialogProps) => {
   const isEditing = editProduct != null;
 
   const form = useForm<ProductFormValues>({
@@ -291,4 +291,4 @@ export function AddProductDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};

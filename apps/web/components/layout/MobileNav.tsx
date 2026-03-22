@@ -47,7 +47,7 @@ const moreLinks = [
   { label: "Settings", icon: Settings, path: "/settings" },
 ];
 
-export function MobileNav() {
+export const MobileNav = () => {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -109,4 +109,4 @@ export function MobileNav() {
       </div>
     </nav>
   );
-}
+};

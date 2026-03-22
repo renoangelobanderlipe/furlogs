@@ -27,11 +27,11 @@ interface PasswordConfirmDialogProps {
   onConfirmed: () => void;
 }
 
-export function PasswordConfirmDialog({
+export const PasswordConfirmDialog = ({
   open,
   onClose,
   onConfirmed,
-}: PasswordConfirmDialogProps) {
+}: PasswordConfirmDialogProps) => {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
 
@@ -127,4 +127,4 @@ export function PasswordConfirmDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};

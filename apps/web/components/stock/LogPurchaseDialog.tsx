@@ -42,14 +42,14 @@ interface LogPurchaseDialogProps {
   preselectedProductId?: string | null;
 }
 
-export function LogPurchaseDialog({
+export const LogPurchaseDialog = ({
   open,
   onClose,
   onSubmit,
   isLoading,
   products,
   preselectedProductId,
-}: LogPurchaseDialogProps) {
+}: LogPurchaseDialogProps) => {
   const form = useForm<PurchaseFormValues>({
     resolver: zodResolver(purchaseSchema),
     defaultValues: {
@@ -239,4 +239,4 @@ export function LogPurchaseDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};

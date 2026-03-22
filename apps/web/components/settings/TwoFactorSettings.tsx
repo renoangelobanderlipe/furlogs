@@ -75,7 +75,7 @@ function ConfirmPasswordDialog({
   error,
   onSubmit,
   onClose,
-}: ConfirmPasswordDialogProps) {
+}: ConfirmPasswordDialogProps) => {
   const {
     register,
     handleSubmit,
@@ -233,7 +233,7 @@ function RecoveryCodesDisplay({
   codes,
   onDismiss,
   dismissLabel = "I have saved these codes",
-}: RecoveryCodesDisplayProps) {
+}: RecoveryCodesDisplayProps) => {
   const handleCopy = () => {
     navigator.clipboard.writeText(codes.join("\n")).then(() => {
       toast.success("Recovery codes copied to clipboard.");
@@ -858,7 +858,7 @@ function RecoveryCodesSection() {
 
 // ─── Main 2FA Settings Section ────────────────────────────────────────────────
 
-export function TwoFactorSettings() {
+export const TwoFactorSettings = () => {
   const user = useAuthStore((s) => s.user);
   const isEnabled =
     user?.two_factor_confirmed_at !== null &&
@@ -902,4 +902,4 @@ export function TwoFactorSettings() {
       )}
     </div>
   );
-}
+};

@@ -131,10 +131,10 @@ function SkeletonRows() {
   );
 }
 
-export function PurchaseHistoryFeed({
+export const PurchaseHistoryFeed = ({
   items,
   isLoading,
-}: PurchaseHistoryFeedProps) {
+}: PurchaseHistoryFeedProps) => {
   if (isLoading) {
     return <SkeletonRows />;
   }
@@ -162,4 +162,4 @@ export function PurchaseHistoryFeed({
       ))}
     </div>
   );
-}
+};

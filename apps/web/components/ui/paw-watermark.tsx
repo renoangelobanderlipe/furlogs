@@ -13,7 +13,7 @@ interface PawWatermarkProps {
   style?: React.CSSProperties;
 }
 
-export function PawWatermark({
+export const PawWatermark = ({
   size = 72,
   opacity = 0.045,
   rotate = 0,
@@ -21,7 +21,7 @@ export function PawWatermark({
   strokeWidth = 1.25,
   className,
   style,
-}: PawWatermarkProps) {
+}: PawWatermarkProps) => {
   const transform =
     style?.transform ??
     ([rotate !== 0 && `rotate(${rotate}deg)`, flip && "scaleX(-1)"]
@@ -51,4 +51,4 @@ export function PawWatermark({
       <path d={PAW_PATH} />
     </svg>
   );
-}
+};

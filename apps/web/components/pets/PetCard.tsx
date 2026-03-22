@@ -16,7 +16,7 @@ interface PetCardProps {
   status?: PetStatus;
 }
 
-export function PetCard({ pet, animationIndex = 0, status }: PetCardProps) {
+export const PetCard = ({ pet, animationIndex = 0, status }: PetCardProps) => {
   const {
     name,
     species,
@@ -138,4 +138,4 @@ export function PetCard({ pet, animationIndex = 0, status }: PetCardProps) {
       </div>
     </NextLink>
   );
-}
+};

@@ -3,7 +3,7 @@
 import { X } from "lucide-react";
 import { useHouseholdStore } from "@/stores/useHouseholdStore";
 
-export function PetFilterToggle() {
+export const PetFilterToggle = () => {
   const selectedPetId = useHouseholdStore((s) => s.selectedPetId);
   const selectedPetName = useHouseholdStore((s) => s.selectedPetName);
   const isPetFilterActive = useHouseholdStore((s) => s.isPetFilterActive);
@@ -24,4 +24,4 @@ export function PetFilterToggle() {
       </button>
     </span>
   );
-}
+};

@@ -92,14 +92,14 @@ function ReviewRow({ label, value }: ReviewRowProps) {
   );
 }
 
-export function VisitForm({
+export const VisitForm = ({
   onSuccess,
   onCancel,
   isLoading = false,
   defaultPetId,
   initialValues,
   isEditMode = false,
-}: VisitFormProps) {
+}: VisitFormProps) => {
   const [activeStep, setActiveStep] = useState(0);
   const [attachmentFiles, setAttachmentFiles] = useState<AttachmentEntry[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -626,4 +626,4 @@ export function VisitForm({
       </form>
     </Form>
   );
-}
+};

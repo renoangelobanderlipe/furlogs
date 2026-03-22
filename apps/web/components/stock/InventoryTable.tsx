@@ -77,7 +77,7 @@ function InventoryRow({
   onEdit,
   onDelete,
   onEditRates,
-}: InventoryRowProps) {
+}: InventoryRowProps) => {
   const attr = product.attributes;
   const proj = projection?.projection ?? null;
   const rateCount = attr.consumptionRates?.length ?? 0;
@@ -210,7 +210,7 @@ function SkeletonRows() {
   );
 }
 
-export function InventoryTable({
+export const InventoryTable = ({
   products,
   projections,
   isLoading,
@@ -218,7 +218,7 @@ export function InventoryTable({
   onDelete,
   onEditRates,
   onAddProduct,
-}: InventoryTableProps) {
+}: InventoryTableProps) => {
   const projectionByProductId = new Map(
     projections.map((p) => [p.item.attributes.foodProductId, p]),
   );
@@ -266,4 +266,4 @@ export function InventoryTable({
       </Table>
     </div>
   );
-}
+};

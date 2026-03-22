@@ -14,7 +14,7 @@ import { apiClient } from "@/lib/api/client";
 import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export const DashboardShell = ({ children }: { children: React.ReactNode }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const pendingConfigRef = useRef<InternalAxiosRequestConfig | null>(null);
@@ -164,4 +164,4 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       />
     </>
   );
-}
+};

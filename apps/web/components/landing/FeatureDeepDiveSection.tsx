@@ -248,7 +248,7 @@ function DeepDiveRow({
   bullets,
   visual,
   reverse = false,
-}: DeepDiveRowProps) {
+}: DeepDiveRowProps) => {
   return (
     <div
       className={`grid md:grid-cols-2 gap-12 lg:gap-16 items-center ${
@@ -301,7 +301,7 @@ function DeepDiveRow({
 
 /* ── Section ─────────────────────────────────────────────── */
 
-export function FeatureDeepDiveSection() {
+export const FeatureDeepDiveSection = () => {
   return (
     <section className="py-20 md:py-28">
       <div className="container mx-auto px-4 md:px-6">
@@ -347,4 +347,4 @@ export function FeatureDeepDiveSection() {
       </div>
     </section>
   );
-}
+};

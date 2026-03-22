@@ -16,7 +16,7 @@ const stats = [
   },
 ] as const;
 
-export function SocialProofSection() {
+export const SocialProofSection = () => {
   return (
     <div className="relative border-y border-white/[0.06]">
       <div className="absolute inset-0 bg-gradient-to-r from-background via-card/40 to-background" />
@@ -53,4 +53,4 @@ export function SocialProofSection() {
       </div>
     </div>
   );
-}
+};

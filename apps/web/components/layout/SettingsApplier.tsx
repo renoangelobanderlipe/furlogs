@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { FONT_STACKS, useAppSettingsStore } from "@/stores/useAppSettingsStore";
 
-export function SettingsApplier() {
+export const SettingsApplier = () => {
   const contrast = useAppSettingsStore((s) => s.contrast);
   const rtl = useAppSettingsStore((s) => s.rtl);
   const compact = useAppSettingsStore((s) => s.compact);
@@ -60,4 +60,4 @@ export function SettingsApplier() {
   ]);
 
   return null;
-}
+};

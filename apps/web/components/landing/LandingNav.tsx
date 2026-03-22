@@ -1,7 +1,7 @@
 import { ArrowRight, PawPrint } from "lucide-react";
 import Link from "next/link";
 
-export function LandingNav() {
+export const LandingNav = () => {
   return (
     <header className="sticky top-0 z-50 w-full">
       {/* Blur backdrop */}
@@ -53,4 +53,4 @@ export function LandingNav() {
       </div>
     </header>
   );
-}
+};

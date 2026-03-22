@@ -165,7 +165,7 @@ function MockAppWindow() {
   );
 }
 
-export function HeroSection() {
+export const HeroSection = () => {
   return (
     <section className="relative overflow-hidden">
       {/* Deep layered background */}
@@ -309,4 +309,4 @@ export function HeroSection() {
       </div>
     </section>
   );
-}
+};

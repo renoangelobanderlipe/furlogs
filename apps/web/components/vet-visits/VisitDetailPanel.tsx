@@ -86,7 +86,7 @@ function DetailRow({ label, value }: DetailRowProps) {
   );
 }
 
-export function VisitDetailPanel({
+export const VisitDetailPanel = ({
   visit,
   onEdit,
   onDelete,
@@ -94,7 +94,7 @@ export function VisitDetailPanel({
   onRemoveAttachment,
   onClose,
   isDeleting = false,
-}: VisitDetailPanelProps) {
+}: VisitDetailPanelProps) => {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const {
     visitType,
@@ -255,4 +255,4 @@ export function VisitDetailPanel({
       />
     </div>
   );
-}
+};

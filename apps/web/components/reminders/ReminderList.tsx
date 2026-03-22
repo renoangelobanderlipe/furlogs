@@ -196,7 +196,7 @@ function ReminderItem({ reminder, onEdit }: ReminderItemProps) {
   );
 }
 
-export function ReminderListSkeleton() {
+export const ReminderListSkeleton = () => {
   return (
     <div>
       {Array.from({ length: 4 }).map((_, i) => (
@@ -205,7 +205,7 @@ export function ReminderListSkeleton() {
       ))}
     </div>
   );
-}
+};
 
 interface ReminderListProps {
   reminders: Reminder[];
@@ -216,14 +216,14 @@ interface ReminderListProps {
   onEdit?: (reminder: Reminder) => void;
 }
 
-export function ReminderList({
+export const ReminderList = ({
   reminders,
   isLoading = false,
   emptyTitle = "No reminders",
   emptyDescription = "Add a reminder to keep track of important pet care tasks.",
   onAddClick,
   onEdit,
-}: ReminderListProps) {
+}: ReminderListProps) => {
   if (isLoading) {
     return <ReminderListSkeleton />;
   }
@@ -250,4 +250,4 @@ export function ReminderList({
       ))}
     </Accordion>
   );
-}
+};

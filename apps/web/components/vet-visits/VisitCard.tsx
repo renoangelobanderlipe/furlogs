@@ -21,13 +21,13 @@ const VISIT_TYPE_CLASS: Record<string, string> = {
   emergency: "border-destructive/30 bg-destructive/10 text-destructive",
 };
 
-export function VisitCard({
+export const VisitCard = ({
   visit,
   onClick,
   selected = false,
   selectable = false,
   onToggleSelect,
-}: VisitCardProps) {
+}: VisitCardProps) => {
   const { visitType, visitDate, reason, cost, attachmentCount } =
     visit.attributes;
   const formattedCost = cost ? formatCurrency(cost) : null;
@@ -105,4 +105,4 @@ export function VisitCard({
       </button>
     </div>
   );
-}
+};

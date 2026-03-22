@@ -54,7 +54,7 @@ interface EditConsumptionRatesDialogProps {
   isDeleting: boolean;
 }
 
-export function EditConsumptionRatesDialog({
+export const EditConsumptionRatesDialog = ({
   open,
   onClose,
   product,
@@ -63,7 +63,7 @@ export function EditConsumptionRatesDialog({
   onDelete,
   isUpserting,
   isDeleting,
-}: EditConsumptionRatesDialogProps) {
+}: EditConsumptionRatesDialogProps) => {
   const [showAddForm, setShowAddForm] = useState(false);
 
   const form = useForm<ConsumptionRateFormValues>({
@@ -275,4 +275,4 @@ export function EditConsumptionRatesDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};

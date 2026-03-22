@@ -24,11 +24,11 @@ const STATUS_BADGE_CLASS: Record<string, string> = {
   error: "bg-destructive/15 text-destructive border-destructive/20",
 };
 
-export function VaccinationCard({
+export const VaccinationCard = ({
   vaccination,
   petName,
   onClick,
-}: VaccinationCardProps) {
+}: VaccinationCardProps) => {
   const { vaccineName, administeredDate, nextDueDate, vetName, status } =
     vaccination.attributes;
 
@@ -93,4 +93,4 @@ export function VaccinationCard({
       </CardContent>
     </Card>
   );
-}
+};

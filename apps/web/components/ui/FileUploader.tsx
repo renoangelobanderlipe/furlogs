@@ -15,13 +15,13 @@ interface FileUploaderProps {
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-export function FileUploader({
+export const FileUploader = ({
   value,
   onChange,
   accept = "image/jpeg,image/png,image/webp",
   maxSizeMB = 5,
   preview,
-}: FileUploaderProps) {
+}: FileUploaderProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -130,4 +130,4 @@ export function FileUploader({
       />
     </div>
   );
-}
+};

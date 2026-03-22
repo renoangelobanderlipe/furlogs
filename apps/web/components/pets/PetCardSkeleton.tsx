@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function PetCardSkeleton() {
+export const PetCardSkeleton = () => {
   return (
     <div className="rounded-lg border border-border bg-card p-5">
       <div className="flex items-center gap-4 mb-4">
@@ -24,4 +24,4 @@ export function PetCardSkeleton() {
       <Skeleton className="h-8 w-full mt-4 rounded-md" />
     </div>
   );
-}
+};

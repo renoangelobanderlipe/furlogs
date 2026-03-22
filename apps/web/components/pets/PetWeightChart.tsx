@@ -24,7 +24,7 @@ function formatDate(dateStr: string): string {
   });
 }
 
-export function PetWeightChart({ petId }: PetWeightChartProps) {
+export const PetWeightChart = ({ petId }: PetWeightChartProps) => {
   const { data, isLoading, isError } = usePetWeights(petId);
 
   if (isLoading) {
@@ -102,4 +102,4 @@ export function PetWeightChart({ petId }: PetWeightChartProps) {
       </ResponsiveContainer>
     </div>
   );
-}
+};

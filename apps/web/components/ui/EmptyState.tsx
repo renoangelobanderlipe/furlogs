@@ -11,12 +11,12 @@ interface EmptyStateProps {
   icon?: React.ReactNode;
 }
 
-export function EmptyState({
+export const EmptyState = ({
   title,
   description,
   action,
   icon,
-}: EmptyStateProps) {
+}: EmptyStateProps) => {
   return (
     <div className="relative flex flex-col items-center justify-center text-center py-16 px-6 gap-4">
       {/* Decorative paw background */}
@@ -78,4 +78,4 @@ export function EmptyState({
       )}
     </div>
   );
-}
+};

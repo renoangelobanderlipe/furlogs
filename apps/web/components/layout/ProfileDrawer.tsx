@@ -45,7 +45,7 @@ interface ProfileDrawerProps {
   children: React.ReactNode;
 }
 
-export function ProfileDrawer({ children }: ProfileDrawerProps) {
+export const ProfileDrawer = ({ children }: ProfileDrawerProps) => {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -64,6 +64,7 @@ export function ProfileDrawer({ children }: ProfileDrawerProps) {
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent
         side="right"
+        aria-describedby={undefined}
         className="w-72 p-0 flex flex-col bg-card border-l border-border relative overflow-hidden"
       >
         <SheetTitle className="sr-only">Profile</SheetTitle>
@@ -155,4 +156,4 @@ export function ProfileDrawer({ children }: ProfileDrawerProps) {
       </SheetContent>
     </Sheet>
   );
-}
+};

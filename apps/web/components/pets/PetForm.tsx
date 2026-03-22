@@ -31,12 +31,12 @@ interface PetFormProps {
   submitLabel?: string;
 }
 
-export function PetForm({
+export const PetForm = ({
   defaultValues,
   onSubmit,
   isLoading = false,
   submitLabel = "Save pet",
-}: PetFormProps) {
+}: PetFormProps) => {
   const {
     register,
     handleSubmit,
@@ -308,4 +308,4 @@ export function PetForm({
       </div>
     </form>
   );
-}
+};

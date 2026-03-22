@@ -78,7 +78,7 @@ interface NotificationItemProps {
 function HouseholdInviteNotificationItem({
   notification,
   onClose,
-}: NotificationItemProps) {
+}: NotificationItemProps) => {
   const acceptMutation = useAcceptInvitation();
   const declineMutation = useDeclineInvitation();
   const isUnread = notification.readAt === null;
@@ -225,7 +225,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
   );
 }
 
-export function NotificationDropdown() {
+export const NotificationDropdown = () => {
   const { anchorEl, closeBell } = useNotificationStore();
   const bellOpen = anchorEl !== null;
   const { data, isLoading } = useNotifications(undefined, {
@@ -334,4 +334,4 @@ export function NotificationDropdown() {
       </PopoverContent>
     </Popover>
   );
-}
+};

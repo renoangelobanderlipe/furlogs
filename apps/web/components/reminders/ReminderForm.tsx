@@ -45,13 +45,13 @@ interface ReminderFormProps {
   onCancel: () => void;
 }
 
-export function ReminderForm({
+export const ReminderForm = ({
   pets,
   initialValues,
   isLoading = false,
   onSuccess,
   onCancel,
-}: ReminderFormProps) {
+}: ReminderFormProps) => {
   const form = useForm<ReminderFormValues>({
     resolver: zodResolver(reminderSchema),
     defaultValues: {
@@ -258,4 +258,4 @@ export function ReminderForm({
       </form>
     </Form>
   );
-}
+};

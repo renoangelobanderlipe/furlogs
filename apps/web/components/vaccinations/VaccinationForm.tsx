@@ -35,12 +35,12 @@ interface VaccinationFormProps {
   submitLabel?: string;
 }
 
-export function VaccinationForm({
+export const VaccinationForm = ({
   defaultValues,
   onSubmit,
   isLoading = false,
   submitLabel = "Save vaccination",
-}: VaccinationFormProps) {
+}: VaccinationFormProps) => {
   const { data: petsData } = usePets();
   const pets = petsData?.data ?? [];
 
@@ -245,4 +245,4 @@ export function VaccinationForm({
       </form>
     </Form>
   );
-}
+};

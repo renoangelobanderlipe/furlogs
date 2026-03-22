@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function VisitCardSkeleton() {
+export const VisitCardSkeleton = () => {
   return (
     <div className="rounded-xl border border-border bg-card p-4 h-full">
       <div className="flex items-center justify-between mb-2">
@@ -17,4 +17,4 @@ export function VisitCardSkeleton() {
       </div>
     </div>
   );
-}
+};

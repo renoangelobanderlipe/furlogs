@@ -8,7 +8,7 @@ import { LandingNav } from "@/components/landing/LandingNav";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 
-export function LandingPage() {
+export default function LandingPage() {
   return (
     <>
       <LandingNav />
@@ -25,5 +25,3 @@ export function LandingPage() {
     </>
   );
 }
-
-export default LandingPage;

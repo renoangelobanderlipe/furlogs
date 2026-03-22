@@ -9,16 +9,14 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
+import { UrgencyChip } from "@/components/dashboard/UrgencyChip";
 import { MiniCalendar } from "@/components/calendar/MiniCalendar";
 import { PawWatermark } from "@/components/ui/paw-watermark";
 import { StatCard } from "@/components/ui/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardSummary } from "@/hooks/api/useDashboard";
 import { useVetVisits } from "@/hooks/api/useVetVisits";
-import type {
-  DashboardPetSummary,
-  DashboardReminderItem,
-} from "@/lib/api/dashboard";
+import type { DashboardPetSummary } from "@/lib/api/dashboard";
 import { SPECIES_EMOJI } from "@/lib/constants";
 import {
   formatCurrency,
@@ -36,27 +34,6 @@ function getTimeGreeting(name?: string | null): string {
   return name ? `${base}, ${name}` : base;
 }
 
-function UrgencyChip({
-  urgency,
-}: {
-  urgency: DashboardReminderItem["urgency"];
-}) {
-  const cls: Record<string, string> = {
-    high: "bg-destructive/15 text-destructive",
-    medium: "bg-warning/15 text-warning",
-    low: "bg-success/15 text-success",
-  };
-  return (
-    <span
-      className={cn(
-        "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase shrink-0",
-        cls[urgency] ?? "bg-muted text-muted-foreground",
-      )}
-    >
-      {urgency}
-    </span>
-  );
-}
 
 const QUICK_ACTIONS = [
   { label: "Add Pet", icon: PawPrint, href: "/pets" },

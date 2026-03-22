@@ -72,14 +72,14 @@ function StatGridItem({ label, value }: StatGridItemProps) {
   );
 }
 
-export function ActiveConsumptionCard({
+export const ActiveConsumptionCard = ({
   projectionItem,
   pets,
   onAdjustRates,
   onMarkFinished,
   onLogNewBag,
   isMarkingFinished,
-}: ActiveConsumptionCardProps) {
+}: ActiveConsumptionCardProps) => {
   const { item, projection } = projectionItem;
   const attr = item.attributes;
   const product = item.relationships?.foodProduct;
@@ -239,4 +239,4 @@ export function ActiveConsumptionCard({
       </CardContent>
     </Card>
   );
-}
+};

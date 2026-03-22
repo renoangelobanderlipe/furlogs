@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useUnreadCount } from "@/hooks/api/useNotifications";
 import { useNotificationStore } from "@/stores/useNotificationStore";
 
-export function NotificationBell() {
+export const NotificationBell = () => {
   const { data: count = 0 } = useUnreadCount();
   const toggleBell = useNotificationStore((s) => s.toggleBell);
   const bellRef = useRef<HTMLButtonElement>(null);
@@ -51,4 +51,4 @@ export function NotificationBell() {
       )}
     </button>
   );
-}
+};

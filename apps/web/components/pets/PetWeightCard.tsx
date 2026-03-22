@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   ChevronDown,
@@ -6,9 +6,9 @@ import {
   Trash2,
   TrendingDown,
   TrendingUp,
-} from 'lucide-react';
-import { useState } from 'react';
-import { PetWeightChart } from '@/components/pets/PetWeightChart';
+} from "lucide-react";
+import { useState } from "react";
+import { PetWeightChart } from "@/components/pets/PetWeightChart";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,14 +19,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useDeletePetWeight, usePetWeights } from '@/hooks/api/usePetWeights';
-import type { Pet } from '@/lib/api/pets';
-import { SPECIES_EMOJI } from '@/lib/constants';
-import { formatShortDate } from '@/lib/format';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDeletePetWeight, usePetWeights } from "@/hooks/api/usePetWeights";
+import type { Pet } from "@/lib/api/pets";
+import { SPECIES_EMOJI } from "@/lib/constants";
+import { formatShortDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 export const PetWeightCard = ({
   pet,
@@ -57,7 +57,7 @@ export const PetWeightCard = ({
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-lg shrink-0">
-              {SPECIES_EMOJI[pet.attributes.species] ?? '🐾'}
+              {SPECIES_EMOJI[pet.attributes.species] ?? "🐾"}
             </div>
             <div>
               <p className="font-semibold text-sm leading-tight">
@@ -101,7 +101,7 @@ export const PetWeightCard = ({
       >
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-lg shrink-0">
-            {SPECIES_EMOJI[pet.attributes.species] ?? '🐾'}
+            {SPECIES_EMOJI[pet.attributes.species] ?? "🐾"}
           </div>
           <div>
             <p className="font-semibold text-sm leading-tight">
@@ -112,8 +112,8 @@ export const PetWeightCard = ({
                 {Number(latest.attributes.weightKg).toFixed(2)} kg latest
                 {weights.length > 0 && (
                   <span className="ml-1.5">
-                    · {weights.length}{' '}
-                    {weights.length === 1 ? 'record' : 'records'}
+                    · {weights.length}{" "}
+                    {weights.length === 1 ? "record" : "records"}
                   </span>
                 )}
               </p>
@@ -125,10 +125,10 @@ export const PetWeightCard = ({
           {trend !== null && (
             <div
               className={cn(
-                'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium',
+                "flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
                 trend > 0
-                  ? 'bg-primary/10 text-primary'
-                  : 'bg-muted text-muted-foreground',
+                  ? "bg-primary/10 text-primary"
+                  : "bg-muted text-muted-foreground",
               )}
             >
               {trend > 0 ? (
@@ -136,14 +136,14 @@ export const PetWeightCard = ({
               ) : (
                 <TrendingDown className="h-3 w-3" />
               )}
-              {trend > 0 ? '+' : ''}
+              {trend > 0 ? "+" : ""}
               {trend.toFixed(2)} kg
             </div>
           )}
           <ChevronDown
             className={cn(
-              'h-4 w-4 text-muted-foreground transition-transform duration-200',
-              expanded && 'rotate-180',
+              "h-4 w-4 text-muted-foreground transition-transform duration-200",
+              expanded && "rotate-180",
             )}
           />
         </div>
@@ -160,14 +160,14 @@ export const PetWeightCard = ({
           {/* Entry list */}
           {isLoading ? (
             <div className="px-4 pb-4 space-y-1 mt-3">
-              {['w1', 'w2'].map((k) => (
+              {["w1", "w2"].map((k) => (
                 <Skeleton key={k} className="h-7 rounded" />
               ))}
             </div>
           ) : (
             <div className="px-4 pb-4 mt-3">
               <p className="text-xs font-medium text-muted-foreground mb-2">
-                {weights.length} {weights.length === 1 ? 'record' : 'records'}
+                {weights.length} {weights.length === 1 ? "record" : "records"}
               </p>
               <div className="rounded-lg border border-border/40 overflow-hidden">
                 {weights.map((entry, i) => {
@@ -189,7 +189,7 @@ export const PetWeightCard = ({
                         </span>
                         {change !== 0 && (
                           <span className="text-xs text-muted-foreground/70">
-                            {change > 0 ? '+' : ''}
+                            {change > 0 ? "+" : ""}
                             {change.toFixed(2)} kg
                           </span>
                         )}
@@ -210,7 +210,7 @@ export const PetWeightCard = ({
                               </AlertDialogTitle>
                               <AlertDialogDescription>
                                 This will permanently delete the weight record
-                                for{' '}
+                                for{" "}
                                 {formatShortDate(entry.attributes.recordedAt)}.
                               </AlertDialogDescription>
                             </AlertDialogHeader>

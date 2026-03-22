@@ -78,7 +78,7 @@ interface NotificationItemProps {
 function HouseholdInviteNotificationItem({
   notification,
   onClose,
-}: NotificationItemProps) => {
+}: NotificationItemProps) {
   const acceptMutation = useAcceptInvitation();
   const declineMutation = useDeclineInvitation();
   const isUnread = notification.readAt === null;

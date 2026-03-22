@@ -9,8 +9,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
-import { UrgencyChip } from "@/components/dashboard/UrgencyChip";
 import { MiniCalendar } from "@/components/calendar/MiniCalendar";
+import { UrgencyChip } from "@/components/dashboard/UrgencyChip";
 import { PawWatermark } from "@/components/ui/paw-watermark";
 import { StatCard } from "@/components/ui/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,7 +33,6 @@ function getTimeGreeting(name?: string | null): string {
     hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   return name ? `${base}, ${name}` : base;
 }
-
 
 const QUICK_ACTIONS = [
   { label: "Add Pet", icon: PawPrint, href: "/pets" },

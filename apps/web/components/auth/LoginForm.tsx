@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { CheckCircle, Eye, EyeOff, Loader2, PawPrint } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { authEndpoints } from '@/lib/api/endpoints';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle, Eye, EyeOff, Loader2, PawPrint } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { authEndpoints } from "@/lib/api/endpoints";
 import {
   type LoginFormValues,
   loginSchema,
-} from '@/lib/validation/auth.schema';
-import { useAuthStore } from '@/stores/useAuthStore';
+} from "@/lib/validation/auth.schema";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export const LoginForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isVerified = searchParams.get('verified') === '1';
+  const isVerified = searchParams.get("verified") === "1";
   const fetchUser = useAuthStore((s) => s.fetchUser);
   const setTwoFactorPending = useAuthStore((s) => s.setTwoFactorPending);
   const [serverError, setServerError] = useState<string | null>(null);
@@ -34,10 +34,10 @@ export const LoginForm = () => {
     watch,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '', remember: false },
+    defaultValues: { email: "", password: "", remember: false },
   });
 
-  const remember = watch('remember');
+  const remember = watch("remember");
 
   const onSubmit = async (values: LoginFormValues) => {
     setServerError(null);
@@ -48,21 +48,21 @@ export const LoginForm = () => {
         (response.data as { two_factor?: boolean } | null)?.two_factor === true
       ) {
         setTwoFactorPending(true);
-        router.replace('/two-factor-challenge');
+        router.replace("/two-factor-challenge");
         return;
       }
       await fetchUser();
       const currentUser = useAuthStore.getState().user;
       if (!currentUser) {
-        setServerError('Unable to load your account. Please try again.');
+        setServerError("Unable to load your account. Please try again.");
         return;
       }
       if (!currentUser.email_verified_at) {
-        router.replace('/verify-email');
+        router.replace("/verify-email");
         return;
       }
-      toast.success('Welcome back!');
-      router.replace('/pets');
+      toast.success("Welcome back!");
+      router.replace("/pets");
     } catch (err: unknown) {
       const response = (
         err as {
@@ -73,14 +73,14 @@ export const LoginForm = () => {
       )?.response;
       if (!response) {
         setServerError(
-          'Unable to reach the server. Please check your connection and try again.',
+          "Unable to reach the server. Please check your connection and try again.",
         );
         return;
       }
       const message = response.data?.errors
         ? Object.values(response.data.errors).flat()[0]
-        : (response.data?.message ?? 'Invalid credentials. Please try again.');
-      setServerError(message ?? 'Invalid credentials. Please try again.');
+        : (response.data?.message ?? "Invalid credentials. Please try again.");
+      setServerError(message ?? "Invalid credentials. Please try again.");
     }
   };
 
@@ -128,7 +128,7 @@ export const LoginForm = () => {
             Email
           </Label>
           <Input
-            {...register('email')}
+            {...register("email")}
             id="email"
             type="email"
             autoComplete="email"
@@ -159,9 +159,9 @@ export const LoginForm = () => {
           </div>
           <div className="relative">
             <Input
-              {...register('password')}
+              {...register("password")}
               id="password"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               autoComplete="current-password"
               placeholder="••••••••"
               className="h-11 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-[14px] placeholder:text-muted-foreground/35 pr-10"
@@ -189,7 +189,7 @@ export const LoginForm = () => {
           <Checkbox
             id="remember"
             checked={remember}
-            onCheckedChange={(checked) => setValue('remember', !!checked)}
+            onCheckedChange={(checked) => setValue("remember", !!checked)}
           />
           <Label
             htmlFor="remember"
@@ -205,13 +205,13 @@ export const LoginForm = () => {
           className="cta-shimmer w-full h-11 rounded-xl text-[14px] font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isSubmitting ? 'Signing in...' : 'Sign in'}
+          {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
       </form>
 
       <div className="mt-8 pt-6 border-t border-white/[0.06]">
         <p className="text-[13px] text-muted-foreground">
-          No account?{' '}
+          No account?{" "}
           <Link
             href="/register"
             className="font-semibold text-primary hover:text-primary/80 transition-colors"

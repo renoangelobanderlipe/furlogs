@@ -188,7 +188,7 @@ function ToggleControl({
   onCheckedChange,
   info,
   variant = "card",
-}: ToggleControlProps) => {
+}: ToggleControlProps) {
   const iconEl = (
     <span
       className={cn(

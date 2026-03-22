@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Camera,
   FileText,
@@ -13,18 +13,18 @@ import {
   Syringe,
   User,
   X,
-} from 'lucide-react';
-import Image from 'next/image';
-import NextLink from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { NewCompanionCard } from '@/components/pets/NewCompanionCard';
-import { PetCard } from '@/components/pets/PetCard';
-import { PetCardSkeleton } from '@/components/pets/PetCardSkeleton';
-import { Button } from '@/components/ui/button';
+} from "lucide-react";
+import Image from "next/image";
+import NextLink from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { NewCompanionCard } from "@/components/pets/NewCompanionCard";
+import { PetCard } from "@/components/pets/PetCard";
+import { PetCardSkeleton } from "@/components/pets/PetCardSkeleton";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -33,41 +33,41 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
-import { Textarea } from '@/components/ui/textarea';
-import { useCreatePet, usePets, useUploadPetAvatar } from '@/hooks/api/usePets';
-import { useVaccinations } from '@/hooks/api/useVaccinations';
-import { useVetVisits } from '@/hooks/api/useVetVisits';
-import { petEndpoints } from '@/lib/api/pets';
-import { VISIT_TYPE_LABEL } from '@/lib/api/vet-visits';
-import { SPECIES_EMOJI } from '@/lib/constants';
-import { formatShortDate } from '@/lib/format';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useCreatePet, usePets, useUploadPetAvatar } from "@/hooks/api/usePets";
+import { useVaccinations } from "@/hooks/api/useVaccinations";
+import { useVetVisits } from "@/hooks/api/useVetVisits";
+import { petEndpoints } from "@/lib/api/pets";
+import { VISIT_TYPE_LABEL } from "@/lib/api/vet-visits";
+import { SPECIES_EMOJI } from "@/lib/constants";
+import { formatShortDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import {
   type PetFormValues,
   petSchema,
   SEX_OPTIONS,
   SIZE_OPTIONS,
   SPECIES_OPTIONS,
-} from '@/lib/validation/pet.schema';
+} from "@/lib/validation/pet.schema";
 
 // Icon mapping for visit type colors in recent records
 const VISIT_TYPE_BG: Record<string, string> = {
-  checkup: 'bg-primary/15 text-primary',
-  treatment: 'bg-amber-500/15 text-amber-400',
-  vaccine: 'bg-emerald-500/15 text-emerald-400',
-  emergency: 'bg-red-500/15 text-red-400',
+  checkup: "bg-primary/15 text-primary",
+  treatment: "bg-amber-500/15 text-amber-400",
+  vaccine: "bg-emerald-500/15 text-emerald-400",
+  emergency: "bg-red-500/15 text-red-400",
 };
 
 const VISIT_TYPE_ICON: Record<string, React.ElementType> = {
@@ -84,12 +84,12 @@ export const PetsContent = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [latestWeight, setLatestWeight] = useState('');
+  const [latestWeight, setLatestWeight] = useState("");
 
   useEffect(() => {
-    if (searchParams.get('verified') === '1') {
-      toast.success('Email verified successfully!');
-      router.replace('/pets');
+    if (searchParams.get("verified") === "1") {
+      toast.success("Email verified successfully!");
+      router.replace("/pets");
     }
   }, [searchParams, router]);
 
@@ -101,7 +101,7 @@ export const PetsContent = () => {
   const { data: vaccinationsData } = useVaccinations({ per_page: 100 });
   const duePetIds = new Set(
     (vaccinationsData?.data ?? [])
-      .filter((v) => v.attributes.status !== 'up_to_date')
+      .filter((v) => v.attributes.status !== "up_to_date")
       .map((v) => v.attributes.petId),
   );
 
@@ -124,7 +124,7 @@ export const PetsContent = () => {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/jpeg': [], 'image/png': [], 'image/webp': [] },
+    accept: { "image/jpeg": [], "image/png": [], "image/webp": [] },
     maxFiles: 1,
     maxSize: 5 * 1024 * 1024,
   });
@@ -147,24 +147,24 @@ export const PetsContent = () => {
   } = useForm<PetFormValues>({
     resolver: zodResolver(petSchema),
     defaultValues: {
-      name: '',
+      name: "",
       species: undefined,
-      breed: '',
+      breed: "",
       sex: undefined,
-      birthday: '',
+      birthday: "",
       isNeutered: false,
       size: undefined,
-      notes: '',
+      notes: "",
     },
   });
 
-  const isNeuteredValue = watch('isNeutered');
+  const isNeuteredValue = watch("isNeutered");
 
   const handleClose = (open: boolean) => {
     setDialogOpen(open);
     if (!open) {
       reset();
-      setLatestWeight('');
+      setLatestWeight("");
       if (avatarPreview) URL.revokeObjectURL(avatarPreview);
       setAvatarFile(null);
       setAvatarPreview(null);
@@ -174,7 +174,7 @@ export const PetsContent = () => {
   const onSubmit = (values: PetFormValues) => {
     createPet.mutate(values, {
       onSuccess: (pet) => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split("T")[0];
         const w = parseFloat(latestWeight);
         if (!Number.isNaN(w) && w > 0) {
           petEndpoints
@@ -186,7 +186,7 @@ export const PetsContent = () => {
         }
         setDialogOpen(false);
         reset();
-        setLatestWeight('');
+        setLatestWeight("");
         if (avatarPreview) URL.revokeObjectURL(avatarPreview);
         setAvatarFile(null);
         setAvatarPreview(null);
@@ -227,7 +227,7 @@ export const PetsContent = () => {
               key={pet.id}
               pet={pet}
               animationIndex={i}
-              status={duePetIds.has(pet.id) ? 'vaccine_due' : 'healthy'}
+              status={duePetIds.has(pet.id) ? "vaccine_due" : "healthy"}
             />
           ))}
           <NewCompanionCard onClick={() => setDialogOpen(true)} />
@@ -268,12 +268,12 @@ export const PetsContent = () => {
           <div className="space-y-3">
             {recentVisits.map((visit) => {
               const pet = petById.get(visit.attributes.petId);
-              const petName = pet?.attributes.name ?? 'Unknown';
+              const petName = pet?.attributes.name ?? "Unknown";
               const Icon =
                 VISIT_TYPE_ICON[visit.attributes.visitType] ?? Stethoscope;
               const iconClass =
                 VISIT_TYPE_BG[visit.attributes.visitType] ??
-                'bg-primary/15 text-primary';
+                "bg-primary/15 text-primary";
 
               return (
                 <NextLink
@@ -283,7 +283,7 @@ export const PetsContent = () => {
                 >
                   <div
                     className={cn(
-                      'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
                       iconClass,
                     )}
                   >
@@ -292,7 +292,7 @@ export const PetsContent = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground">
                       <span className="font-bold">{petName}</span>
-                      {' \u2014 '}
+                      {" \u2014 "}
                       {visit.attributes.reason ||
                         VISIT_TYPE_LABEL[visit.attributes.visitType]}
                     </p>
@@ -327,10 +327,10 @@ export const PetsContent = () => {
                     <div
                       {...getRootProps()}
                       className={cn(
-                        'flex h-20 w-20 flex-col items-center justify-center rounded-full cursor-pointer overflow-hidden transition-all',
+                        "flex h-20 w-20 flex-col items-center justify-center rounded-full cursor-pointer overflow-hidden transition-all",
                         isDragActive
-                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background text-primary bg-primary/10'
-                          : 'ring-2 ring-border ring-offset-2 ring-offset-background bg-muted/50 text-muted-foreground hover:ring-primary/60 hover:text-primary',
+                          ? "ring-2 ring-primary ring-offset-2 ring-offset-background text-primary bg-primary/10"
+                          : "ring-2 ring-border ring-offset-2 ring-offset-background bg-muted/50 text-muted-foreground hover:ring-primary/60 hover:text-primary",
                       )}
                     >
                       <input {...getInputProps()} />
@@ -347,7 +347,7 @@ export const PetsContent = () => {
                         <>
                           <Camera className="h-5 w-5" />
                           <span className="text-[9px] mt-1 font-medium">
-                            {isDragActive ? 'Drop' : 'Photo'}
+                            {isDragActive ? "Drop" : "Photo"}
                           </span>
                         </>
                       )}
@@ -368,7 +368,7 @@ export const PetsContent = () => {
                       Pet Name <span className="text-destructive">*</span>
                     </Label>
                     <Input
-                      {...register('name')}
+                      {...register("name")}
                       placeholder="e.g., Biscuit"
                       className="mt-1.5 bg-background/60 text-base font-medium"
                     />
@@ -402,7 +402,7 @@ export const PetsContent = () => {
                         control={control}
                         render={({ field }) => (
                           <Select
-                            value={field.value ?? ''}
+                            value={field.value ?? ""}
                             onValueChange={field.onChange}
                           >
                             <SelectTrigger className="mt-1.5 bg-muted/50">
@@ -433,7 +433,7 @@ export const PetsContent = () => {
                         control={control}
                         render={({ field }) => (
                           <Select
-                            value={field.value ?? ''}
+                            value={field.value ?? ""}
                             onValueChange={field.onChange}
                           >
                             <SelectTrigger className="mt-1.5 bg-muted/50">
@@ -463,7 +463,7 @@ export const PetsContent = () => {
                       Breed
                     </Label>
                     <Input
-                      {...register('breed')}
+                      {...register("breed")}
                       placeholder="e.g., Golden Retriever"
                       className="mt-1.5 bg-muted/50"
                     />
@@ -486,7 +486,7 @@ export const PetsContent = () => {
                       </Label>
                       <Input
                         type="date"
-                        {...register('birthday')}
+                        {...register("birthday")}
                         className="mt-1.5 bg-muted/50"
                       />
                       {errors.birthday && (
@@ -520,9 +520,9 @@ export const PetsContent = () => {
                       control={control}
                       render={({ field }) => (
                         <Select
-                          value={field.value ?? 'none'}
+                          value={field.value ?? "none"}
                           onValueChange={(v) =>
-                            field.onChange(v === 'none' ? undefined : v)
+                            field.onChange(v === "none" ? undefined : v)
                           }
                         >
                           <SelectTrigger className="mt-1.5 bg-muted/50">
@@ -550,7 +550,7 @@ export const PetsContent = () => {
                     <Switch
                       id="isNeutered"
                       checked={isNeuteredValue}
-                      onCheckedChange={(v) => setValue('isNeutered', v)}
+                      onCheckedChange={(v) => setValue("isNeutered", v)}
                     />
                     <Label
                       htmlFor="isNeutered"
@@ -570,7 +570,7 @@ export const PetsContent = () => {
                 </p>
                 <div className="rounded-xl border border-border/50 bg-muted/20 p-4">
                   <Textarea
-                    {...register('notes')}
+                    {...register("notes")}
                     placeholder="Any allergies, special needs..."
                     className="bg-muted/50"
                     rows={3}

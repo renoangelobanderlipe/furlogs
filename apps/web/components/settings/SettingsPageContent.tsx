@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Bell,
   Crown,
@@ -11,18 +11,18 @@ import {
   User,
   UserPlus,
   Users,
-} from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { TwoFactorSettings } from '@/components/settings/TwoFactorSettings';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { TwoFactorSettings } from "@/components/settings/TwoFactorSettings";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   useDeleteHousehold,
   useHousehold,
@@ -30,44 +30,44 @@ import {
   useRemoveMember,
   useTransferOwnership,
   useUpdateHousehold,
-} from '@/hooks/api/useHousehold';
+} from "@/hooks/api/useHousehold";
 import {
   useChangePassword,
   useNotificationPreferences,
   useUpdateNotificationPreferences,
   useUpdateProfile,
-} from '@/hooks/api/useProfile';
-import { useToast } from '@/hooks/use-toast';
-import { profileEndpoints } from '@/lib/api/profile';
-import { getInitials } from '@/lib/format';
-import { cn } from '@/lib/utils';
-import { useAuthStore } from '@/stores/useAuthStore';
+} from "@/hooks/api/useProfile";
+import { useToast } from "@/hooks/use-toast";
+import { profileEndpoints } from "@/lib/api/profile";
+import { getInitials } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 const passwordSchema = z
   .object({
-    currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
   });
 
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 const settingsTabs = [
-  { label: 'Household', icon: Users },
-  { label: 'Notifications', icon: Bell },
-  { label: 'Profile', icon: User },
-  { label: 'Security', icon: Shield },
+  { label: "Household", icon: Users },
+  { label: "Notifications", icon: Bell },
+  { label: "Profile", icon: User },
+  { label: "Security", icon: Shield },
 ];
 
 const TAB_TO_PARAM: Record<string, string> = {
-  Household: 'household',
-  Notifications: 'notifications',
-  Profile: 'profile',
-  Security: 'security',
+  Household: "household",
+  Notifications: "notifications",
+  Profile: "profile",
+  Security: "security",
 };
 
 const PARAM_TO_TAB: Record<string, string> = Object.fromEntries(
@@ -77,14 +77,14 @@ const PARAM_TO_TAB: Record<string, string> = Object.fromEntries(
 export const SettingsPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tabParam = searchParams.get('tab');
-  const initialTab = (tabParam && PARAM_TO_TAB[tabParam]) || 'Household';
+  const tabParam = searchParams.get("tab");
+  const initialTab = (tabParam && PARAM_TO_TAB[tabParam]) || "Household";
 
   const [tab, setTab] = useState(initialTab);
 
   const handleTabChange = (label: string) => {
     setTab(label);
-    router.replace(`/settings?tab=${TAB_TO_PARAM[label] ?? 'household'}`, {
+    router.replace(`/settings?tab=${TAB_TO_PARAM[label] ?? "household"}`, {
       scroll: false,
     });
   };
@@ -102,14 +102,14 @@ export const SettingsPageContent = () => {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [memberToRemoveId, setMemberToRemoveId] = useState<string | null>(null);
   const transferTargetName =
-    household?.members.find((m) => m.id === transferTargetId)?.name ?? '';
+    household?.members.find((m) => m.id === transferTargetId)?.name ?? "";
 
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
 
-  const [householdName, setHouseholdName] = useState('');
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [profileName, setProfileName] = useState(user?.name ?? '');
+  const [householdName, setHouseholdName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [profileName, setProfileName] = useState(user?.name ?? "");
 
   useEffect(() => {
     if (user?.name) {
@@ -126,11 +126,11 @@ export const SettingsPageContent = () => {
   const updateNotifPrefs = useUpdateNotificationPreferences();
 
   const displayHouseholdName =
-    householdName !== '' ? householdName : (household?.name ?? '');
+    householdName !== "" ? householdName : (household?.name ?? "");
   const currentMembership = household?.members.find((m) => m.id === user?.id);
-  const isOwner = currentMembership?.role === 'owner';
+  const isOwner = currentMembership?.role === "owner";
 
-  const initials = getInitials(profileName || user?.name || '?');
+  const initials = getInitials(profileName || user?.name || "?");
 
   const saveHousehold = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +143,7 @@ export const SettingsPageContent = () => {
     if (!household || !inviteEmail.trim()) return;
     inviteMember.mutate(
       { householdId: household.id, email: inviteEmail.trim() },
-      { onSuccess: () => setInviteEmail('') },
+      { onSuccess: () => setInviteEmail("") },
     );
   };
 
@@ -175,20 +175,20 @@ export const SettingsPageContent = () => {
     try {
       const response = await profileEndpoints.export();
       const blob = new Blob([JSON.stringify(response.data, null, 2)], {
-        type: 'application/json',
+        type: "application/json",
       });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `furlog-export-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 100);
-      toast({ title: 'Data exported', description: 'Download started.' });
+      toast({ title: "Data exported", description: "Download started." });
     } catch {
       toast({
-        title: 'Export failed',
-        description: 'Could not export data. Please try again.',
-        variant: 'destructive',
+        title: "Export failed",
+        description: "Could not export data. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsExporting(false);
@@ -213,10 +213,10 @@ export const SettingsPageContent = () => {
             type="button"
             onClick={() => handleTabChange(t.label)}
             className={cn(
-              'flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
+              "flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px",
               tab === t.label
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
             <t.icon className="h-4 w-4" />
@@ -226,7 +226,7 @@ export const SettingsPageContent = () => {
       </div>
 
       <div className="animate-fade-in-up">
-        {tab === 'Household' && (
+        {tab === "Household" && (
           <div className="space-y-6">
             {/* Household Name */}
             <div className="rounded-lg border border-border bg-card p-5">
@@ -253,7 +253,7 @@ export const SettingsPageContent = () => {
                         !displayHouseholdName.trim()
                       }
                     >
-                      {updateHousehold.isPending ? 'Saving\u2026' : 'Save'}
+                      {updateHousehold.isPending ? "Saving\u2026" : "Save"}
                     </Button>
                   )}
                 </form>
@@ -281,7 +281,7 @@ export const SettingsPageContent = () => {
                   {household?.members.map((member) => {
                     const isSelf = member.id === user?.id;
                     const canRemove = isOwner
-                      ? member.role !== 'owner'
+                      ? member.role !== "owner"
                       : isSelf;
                     return (
                       <li
@@ -294,7 +294,7 @@ export const SettingsPageContent = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 text-sm font-medium">
                             {member.name}
-                            {member.role === 'owner' && (
+                            {member.role === "owner" && (
                               <Crown className="h-3.5 w-3.5 text-amber-500" />
                             )}
                             {isSelf && (
@@ -309,13 +309,13 @@ export const SettingsPageContent = () => {
                         </div>
                         <Badge
                           variant={
-                            member.role === 'owner' ? 'default' : 'outline'
+                            member.role === "owner" ? "default" : "outline"
                           }
                           className="capitalize shrink-0"
                         >
                           {member.role}
                         </Badge>
-                        {isOwner && !isSelf && member.role !== 'owner' && (
+                        {isOwner && !isSelf && member.role !== "owner" && (
                           <Button
                             size="sm"
                             variant="ghost"
@@ -380,7 +380,7 @@ export const SettingsPageContent = () => {
                       disabled={inviteMember.isPending || !inviteEmail.trim()}
                     >
                       <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                      {inviteMember.isPending ? 'Sending\u2026' : 'Send Invite'}
+                      {inviteMember.isPending ? "Sending\u2026" : "Send Invite"}
                     </Button>
                   </form>
                 )}
@@ -411,29 +411,29 @@ export const SettingsPageContent = () => {
           </div>
         )}
 
-        {tab === 'Notifications' && (
+        {tab === "Notifications" && (
           <div className="rounded-lg border border-border bg-card divide-y divide-border">
             {(
               [
                 {
-                  key: 'vaccination' as const,
-                  label: 'Vaccination reminders',
-                  desc: 'Get notified when vaccinations are due',
+                  key: "vaccination" as const,
+                  label: "Vaccination reminders",
+                  desc: "Get notified when vaccinations are due",
                 },
                 {
-                  key: 'medication' as const,
-                  label: 'Medication reminders',
-                  desc: 'Get notified about medication schedules',
+                  key: "medication" as const,
+                  label: "Medication reminders",
+                  desc: "Get notified about medication schedules",
                 },
                 {
-                  key: 'food' as const,
-                  label: 'Food stock alerts',
-                  desc: 'Get notified when food stock is running low',
+                  key: "food" as const,
+                  label: "Food stock alerts",
+                  desc: "Get notified when food stock is running low",
                 },
                 {
-                  key: 'followup' as const,
-                  label: 'Follow-up reminders',
-                  desc: 'Get notified about scheduled follow-ups',
+                  key: "followup" as const,
+                  label: "Follow-up reminders",
+                  desc: "Get notified about scheduled follow-ups",
                 },
               ] as const
             ).map((item) => (
@@ -459,7 +459,7 @@ export const SettingsPageContent = () => {
           </div>
         )}
 
-        {tab === 'Profile' && (
+        {tab === "Profile" && (
           <div className="space-y-6">
             {/* Profile info */}
             <div className="rounded-lg border border-border bg-card p-5">
@@ -493,7 +493,7 @@ export const SettingsPageContent = () => {
                   </label>
                   <Input
                     id="profile-email"
-                    defaultValue={user?.email ?? ''}
+                    defaultValue={user?.email ?? ""}
                     disabled
                     className="bg-background max-w-sm"
                   />
@@ -506,7 +506,7 @@ export const SettingsPageContent = () => {
                   type="submit"
                   disabled={updateProfile.isPending || !profileName.trim()}
                 >
-                  {updateProfile.isPending ? 'Saving\u2026' : 'Save Changes'}
+                  {updateProfile.isPending ? "Saving\u2026" : "Save Changes"}
                 </Button>
               </form>
             </div>
@@ -529,7 +529,7 @@ export const SettingsPageContent = () => {
                   <Input
                     id="current-password"
                     type="password"
-                    {...passwordForm.register('currentPassword')}
+                    {...passwordForm.register("currentPassword")}
                     className="bg-background"
                     autoComplete="current-password"
                   />
@@ -549,7 +549,7 @@ export const SettingsPageContent = () => {
                   <Input
                     id="new-password"
                     type="password"
-                    {...passwordForm.register('newPassword')}
+                    {...passwordForm.register("newPassword")}
                     className="bg-background"
                     autoComplete="new-password"
                   />
@@ -569,7 +569,7 @@ export const SettingsPageContent = () => {
                   <Input
                     id="confirm-password"
                     type="password"
-                    {...passwordForm.register('confirmPassword')}
+                    {...passwordForm.register("confirmPassword")}
                     className="bg-background"
                     autoComplete="new-password"
                   />
@@ -588,8 +588,8 @@ export const SettingsPageContent = () => {
                   }
                 >
                   {changePassword.isPending
-                    ? 'Updating\u2026'
-                    : 'Update Password'}
+                    ? "Updating\u2026"
+                    : "Update Password"}
                 </Button>
               </form>
             </div>
@@ -607,7 +607,7 @@ export const SettingsPageContent = () => {
                 disabled={isExporting}
               >
                 {isExporting ? (
-                  'Exporting\u2026'
+                  "Exporting\u2026"
                 ) : (
                   <>
                     <Download className="mr-1.5 h-3.5 w-3.5" />
@@ -619,7 +619,7 @@ export const SettingsPageContent = () => {
           </div>
         )}
 
-        {tab === 'Security' && (
+        {tab === "Security" && (
           <div className="space-y-6">
             <TwoFactorSettings />
           </div>
@@ -652,7 +652,7 @@ export const SettingsPageContent = () => {
         onConfirm={() => {
           if (deleteTargetId === null) return;
           deleteHousehold.mutate(deleteTargetId, {
-            onSuccess: () => router.replace('/onboarding'),
+            onSuccess: () => router.replace("/onboarding"),
           });
         }}
         onCancel={() => setDeleteTargetId(null)}
@@ -664,16 +664,16 @@ export const SettingsPageContent = () => {
         open={memberToRemoveId !== null}
         title={
           memberToRemoveId === user?.id
-            ? 'Leave household?'
-            : `Remove ${household?.members.find((m) => m.id === memberToRemoveId)?.name ?? ''} from your household?`
+            ? "Leave household?"
+            : `Remove ${household?.members.find((m) => m.id === memberToRemoveId)?.name ?? ""} from your household?`
         }
         description={
           memberToRemoveId === user?.id
-            ? 'You will lose access to this household. You can be re-invited later.'
-            : 'This will immediately remove their access. They can be re-invited later.'
+            ? "You will lose access to this household. You can be re-invited later."
+            : "This will immediately remove their access. They can be re-invited later."
         }
         confirmLabel={
-          memberToRemoveId === user?.id ? 'Leave Household' : 'Remove Member'
+          memberToRemoveId === user?.id ? "Leave Household" : "Remove Member"
         }
         onConfirm={() => {
           if (!household || memberToRemoveId === null) return;

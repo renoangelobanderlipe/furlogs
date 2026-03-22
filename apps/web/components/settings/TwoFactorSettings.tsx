@@ -75,7 +75,7 @@ function ConfirmPasswordDialog({
   error,
   onSubmit,
   onClose,
-}: ConfirmPasswordDialogProps) => {
+}: ConfirmPasswordDialogProps) {
   const {
     register,
     handleSubmit,
@@ -233,7 +233,7 @@ function RecoveryCodesDisplay({
   codes,
   onDismiss,
   dismissLabel = "I have saved these codes",
-}: RecoveryCodesDisplayProps) => {
+}: RecoveryCodesDisplayProps) {
   const handleCopy = () => {
     navigator.clipboard.writeText(codes.join("\n")).then(() => {
       toast.success("Recovery codes copied to clipboard.");

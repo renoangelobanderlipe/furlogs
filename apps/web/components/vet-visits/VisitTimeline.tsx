@@ -62,7 +62,10 @@ function groupByMonth(visits: VetVisit[]): Map<string, VetVisit[]> {
   return groups;
 }
 
-export const VisitTimeline = ({ visits, onSelectVisit }: VisitTimelineProps) => {
+export const VisitTimeline = ({
+  visits,
+  onSelectVisit,
+}: VisitTimelineProps) => {
   const groups = useMemo(() => groupByMonth(visits), [visits]);
 
   return (

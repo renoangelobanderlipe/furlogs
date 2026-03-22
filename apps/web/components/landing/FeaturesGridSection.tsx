@@ -277,7 +277,7 @@ function BentoCard({
   description,
   visual,
   className = "",
-}: BentoCardProps) => {
+}: BentoCardProps) {
   return (
     <div
       className={`group relative rounded-2xl border border-white/[0.07] bg-card overflow-hidden transition-all duration-500 hover:border-primary/20 hover:-translate-y-0.5 hover:shadow-[0_24px_60px_rgba(0,0,0,0.3),0_0_0_1px_hsl(174_80%_40%/0.08)] p-5 flex flex-col ${className}`}

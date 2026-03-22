@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import type { TooltipProps } from 'recharts';
-import { PawWatermark } from '@/components/ui/paw-watermark';
-import { formatCurrency } from '@/lib/format';
+import type { TooltipProps } from "recharts";
+import { PawWatermark } from "@/components/ui/paw-watermark";
+import { formatCurrency } from "@/lib/format";
 
 export const CustomTooltip = ({
   active,
@@ -11,9 +11,9 @@ export const CustomTooltip = ({
 }: TooltipProps<number, string>) => {
   if (!active || !payload?.length) return null;
 
-  const vet = (payload.find((p) => p.dataKey === 'vet')?.value as number) ?? 0;
+  const vet = (payload.find((p) => p.dataKey === "vet")?.value as number) ?? 0;
   const food =
-    (payload.find((p) => p.dataKey === 'food')?.value as number) ?? 0;
+    (payload.find((p) => p.dataKey === "food")?.value as number) ?? 0;
   const total = vet + food;
 
   return (

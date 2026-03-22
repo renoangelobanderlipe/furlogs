@@ -1,23 +1,26 @@
-'use client';
+"use client";
 
-import { Bell, Hospital, Package, Pill, Syringe, Users } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useMarkRead } from '@/hooks/api/useNotifications';
-import type { AppNotification, NotificationType } from '@/lib/api/notifications';
-import { cn } from '@/lib/utils';
+import { Bell, Hospital, Package, Pill, Syringe, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useMarkRead } from "@/hooks/api/useNotifications";
+import type {
+  AppNotification,
+  NotificationType,
+} from "@/lib/api/notifications";
+import { cn } from "@/lib/utils";
 
 function getNotificationIcon(type: NotificationType) {
   switch (type) {
-    case 'vaccination_reminder':
+    case "vaccination_reminder":
       return <Syringe className="h-5 w-5" />;
-    case 'medication_reminder':
+    case "medication_reminder":
       return <Pill className="h-5 w-5" />;
-    case 'vet_follow_up':
+    case "vet_follow_up":
       return <Hospital className="h-5 w-5" />;
-    case 'low_stock':
-    case 'critical_stock':
+    case "low_stock":
+    case "critical_stock":
       return <Package className="h-5 w-5" />;
-    case 'household_invite':
+    case "household_invite":
       return <Users className="h-5 w-5" />;
     default:
       return <Bell className="h-5 w-5" />;
@@ -25,12 +28,12 @@ function getNotificationIcon(type: NotificationType) {
 }
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 }
 
@@ -46,10 +49,10 @@ export const NotificationRow = ({
     <button
       type="button"
       className={cn(
-        'flex w-full items-start gap-3 rounded-lg border-l-4 px-4 py-3 text-left transition-colors',
+        "flex w-full items-start gap-3 rounded-lg border-l-4 px-4 py-3 text-left transition-colors",
         isUnread
-          ? 'cursor-pointer border-primary bg-accent/50 hover:bg-accent'
-          : 'cursor-default border-transparent',
+          ? "cursor-pointer border-primary bg-accent/50 hover:bg-accent"
+          : "cursor-default border-transparent",
       )}
       onClick={() => {
         if (isUnread) {
@@ -59,15 +62,15 @@ export const NotificationRow = ({
     >
       <span
         className={cn(
-          'mt-0.5 shrink-0',
-          isUnread ? 'text-primary' : 'text-muted-foreground',
+          "mt-0.5 shrink-0",
+          isUnread ? "text-primary" : "text-muted-foreground",
         )}
       >
         {getNotificationIcon(notification.data.type)}
       </span>
       <div className="min-w-0 flex-1">
         <p
-          className={cn('text-sm', isUnread ? 'font-semibold' : 'font-normal')}
+          className={cn("text-sm", isUnread ? "font-semibold" : "font-normal")}
         >
           {notification.data.title}
         </p>

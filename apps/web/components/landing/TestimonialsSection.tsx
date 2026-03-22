@@ -41,7 +41,7 @@ function TestimonialCard({
   role,
   initials,
   accentClass,
-}: TestimonialProps) => {
+}: TestimonialProps) {
   return (
     <div className="group relative rounded-2xl border border-white/[0.07] bg-card p-6 flex flex-col gap-5 transition-all duration-300 hover:border-white/[0.13] hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
       {/* Decorative quote mark */}

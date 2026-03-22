@@ -77,7 +77,7 @@ function InventoryRow({
   onEdit,
   onDelete,
   onEditRates,
-}: InventoryRowProps) => {
+}: InventoryRowProps) {
   const attr = product.attributes;
   const proj = projection?.projection ?? null;
   const rateCount = attr.consumptionRates?.length ?? 0;

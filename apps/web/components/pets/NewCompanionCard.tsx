@@ -1,4 +1,4 @@
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle } from "lucide-react";
 
 export const NewCompanionCard = ({ onClick }: { onClick: () => void }) => {
   return (

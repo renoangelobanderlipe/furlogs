@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   AlertTriangle,
@@ -6,18 +6,18 @@ import {
   Loader2,
   Mail,
   PawPrint,
-} from 'lucide-react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { authEndpoints } from '@/lib/api/endpoints';
-import { useAuthStore } from '@/stores/useAuthStore';
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { authEndpoints } from "@/lib/api/endpoints";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export const VerifyEmailContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const isInvalidLink = searchParams.get('error') === 'invalid_link';
+  const isInvalidLink = searchParams.get("error") === "invalid_link";
   const logout = useAuthStore((s) => s.logout);
 
   const [resent, setResent] = useState(false);
@@ -29,9 +29,9 @@ export const VerifyEmailContent = () => {
     try {
       await authEndpoints.resendVerification();
       setResent(true);
-      toast.success('Verification email sent!');
+      toast.success("Verification email sent!");
     } catch {
-      toast.error('Failed to resend. Please try again.');
+      toast.error("Failed to resend. Please try again.");
     } finally {
       setIsSending(false);
     }
@@ -43,7 +43,7 @@ export const VerifyEmailContent = () => {
       await logout();
     } finally {
       setIsLoggingOut(false);
-      router.replace('/register');
+      router.replace("/register");
     }
   };
 
@@ -102,13 +102,13 @@ export const VerifyEmailContent = () => {
           className="w-full h-11 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] text-[14px] font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSending && <Loader2 className="h-4 w-4 animate-spin" />}
-          {isSending ? 'Sending...' : 'Resend verification email'}
+          {isSending ? "Sending..." : "Resend verification email"}
         </button>
       </div>
 
       <div className="mt-8 pt-6 border-t border-white/[0.06] space-y-2">
         <p className="text-[13px] text-muted-foreground">
-          Wrong account?{' '}
+          Wrong account?{" "}
           <button
             type="button"
             onClick={handleSignOut}
@@ -116,8 +116,8 @@ export const VerifyEmailContent = () => {
             className="font-semibold text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
           >
             {isLoggingOut
-              ? 'Signing out\u2026'
-              : 'Sign out and use a different email'}
+              ? "Signing out\u2026"
+              : "Sign out and use a different email"}
           </button>
         </p>
         <p className="text-[13px] text-muted-foreground">

@@ -248,7 +248,7 @@ function DeepDiveRow({
   bullets,
   visual,
   reverse = false,
-}: DeepDiveRowProps) => {
+}: DeepDiveRowProps) {
   return (
     <div
       className={`grid md:grid-cols-2 gap-12 lg:gap-16 items-center ${

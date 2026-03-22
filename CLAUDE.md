@@ -78,5 +78,6 @@ chore(deps): bump MUI to 7.4
 - All PHP files: `declare(strict_types=1);`
 - No `$guarded = []` on models — use `$fillable` or `#[Fillable]` attribute
 - No `any` types in TypeScript
-- Named exports for components (`export function Foo`, not `export default`)
+- **Component exports:** `export const Foo = () =>` — never `export function` for components
+- **Page exports:** `export default function PageName()` — Next.js pages/layouts only
 - One component per file

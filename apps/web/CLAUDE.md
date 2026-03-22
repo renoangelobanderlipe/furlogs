@@ -13,6 +13,12 @@
 - TanStack Query v5, Zustand, Axios, Zod, React Hook Form
 - Sonner (toasts)
 
+### Component Export Convention
+
+- **Components** (`components/**/*.tsx`): `export const Foo = () =>` — always arrow function, never `export function`
+- **Pages/Layouts** (`app/**/page.tsx`, `layout.tsx`, etc.): `export default function PageName()` — Next.js files only
+- **shadcn `components/ui/`** barrel re-exports: leave as-is (generated code)
+
 ### Key Patterns
 
 **Proxy (replaces middleware in Next.js 16):**

@@ -7,8 +7,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,9 +52,6 @@ function LoginForm() {
         return;
       }
       await fetchUser();
-      // fetchUser() silently catches errors, so we read state directly.
-      // If the user exists but hasn't verified their email, send them there
-      // instead of the dashboard so they're not stuck in a broken state.
       const currentUser = useAuthStore.getState().user;
       if (!currentUser) {
         setServerError("Unable to load your account. Please try again.");
@@ -77,7 +72,6 @@ function LoginForm() {
         }
       )?.response;
       if (!response) {
-        // Network error or server unreachable (e.g. CSRF fetch failed)
         setServerError(
           "Unable to reach the server. Please check your connection and try again.",
         );
@@ -91,122 +85,142 @@ function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-sm animate-fade-in-up">
-      <CardContent className="p-6">
-        <div className="mb-6 flex flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <PawPrint className="h-6 w-6 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">
-            Sign in to your FurLog account
+    <div className="animate-fade-in-up">
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 mb-10">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 border border-primary/20">
+          <PawPrint className="h-[18px] w-[18px] text-primary" />
+        </div>
+        <span className="text-[15px] font-bold tracking-tight">FurLog</span>
+      </div>
+
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-[28px] font-bold tracking-tight mb-1.5">
+          Welcome back
+        </h1>
+        <p className="text-[14px] text-muted-foreground">
+          Sign in to your FurLog account
+        </p>
+      </div>
+
+      {isVerified && (
+        <div className="mb-6 flex items-center gap-2.5 rounded-xl bg-success/[0.07] border border-success/20 px-3.5 py-2.5">
+          <CheckCircle className="h-[15px] w-[15px] text-success shrink-0" />
+          <p className="text-[13px] text-success">
+            Email verified! Sign in to continue.
           </p>
         </div>
+      )}
 
-        {isVerified && (
-          <div className="mb-4 flex items-center gap-2 rounded-md bg-green-500/10 border border-green-500/30 px-3 py-2.5">
-            <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
-            <p className="text-sm text-green-700 dark:text-green-400">
-              Email verified! Sign in to continue.
+      {serverError && (
+        <div className="mb-6 rounded-xl bg-destructive/[0.07] border border-destructive/20 px-3.5 py-2.5">
+          <p className="text-[13px] text-destructive">{serverError}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="email"
+            className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest"
+          >
+            Email
+          </Label>
+          <Input
+            {...register("email")}
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            className="h-11 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-[14px] placeholder:text-muted-foreground/35"
+          />
+          {errors.email && (
+            <p className="text-[12px] text-destructive">
+              {errors.email.message}
             </p>
-          </div>
-        )}
+          )}
+        </div>
 
-        {serverError && (
-          <div className="mb-4 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2">
-            <p className="text-sm text-destructive">{serverError}</p>
-          </div>
-        )}
-
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          noValidate
-          className="space-y-4"
-        >
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email address</Label>
-            <Input
-              {...register("email")}
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              className="bg-card"
-            />
-            {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Input
-                {...register("password")}
-                id="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
-                placeholder="••••••••"
-                className="bg-card pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-xs text-destructive">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="remember"
-                checked={remember}
-                onCheckedChange={(checked) => setValue("remember", !!checked)}
-              />
-              <Label
-                htmlFor="remember"
-                className="text-sm font-normal text-muted-foreground cursor-pointer"
-              >
-                Remember me
-              </Label>
-            </div>
+            <Label
+              htmlFor="password"
+              className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest"
+            >
+              Password
+            </Label>
             <Link
               href="/forgot-password"
-              className="text-sm text-primary hover:underline"
+              className="text-[12px] text-primary/70 hover:text-primary transition-colors"
             >
               Forgot password?
             </Link>
           </div>
+          <div className="relative">
+            <Input
+              {...register("password")}
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              className="h-11 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-[14px] placeholder:text-muted-foreground/35 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
+          {errors.password && (
+            <p className="text-[12px] text-destructive">
+              {errors.password.message}
+            </p>
+          )}
+        </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Signing in..." : "Sign in"}
-          </Button>
-        </form>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="remember"
+            checked={remember}
+            onCheckedChange={(checked) => setValue("remember", !!checked)}
+          />
+          <Label
+            htmlFor="remember"
+            className="text-[13px] font-normal text-muted-foreground cursor-pointer"
+          >
+            Remember me
+          </Label>
+        </div>
 
-        <p className="mt-5 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="cta-shimmer w-full h-11 rounded-xl text-[14px] font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
+
+      <div className="mt-8 pt-6 border-t border-white/[0.06]">
+        <p className="text-[13px] text-muted-foreground">
+          No account?{" "}
           <Link
             href="/register"
-            className="font-medium text-primary hover:underline"
+            className="font-semibold text-primary hover:text-primary/80 transition-colors"
           >
-            Sign up
+            Create one free
           </Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

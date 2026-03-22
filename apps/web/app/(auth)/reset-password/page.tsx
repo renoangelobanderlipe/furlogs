@@ -7,8 +7,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authEndpoints } from "@/lib/api/endpoints";
@@ -62,104 +60,121 @@ function ResetPasswordContent() {
   };
 
   return (
-    <Card className="w-full max-w-sm animate-fade-in-up">
-      <CardContent className="p-6">
-        <div className="mb-6 flex flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <PawPrint className="h-6 w-6 text-primary" />
+    <div className="animate-fade-in-up">
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 mb-10">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 border border-primary/20">
+          <PawPrint className="h-[18px] w-[18px] text-primary" />
+        </div>
+        <span className="text-[15px] font-bold tracking-tight">FurLog</span>
+      </div>
+
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-[28px] font-bold tracking-tight mb-1.5">
+          Reset your password
+        </h1>
+        <p className="text-[14px] text-muted-foreground">
+          Enter a new password for your FurLog account.
+        </p>
+      </div>
+
+      {serverError && (
+        <div className="mb-6 rounded-xl bg-destructive/[0.07] border border-destructive/20 px-3.5 py-2.5">
+          <p className="text-[13px] text-destructive">{serverError}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="password"
+            className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest"
+          >
+            New password
+          </Label>
+          <div className="relative">
+            <Input
+              {...register("password")}
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="••••••••"
+              className="h-11 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-[14px] placeholder:text-muted-foreground/35 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Reset your password
-          </h1>
-          <p className="text-center text-sm text-muted-foreground">
-            Enter a new password for your FurLog account.
-          </p>
+          {errors.password && (
+            <p className="text-[12px] text-destructive">
+              {errors.password.message}
+            </p>
+          )}
         </div>
 
-        {serverError && (
-          <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2">
-            <p className="text-sm text-destructive">{serverError}</p>
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="password_confirmation"
+            className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest"
+          >
+            Confirm new password
+          </Label>
+          <div className="relative">
+            <Input
+              {...register("password_confirmation")}
+              id="password_confirmation"
+              type={showConfirm ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="••••••••"
+              className="h-11 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-[14px] placeholder:text-muted-foreground/35 pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm((p) => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+            >
+              {showConfirm ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
           </div>
-        )}
+          {errors.password_confirmation && (
+            <p className="text-[12px] text-destructive">
+              {errors.password_confirmation.message}
+            </p>
+          )}
+        </div>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          noValidate
-          className="space-y-4"
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="cta-shimmer w-full h-11 rounded-xl text-[14px] font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <div className="space-y-1.5">
-            <Label htmlFor="password">New password</Label>
-            <div className="relative">
-              <Input
-                {...register("password")}
-                id="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                placeholder="••••••••"
-                className="bg-card pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-xs text-destructive">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
+          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Resetting..." : "Reset password"}
+        </button>
+      </form>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="password_confirmation">Confirm new password</Label>
-            <div className="relative">
-              <Input
-                {...register("password_confirmation")}
-                id="password_confirmation"
-                type={showConfirm ? "text" : "password"}
-                autoComplete="new-password"
-                placeholder="••••••••"
-                className="bg-card pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirm((p) => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showConfirm ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            {errors.password_confirmation && (
-              <p className="text-xs text-destructive">
-                {errors.password_confirmation.message}
-              </p>
-            )}
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Resetting..." : "Reset password"}
-          </Button>
-        </form>
-
-        <p className="mt-5 text-center text-sm text-muted-foreground">
-          <Link href="/login" className="text-primary hover:underline">
-            Back to sign in
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
+      <div className="mt-8 pt-6 border-t border-white/[0.06]">
+        <Link
+          href="/login"
+          className="text-[13px] font-semibold text-primary hover:text-primary/80 transition-colors"
+        >
+          ← Back to sign in
+        </Link>
+      </div>
+    </div>
   );
 }
 

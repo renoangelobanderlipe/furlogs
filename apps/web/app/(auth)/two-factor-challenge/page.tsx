@@ -13,8 +13,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authEndpoints } from "@/lib/api/endpoints";
@@ -44,17 +42,12 @@ export default function TwoFactorChallengePage() {
     defaultValues: { code: "", recovery_code: "" },
   });
 
-  // If user is already fully authenticated AND verified, go to pets.
-  // The email_verified_at check is required so this effect doesn't race
-  // against the onSubmit handler when fetchUser() resolves with an unverified
-  // user — without it, both would fire and the result would be non-deterministic.
   useEffect(() => {
     if (user?.email_verified_at) {
       router.replace("/pets");
     }
   }, [user, router]);
 
-  // If 2FA is not pending and no user is authenticated, go to login
   useEffect(() => {
     if (!twoFactorPending && user === null) {
       router.replace("/login");
@@ -82,7 +75,6 @@ export default function TwoFactorChallengePage() {
       await authEndpoints.twoFactorChallenge(payload);
       setTwoFactorPending(false);
       await fetchUser();
-      // Apply the same verification gate as the login page.
       const currentUser = useAuthStore.getState().user;
       if (!currentUser?.email_verified_at) {
         router.replace("/verify-email");
@@ -120,130 +112,140 @@ export default function TwoFactorChallengePage() {
   };
 
   return (
-    <Card className="w-full max-w-sm animate-fade-in-up">
-      <CardContent className="p-6">
-        {/* Back to login */}
+    <div className="animate-fade-in-up">
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 mb-10">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 border border-primary/20">
+          <PawPrint className="h-[18px] w-[18px] text-primary" />
+        </div>
+        <span className="text-[15px] font-bold tracking-tight">FurLog</span>
+      </div>
+
+      {/* Back */}
+      <button
+        type="button"
+        onClick={handleBackToLogin}
+        className="flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors mb-8"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" />
+        Back to login
+      </button>
+
+      {/* Icon + header */}
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/[0.08] border border-primary/20 mb-6">
+        {useRecoveryCode ? (
+          <KeyRound className="h-7 w-7 text-primary" />
+        ) : (
+          <ShieldCheck className="h-7 w-7 text-primary" />
+        )}
+      </div>
+
+      <div className="mb-8">
+        <h1 className="text-[28px] font-bold tracking-tight mb-1.5">
+          Two-factor auth
+        </h1>
+        <p className="text-[14px] text-muted-foreground">
+          {useRecoveryCode
+            ? "Enter one of your saved recovery codes."
+            : "Enter the 6-digit code from your authenticator app."}
+        </p>
+      </div>
+
+      {/* Mode toggle */}
+      <div className="flex gap-1 rounded-xl border border-white/[0.07] bg-white/[0.03] p-1 mb-6">
         <button
           type="button"
-          onClick={handleBackToLogin}
-          className="mb-4 flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          onClick={() => handleModeToggle("totp")}
+          className={[
+            "flex-1 rounded-lg px-3 py-2 text-[12px] font-semibold transition-all",
+            !useRecoveryCode
+              ? "bg-primary/15 text-primary border border-primary/20"
+              : "text-muted-foreground hover:text-foreground",
+          ].join(" ")}
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to login
+          Authenticator app
         </button>
+        <button
+          type="button"
+          onClick={() => handleModeToggle("recovery")}
+          className={[
+            "flex-1 rounded-lg px-3 py-2 text-[12px] font-semibold transition-all",
+            useRecoveryCode
+              ? "bg-primary/15 text-primary border border-primary/20"
+              : "text-muted-foreground hover:text-foreground",
+          ].join(" ")}
+        >
+          Recovery code
+        </button>
+      </div>
 
-        {/* Header */}
-        <div className="mb-5 flex flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            {useRecoveryCode ? (
-              <KeyRound className="h-6 w-6 text-primary" />
-            ) : (
-              <ShieldCheck className="h-6 w-6 text-primary" />
+      {serverError && (
+        <div className="mb-6 flex items-start gap-2.5 rounded-xl bg-destructive/[0.07] border border-destructive/20 px-3.5 py-3">
+          <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+          <p className="text-[13px] text-destructive">{serverError}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+        {!useRecoveryCode ? (
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="code"
+              className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest"
+            >
+              Authentication code
+            </Label>
+            <Input
+              {...register("code")}
+              id="code"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="000 000"
+              maxLength={6}
+              className="h-14 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-center text-2xl tracking-[0.5em] font-mono placeholder:tracking-normal placeholder:text-muted-foreground/35"
+              autoFocus
+            />
+            {errors.code && (
+              <p className="text-[12px] text-destructive">
+                {errors.code.message}
+              </p>
             )}
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Two-factor authentication
-          </h1>
-        </div>
-
-        {/* Mode toggle tabs */}
-        <div className="mb-5 flex rounded-lg border border-border bg-muted/30 p-1 gap-1">
-          <button
-            type="button"
-            onClick={() => handleModeToggle("totp")}
-            className={[
-              "flex-1 rounded-md px-3 py-2 text-xs font-medium transition-colors",
-              !useRecoveryCode
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            ].join(" ")}
-          >
-            Authenticator app
-          </button>
-          <button
-            type="button"
-            onClick={() => handleModeToggle("recovery")}
-            className={[
-              "flex-1 rounded-md px-3 py-2 text-xs font-medium transition-colors",
-              useRecoveryCode
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            ].join(" ")}
-          >
-            Recovery code
-          </button>
-        </div>
-
-        {/* Error banner */}
-        {serverError && (
-          <div className="mb-4 flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2">
-            <AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-            <p className="text-sm text-destructive">{serverError}</p>
+        ) : (
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="recovery_code"
+              className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest"
+            >
+              Recovery code
+            </Label>
+            <Input
+              {...register("recovery_code")}
+              id="recovery_code"
+              type="text"
+              autoComplete="off"
+              placeholder="xxxxxxxx-xxxxxxxx"
+              className="h-11 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-[14px] font-mono placeholder:text-muted-foreground/35"
+              autoFocus
+            />
+            {errors.recovery_code && (
+              <p className="text-[12px] text-destructive">
+                {errors.recovery_code.message}
+              </p>
+            )}
           </div>
         )}
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          noValidate
-          className="space-y-4"
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="cta-shimmer w-full h-11 rounded-xl text-[14px] font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {!useRecoveryCode ? (
-            <div className="space-y-1.5">
-              <Label htmlFor="code">Authentication code</Label>
-              <Input
-                {...register("code")}
-                id="code"
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                placeholder="000 000"
-                maxLength={6}
-                className="bg-card h-12 text-center text-2xl tracking-[0.5em] font-mono"
-                autoFocus
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter the 6-digit code from your authenticator app.
-              </p>
-              {errors.code && (
-                <p className="text-xs text-destructive">
-                  {errors.code.message}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              <Label htmlFor="recovery_code">Recovery code</Label>
-              <Input
-                {...register("recovery_code")}
-                id="recovery_code"
-                type="text"
-                autoComplete="off"
-                placeholder="xxxxxxxx-xxxxxxxx"
-                className="bg-card font-mono"
-                autoFocus
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter one of your saved recovery codes.
-              </p>
-              {errors.recovery_code && (
-                <p className="text-xs text-destructive">
-                  {errors.recovery_code.message}
-                </p>
-              )}
-            </div>
-          )}
-
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Verifying..." : "Continue"}
-          </Button>
-        </form>
-
-        <div className="mt-5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-          <PawPrint className="h-3.5 w-3.5" />
-          <span>FurLog</span>
-        </div>
-      </CardContent>
-    </Card>
+          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Verifying..." : "Continue"}
+        </button>
+      </form>
+    </div>
   );
 }

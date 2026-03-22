@@ -7,8 +7,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authEndpoints } from "@/lib/api/endpoints";
@@ -59,8 +57,6 @@ export default function RegisterPage() {
       const firstError = response.data?.errors
         ? Object.values(response.data.errors).flat()[0]
         : (response.data?.message ?? "Registration failed. Please try again.");
-      // When the email is already registered (possibly with an unverified
-      // account), surface a more helpful message so the user isn't confused.
       const message =
         firstError?.toLowerCase().includes("already been taken") ||
         firstError?.toLowerCase().includes("already registered")
@@ -71,114 +67,144 @@ export default function RegisterPage() {
   };
 
   return (
-    <Card className="w-full max-w-sm animate-fade-in-up">
-      <CardContent className="p-6">
-        <div className="mb-6 flex flex-col items-center gap-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-            <PawPrint className="h-6 w-6 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Create your account
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Start tracking your pets&apos; care with FurLog
-          </p>
+    <div className="animate-fade-in-up">
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 mb-10">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 border border-primary/20">
+          <PawPrint className="h-[18px] w-[18px] text-primary" />
+        </div>
+        <span className="text-[15px] font-bold tracking-tight">FurLog</span>
+      </div>
+
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-[28px] font-bold tracking-tight mb-1.5">
+          Create your account
+        </h1>
+        <p className="text-[14px] text-muted-foreground">
+          Start tracking your pets&apos; care with FurLog
+        </p>
+      </div>
+
+      {serverError && (
+        <div className="mb-6 rounded-xl bg-destructive/[0.07] border border-destructive/20 px-3.5 py-2.5">
+          <p className="text-[13px] text-destructive">{serverError}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="name"
+            className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest"
+          >
+            Full name
+          </Label>
+          <Input
+            {...register("name")}
+            id="name"
+            autoComplete="name"
+            placeholder="Jane Smith"
+            className="h-11 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-[14px] placeholder:text-muted-foreground/35"
+          />
+          {errors.name && (
+            <p className="text-[12px] text-destructive">
+              {errors.name.message}
+            </p>
+          )}
         </div>
 
-        {serverError && (
-          <div className="mb-4 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2">
-            <p className="text-sm text-destructive">{serverError}</p>
-          </div>
-        )}
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="email"
+            className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest"
+          >
+            Email
+          </Label>
+          <Input
+            {...register("email")}
+            id="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@example.com"
+            className="h-11 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-[14px] placeholder:text-muted-foreground/35"
+          />
+          {errors.email && (
+            <p className="text-[12px] text-destructive">
+              {errors.email.message}
+            </p>
+          )}
+        </div>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          noValidate
-          className="space-y-4"
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="password"
+            className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest"
+          >
+            Password
+          </Label>
+          <Input
+            {...register("password")}
+            id="password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="••••••••"
+            className="h-11 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-[14px] placeholder:text-muted-foreground/35"
+          />
+          {errors.password ? (
+            <p className="text-[12px] text-destructive">
+              {errors.password.message}
+            </p>
+          ) : (
+            <p className="text-[12px] text-muted-foreground/50">
+              Min 8 chars, 1 uppercase, 1 number
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label
+            htmlFor="password_confirmation"
+            className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest"
+          >
+            Confirm password
+          </Label>
+          <Input
+            {...register("password_confirmation")}
+            id="password_confirmation"
+            type="password"
+            autoComplete="new-password"
+            placeholder="••••••••"
+            className="h-11 bg-white/[0.04] border-white/[0.08] focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/15 text-[14px] placeholder:text-muted-foreground/35"
+          />
+          {errors.password_confirmation && (
+            <p className="text-[12px] text-destructive">
+              {errors.password_confirmation.message}
+            </p>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="cta-shimmer w-full h-11 rounded-xl text-[14px] font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Full name</Label>
-            <Input
-              {...register("name")}
-              id="name"
-              autoComplete="name"
-              placeholder="Jane Smith"
-              className="bg-card"
-            />
-            {errors.name && (
-              <p className="text-xs text-destructive">{errors.name.message}</p>
-            )}
-          </div>
+          {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+          {isSubmitting ? "Creating account..." : "Create account"}
+        </button>
+      </form>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email address</Label>
-            <Input
-              {...register("email")}
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@example.com"
-              className="bg-card"
-            />
-            {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              {...register("password")}
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              placeholder="••••••••"
-              className="bg-card"
-            />
-            {errors.password ? (
-              <p className="text-xs text-destructive">
-                {errors.password.message}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                Min 8 chars, 1 uppercase, 1 number
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="password_confirmation">Confirm password</Label>
-            <Input
-              {...register("password_confirmation")}
-              id="password_confirmation"
-              type="password"
-              autoComplete="new-password"
-              placeholder="••••••••"
-              className="bg-card"
-            />
-            {errors.password_confirmation && (
-              <p className="text-xs text-destructive">
-                {errors.password_confirmation.message}
-              </p>
-            )}
-          </div>
-
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Creating account..." : "Create account"}
-          </Button>
-        </form>
-
-        <p className="mt-5 text-center text-sm text-muted-foreground">
+      <div className="mt-8 pt-6 border-t border-white/[0.06]">
+        <p className="text-[13px] text-muted-foreground">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-medium text-primary hover:underline"
+            className="font-semibold text-primary hover:text-primary/80 transition-colors"
           >
             Sign in
           </Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -307,6 +307,7 @@ it('returns null when fewer than 3 completed logs exist', function () {
 
 it('creates consumption log when stock item status changes to finished', function () {
     [$owner, $household] = createFoodOwnerWithHousehold();
+    $this->actingAs($owner);
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,

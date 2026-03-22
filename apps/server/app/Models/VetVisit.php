@@ -83,10 +83,11 @@ class VetVisit extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        // Use local (private) disk — switch to a private cloud disk in production.
+        // Disk is configurable via MEDIA_PRIVATE_DISK env var.
+        // Set to a private cloud disk (e.g. "s3") in production.
         $this->addMediaCollection('attachments')
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
-            ->useDisk('local');
+            ->useDisk(config('filesystems.media_private_disk', 'local'));
     }
 
     /**

@@ -80,7 +80,7 @@ class HouseholdService
 
         if ($alreadyMember) {
             throw ValidationException::withMessages([
-                'email' => ['This user is already a member of your household.'],
+                'email' => ['If this email is registered, an invitation will be sent to them.'],
             ]);
         }
 

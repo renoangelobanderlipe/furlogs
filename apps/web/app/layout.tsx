@@ -58,7 +58,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${publicSans.variable} ${dmSans.variable} ${nunitoSans.variable}`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} ${inter.variable} ${publicSans.variable} ${dmSans.variable} ${nunitoSans.variable}`}
       suppressHydrationWarning
     >
       <body>

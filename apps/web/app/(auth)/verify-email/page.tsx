@@ -1,12 +1,16 @@
 "use client";
 
-import { AlertTriangle, CheckCircle, Loader2, Mail } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Loader2,
+  Mail,
+  PawPrint,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { authEndpoints } from "@/lib/api/endpoints";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -33,10 +37,6 @@ function VerifyEmailContent() {
     }
   };
 
-  // Allows a user to abandon this account/session and register with a
-  // different email — resolves the "signup loop" edge case where the proxy
-  // keeps redirecting them away from /register because they still have an
-  // active session for an unverified account.
   const handleSignOut = async () => {
     setIsLoggingOut(true);
     try {
@@ -48,69 +48,88 @@ function VerifyEmailContent() {
   };
 
   return (
-    <Card className="w-full max-w-md animate-fade-in-up">
-      <CardContent className="p-6 text-center">
-        <div className="mb-4 flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-            <Mail className="h-8 w-8 text-primary" />
-          </div>
+    <div className="animate-fade-in-up">
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 mb-10">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 border border-primary/20">
+          <PawPrint className="h-[18px] w-[18px] text-primary" />
         </div>
-        <h1 className="text-2xl font-bold mb-2">Verify your email</h1>
-        <p className="text-sm text-muted-foreground mb-6">
+        <span className="text-[15px] font-bold tracking-tight">FurLog</span>
+      </div>
+
+      {/* Icon */}
+      <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/[0.08] border border-primary/20 mb-6">
+        <Mail className="h-7 w-7 text-primary" />
+        <div className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+          <span className="text-[9px] font-bold text-white">1</span>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <h1 className="text-[28px] font-bold tracking-tight mb-1.5">
+          Verify your email
+        </h1>
+        <p className="text-[14px] text-muted-foreground">
           We&apos;ve sent a verification link to your email address. Click the
-          link to activate your account before continuing.
+          link to activate your account.
         </p>
+      </div>
 
-        {isInvalidLink && (
-          <div className="mb-4 flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2.5 text-left">
-            <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-            <p className="text-sm text-destructive">
-              This verification link is invalid or has expired. Please request a
-              new one.
-            </p>
-          </div>
-        )}
+      {isInvalidLink && (
+        <div className="mb-6 flex items-start gap-2.5 rounded-xl bg-destructive/[0.07] border border-destructive/20 px-3.5 py-3">
+          <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+          <p className="text-[13px] text-destructive">
+            This verification link is invalid or has expired. Please request a
+            new one.
+          </p>
+        </div>
+      )}
 
-        {resent && (
-          <div className="mb-4 flex items-center gap-2 rounded-md bg-success/10 border border-success/30 px-3 py-2 text-left">
-            <CheckCircle className="h-4 w-4 text-success shrink-0" />
-            <p className="text-sm text-success">
-              A new verification link has been sent to your email.
-            </p>
-          </div>
-        )}
+      {resent && (
+        <div className="mb-6 flex items-center gap-2.5 rounded-xl bg-success/[0.07] border border-success/20 px-3.5 py-3">
+          <CheckCircle className="h-4 w-4 text-success shrink-0" />
+          <p className="text-[13px] text-success">
+            A new verification link has been sent.
+          </p>
+        </div>
+      )}
 
-        <Button
-          variant="outline"
-          className="w-full"
+      <div className="space-y-3">
+        <button
+          type="button"
           onClick={handleResend}
           disabled={isSending || resent}
+          className="w-full h-11 rounded-xl border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] text-[14px] font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSending && <Loader2 className="h-4 w-4 animate-spin" />}
           {isSending ? "Sending..." : "Resend verification email"}
-        </Button>
+        </button>
+      </div>
 
-        <p className="mt-4 text-sm text-muted-foreground">
+      <div className="mt-8 pt-6 border-t border-white/[0.06] space-y-2">
+        <p className="text-[13px] text-muted-foreground">
           Wrong account?{" "}
           <button
             type="button"
             onClick={handleSignOut}
             disabled={isLoggingOut}
-            className="font-medium text-primary hover:underline disabled:opacity-50"
+            className="font-semibold text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
           >
             {isLoggingOut
               ? "Signing out…"
               : "Sign out and use a different email"}
           </button>
         </p>
-
-        <p className="mt-2 text-sm text-muted-foreground">
-          <Link href="/login" className="text-primary hover:underline">
-            Back to sign in
+        <p className="text-[13px] text-muted-foreground">
+          <Link
+            href="/login"
+            className="font-semibold text-primary hover:text-primary/80 transition-colors"
+          >
+            ← Back to sign in
           </Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

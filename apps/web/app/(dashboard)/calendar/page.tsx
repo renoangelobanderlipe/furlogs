@@ -41,6 +41,8 @@ const TYPE_MAP: Record<CalendarEventType, DisplayType> = {
   vaccination: "vaccine",
   medication: "medication",
   stock_alert: "stock",
+  reminder: "medication",
+  follow_up: "vet",
 };
 
 const TYPE_CONFIG: Record<

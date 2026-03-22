@@ -1,5 +1,6 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Bell,
   Crown,
@@ -13,6 +14,8 @@ import {
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { TwoFactorSettings } from "@/components/settings/TwoFactorSettings";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,6 +42,19 @@ import { profileEndpoints } from "@/lib/api/profile";
 import { getInitials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/useAuthStore";
+
+const passwordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 const settingsTabs = [
   { label: "Household", icon: Users },
@@ -84,6 +100,7 @@ function SettingsPageContent() {
 
   const [transferTargetId, setTransferTargetId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [memberToRemoveId, setMemberToRemoveId] = useState<string | null>(null);
   const transferTargetName =
     household?.members.find((m) => m.id === transferTargetId)?.name ?? "";
 
@@ -100,9 +117,9 @@ function SettingsPageContent() {
     }
   }, [user?.name]);
 
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+  });
 
   const { data: notifPrefs, isLoading: notifLoading } =
     useNotificationPreferences();
@@ -136,19 +153,16 @@ function SettingsPageContent() {
     updateProfile.mutate(profileName.trim());
   };
 
-  const handleChangePassword = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleChangePassword = (values: PasswordFormValues) => {
     changePassword.mutate(
       {
-        current_password: currentPassword,
-        password: newPassword,
-        password_confirmation: confirmPassword,
+        current_password: values.currentPassword,
+        password: values.newPassword,
+        password_confirmation: values.confirmPassword,
       },
       {
         onSuccess: () => {
-          setCurrentPassword("");
-          setNewPassword("");
-          setConfirmPassword("");
+          passwordForm.reset();
         },
       },
     );
@@ -320,13 +334,7 @@ function SettingsPageContent() {
                             variant="ghost"
                             className="text-destructive hover:text-destructive shrink-0"
                             disabled={removeMember.isPending}
-                            onClick={() =>
-                              household &&
-                              removeMember.mutate({
-                                householdId: household.id,
-                                userId: member.id,
-                              })
-                            }
+                            onClick={() => setMemberToRemoveId(member.id)}
                           >
                             {isSelf ? (
                               <>
@@ -507,7 +515,8 @@ function SettingsPageContent() {
             <div className="rounded-lg border border-border bg-card p-5">
               <h3 className="font-semibold mb-4">Change Password</h3>
               <form
-                onSubmit={handleChangePassword}
+                onSubmit={passwordForm.handleSubmit(handleChangePassword)}
+                noValidate
                 className="space-y-3 max-w-sm"
               >
                 <div>
@@ -520,11 +529,15 @@ function SettingsPageContent() {
                   <Input
                     id="current-password"
                     type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    {...passwordForm.register("currentPassword")}
                     className="bg-background"
                     autoComplete="current-password"
                   />
+                  {passwordForm.formState.errors.currentPassword && (
+                    <p className="mt-1 text-xs text-destructive">
+                      {passwordForm.formState.errors.currentPassword.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -536,11 +549,15 @@ function SettingsPageContent() {
                   <Input
                     id="new-password"
                     type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    {...passwordForm.register("newPassword")}
                     className="bg-background"
                     autoComplete="new-password"
                   />
+                  {passwordForm.formState.errors.newPassword && (
+                    <p className="mt-1 text-xs text-destructive">
+                      {passwordForm.formState.errors.newPassword.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label
@@ -552,20 +569,22 @@ function SettingsPageContent() {
                   <Input
                     id="confirm-password"
                     type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    {...passwordForm.register("confirmPassword")}
                     className="bg-background"
                     autoComplete="new-password"
                   />
+                  {passwordForm.formState.errors.confirmPassword && (
+                    <p className="mt-1 text-xs text-destructive">
+                      {passwordForm.formState.errors.confirmPassword.message}
+                    </p>
+                  )}
                 </div>
                 <Button
                   size="sm"
                   type="submit"
                   disabled={
                     changePassword.isPending ||
-                    !currentPassword ||
-                    !newPassword ||
-                    !confirmPassword
+                    passwordForm.formState.isSubmitting
                   }
                 >
                   {changePassword.isPending ? "Updating…" : "Update Password"}
@@ -636,6 +655,33 @@ function SettingsPageContent() {
         }}
         onCancel={() => setDeleteTargetId(null)}
         isLoading={deleteHousehold.isPending}
+      />
+
+      {/* Remove / Leave Member Confirm */}
+      <ConfirmDialog
+        open={memberToRemoveId !== null}
+        title={
+          memberToRemoveId === user?.id
+            ? "Leave household?"
+            : `Remove ${household?.members.find((m) => m.id === memberToRemoveId)?.name ?? ""} from your household?`
+        }
+        description={
+          memberToRemoveId === user?.id
+            ? "You will lose access to this household. You can be re-invited later."
+            : "This will immediately remove their access. They can be re-invited later."
+        }
+        confirmLabel={
+          memberToRemoveId === user?.id ? "Leave Household" : "Remove Member"
+        }
+        onConfirm={() => {
+          if (!household || memberToRemoveId === null) return;
+          removeMember.mutate(
+            { householdId: household.id, userId: memberToRemoveId },
+            { onSuccess: () => setMemberToRemoveId(null) },
+          );
+        }}
+        onCancel={() => setMemberToRemoveId(null)}
+        isLoading={removeMember.isPending}
       />
     </div>
   );

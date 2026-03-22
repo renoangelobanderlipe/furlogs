@@ -4,6 +4,7 @@ import { Crown, LogOut, Trash2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,6 +14,7 @@ import {
   useRemoveMember,
   useUpdateHousehold,
 } from "@/hooks/api/useHousehold";
+import type { HouseholdMember } from "@/lib/api/households";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 function MemberRowSkeleton() {
@@ -36,6 +38,9 @@ export default function HouseholdPage() {
 
   const [householdName, setHouseholdName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
+  const [memberToRemove, setMemberToRemove] = useState<HouseholdMember | null>(
+    null,
+  );
 
   const updateHousehold = useUpdateHousehold();
   const inviteMember = useInviteMember();
@@ -65,9 +70,16 @@ export default function HouseholdPage() {
     );
   }
 
-  function handleRemove(targetUserId: string) {
-    if (!household) return;
-    removeMember.mutate({ householdId: household.id, userId: targetUserId });
+  function handleRemove(member: HouseholdMember) {
+    setMemberToRemove(member);
+  }
+
+  function handleConfirmRemove() {
+    if (!household || !memberToRemove) return;
+    removeMember.mutate(
+      { householdId: household.id, userId: memberToRemove.id },
+      { onSuccess: () => setMemberToRemove(null) },
+    );
   }
 
   return (
@@ -167,7 +179,7 @@ export default function HouseholdPage() {
                         variant="ghost"
                         className="text-destructive hover:text-destructive"
                         disabled={removeMember.isPending}
-                        onClick={() => handleRemove(member.id)}
+                        onClick={() => handleRemove(member)}
                       >
                         {isSelf ? (
                           <>
@@ -189,6 +201,26 @@ export default function HouseholdPage() {
           </ul>
         )}
       </section>
+
+      <ConfirmDialog
+        open={memberToRemove !== null}
+        title={
+          memberToRemove?.id === user?.id
+            ? "Leave household?"
+            : `Remove ${memberToRemove?.name ?? ""} from your household?`
+        }
+        description={
+          memberToRemove?.id === user?.id
+            ? "You will lose access to this household. You can be re-invited later."
+            : "This will immediately remove their access. They can be re-invited later."
+        }
+        confirmLabel={
+          memberToRemove?.id === user?.id ? "Leave Household" : "Remove Member"
+        }
+        onConfirm={handleConfirmRemove}
+        onCancel={() => setMemberToRemove(null)}
+        isLoading={removeMember.isPending}
+      />
 
       {/* Invite member — owner only */}
       {(isOwner || isLoading) && (

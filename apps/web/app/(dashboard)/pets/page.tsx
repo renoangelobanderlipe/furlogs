@@ -11,7 +11,6 @@ import {
   Scale,
   Stethoscope,
   Syringe,
-  Upload,
   User,
   X,
 } from "lucide-react";

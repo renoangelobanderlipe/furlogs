@@ -553,7 +553,9 @@ it('cannot open a stock item from another household', function () {
 
     $response = $this->actingAs($owner)->patchJson("/api/food-stock-items/{$foreignItem->id}/open");
 
-    $response->assertForbidden();
+    // Global scope hides cross-household items entirely, so the route returns 404 (not 403).
+    // This is more secure: it does not confirm the existence of the resource.
+    $response->assertNotFound();
 });
 
 it('cannot mark finished a stock item from another household', function () {
@@ -577,7 +579,9 @@ it('cannot mark finished a stock item from another household', function () {
 
     $response = $this->actingAs($owner)->patchJson("/api/food-stock-items/{$foreignItem->id}/finish");
 
-    $response->assertForbidden();
+    // Global scope hides cross-household items entirely, so the route returns 404 (not 403).
+    // This is more secure: it does not confirm the existence of the resource.
+    $response->assertNotFound();
 });
 
 it('projections endpoint only returns items for the users household', function () {
@@ -624,7 +628,7 @@ it('projections endpoint only returns items for the users household', function (
     $response->assertJsonCount(1, 'data');
 });
 
-it('policy returns false rather than crashing when product is soft-deleted', function () {
+it('stock item is invisible when its product is soft-deleted', function () {
     [$owner, $household] = createFoodOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create(['household_id' => $household->id]);
@@ -634,13 +638,14 @@ it('policy returns false rather than crashing when product is soft-deleted', fun
         'purchased_at' => now()->toDateString(),
     ]);
 
-    // Soft-delete the product
+    // Soft-delete the product — the global scope (BelongsToHouseholdViaFoodProduct) uses
+    // whereHas('foodProduct'), which excludes soft-deleted products. The item becomes
+    // invisible via 404 rather than a 403, which is intentionally more secure.
     $product->delete();
 
-    // Attempting to open the item should return 403, not 500
     $response = $this->actingAs($owner)->patchJson("/api/food-stock-items/{$item->id}/open");
 
-    $response->assertForbidden();
+    $response->assertNotFound();
 });
 
 it('member cannot delete a stock item', function () {

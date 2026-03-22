@@ -25,7 +25,6 @@ class FoodStockItemController extends Controller
         $this->authorize('viewAny', FoodStockItem::class);
 
         $items = FoodStockItem::query()
-            ->whereHas('foodProduct', fn ($q) => $q->where('household_id', $request->user()->current_household_id))
             ->with(['foodProduct', 'consumptionLog'])
             ->orderByRaw("CASE status WHEN 'open' THEN 0 WHEN 'sealed' THEN 1 WHEN 'finished' THEN 2 ELSE 3 END")
             ->paginate(20);

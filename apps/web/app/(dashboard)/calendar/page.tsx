@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCalendarEvents } from "@/hooks/api/useCalendar";
 import type { CalendarEvent, CalendarEventType } from "@/lib/api/calendar";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,8 @@ const TYPE_MAP: Record<CalendarEventType, DisplayType> = {
   vaccination: "vaccine",
   medication: "medication",
   stock_alert: "stock",
+  reminder: "medication",
+  follow_up: "vet",
 };
 
 const TYPE_CONFIG: Record<
@@ -86,7 +89,7 @@ export default function CalendarPage() {
   } | null>(null);
 
   const range = getRange(year, month);
-  const { data: events = [] } = useCalendarEvents(range);
+  const { data: events = [], isLoading } = useCalendarEvents(range);
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayOfWeek = new Date(year, month, 1).getDay();
@@ -240,7 +243,10 @@ export default function CalendarPage() {
       </div>
 
       {/* Grid */}
-      <div className="animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+      <div
+        className="animate-fade-in-up relative"
+        style={{ animationDelay: "100ms" }}
+      >
         <div className="grid grid-cols-7 gap-px mb-px">
           {DAYS.map((d) => (
             <div
@@ -251,7 +257,32 @@ export default function CalendarPage() {
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-1">{cells}</div>
+        <div className="grid grid-cols-7 gap-1">
+          {isLoading
+            ? [
+                ...Array.from({ length: firstDayOfWeek }, (_, i) => (
+                  <div
+                    key={`empty-${i}-${month}-${year}`}
+                    className="h-24 md:h-28"
+                  />
+                )),
+                ...Array.from({ length: daysInMonth }, (_, i) => {
+                  const day = i + 1;
+                  return (
+                    <div
+                      key={`skel-${day}-${month}-${year}`}
+                      className="h-24 md:h-28 rounded-lg border border-border p-1.5"
+                    >
+                      <Skeleton className="h-5 w-5 rounded-full" />
+                      <div className="mt-1.5 space-y-1">
+                        <Skeleton className="h-3 w-full rounded" />
+                      </div>
+                    </div>
+                  );
+                }),
+              ]
+            : cells}
+        </div>
       </div>
 
       {/* Event detail dialog */}

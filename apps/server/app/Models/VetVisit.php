@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * @property string $id
@@ -86,5 +87,16 @@ class VetVisit extends Model implements HasMedia
         $this->addMediaCollection('attachments')
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
             ->useDisk('local');
+    }
+
+    /**
+     * Register media conversions. Processing images through a conversion strips EXIF
+     * metadata as a side effect, preventing GPS/device data leakage in stored files.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('optimized')
+            ->performOnCollections('attachments')
+            ->nonQueued();
     }
 }

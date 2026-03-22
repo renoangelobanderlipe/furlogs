@@ -109,6 +109,18 @@ class MedicationService
     }
 
     /**
+     * Update a medication administration record.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function updateAdministration(MedicationAdministration $administration, array $data): MedicationAdministration
+    {
+        $administration->update($data);
+
+        return $administration->fresh();
+    }
+
+    /**
      * Delete an administration record.
      */
     public function deleteAdministration(MedicationAdministration $administration): void

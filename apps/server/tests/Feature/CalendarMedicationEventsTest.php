@@ -44,7 +44,7 @@ it('active medication produces one event per day in range', function () {
 
     $response->assertSuccessful();
 
-    $events = collect($response->json('data'))->where('type', 'medication_schedule');
+    $events = collect($response->json('data'))->where('type', 'medication');
     // 3 days: start, start+1, start+2
     expect($events->count())->toBe(3);
 });
@@ -70,7 +70,7 @@ it('medication ending before range start is excluded', function () {
 
     $response->assertSuccessful();
 
-    $events = collect($response->json('data'))->where('type', 'medication_schedule');
+    $events = collect($response->json('data'))->where('type', 'medication');
     expect($events->count())->toBe(0);
 });
 
@@ -95,7 +95,7 @@ it('medication with no end_date continues to end of range', function () {
 
     $response->assertSuccessful();
 
-    $events = collect($response->json('data'))->where('type', 'medication_schedule');
+    $events = collect($response->json('data'))->where('type', 'medication');
     // 5 days: today through today+4
     expect($events->count())->toBe(5);
 });
@@ -121,9 +121,9 @@ it('medication schedule events have type medication_schedule and color #ff9800',
     $response->assertSuccessful();
 
     $data = $response->json('data');
-    $event = collect($data)->where('type', 'medication_schedule')->first();
+    $event = collect($data)->where('type', 'medication')->first();
 
     expect($event)->not->toBeNull();
-    expect($event['type'])->toBe('medication_schedule');
-    expect($event['color'])->toBe('#ff9800');
+    expect($event['type'])->toBe('medication');
+    expect($event)->not->toHaveKey('color');
 });

@@ -11,6 +11,8 @@ const EVENT_TYPE_COLOR: Record<CalendarEvent["type"], string> = {
   vaccination: "bg-destructive",
   medication: "bg-warning",
   stock_alert: "bg-warning",
+  reminder: "bg-warning",
+  follow_up: "bg-primary",
 };
 
 const LEGEND = [

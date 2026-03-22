@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Enums\ReminderStatus;
 use App\Enums\ReminderType;
 use App\Models\Medication;
+use App\Models\Pet;
 use App\Models\Reminder;
 use App\Models\Vaccination;
 use App\Models\VetVisit;
@@ -21,6 +22,8 @@ class CalendarController extends Controller
 
     public function events(Request $request): JsonResponse
     {
+        $this->authorize('viewAny', Pet::class);
+
         $validated = $request->validate([
             'start' => ['required', 'date'],
             'end' => ['required', 'date', 'after_or_equal:start'],
@@ -33,7 +36,7 @@ class CalendarController extends Controller
 
         $events = collect();
 
-        // Vet visits (blue) — past visits in range
+        // Vet visits — past visits in range
         VetVisit::query()
             ->with(['pet'])
             ->whereBetween('visit_date', [$start->toDateString(), $end->toDateString()])
@@ -44,12 +47,11 @@ class CalendarController extends Controller
                     'title' => ucfirst($visit->visit_type->value).' — '.$visit->pet->name,
                     'start' => $visit->visit_date->toDateString(),
                     'type' => 'vet_visit',
-                    'color' => '#2196f3',
                     'url' => "/vet-visits/{$visit->id}",
                 ]);
             });
 
-        // Vaccinations (red) — upcoming by next_due_date
+        // Vaccinations — upcoming by next_due_date
         Vaccination::query()
             ->with(['pet'])
             ->whereNotNull('next_due_date')
@@ -61,12 +63,11 @@ class CalendarController extends Controller
                     'title' => $vax->vaccine_name.' — '.$vax->pet->name,
                     'start' => $vax->next_due_date->toDateString(),
                     'type' => 'vaccination',
-                    'color' => '#f44336',
                     'url' => "/vaccinations/{$vax->id}",
                 ]);
             });
 
-        // Medication reminders (yellow)
+        // Medication reminders
         Reminder::query()
             ->with(['pet'])
             ->where('type', ReminderType::Medication)
@@ -78,14 +79,13 @@ class CalendarController extends Controller
                     'id' => "reminder-{$reminder->id}",
                     'title' => $reminder->title,
                     'start' => $reminder->due_date->toDateString(),
-                    'type' => 'medication',
-                    'color' => '#ff9800',
+                    'type' => 'reminder',
                     'url' => '/reminders',
                     'petName' => $reminder->pet?->name,
                 ]);
             });
 
-        // Active medication schedule events (yellow) — one event per day per active medication
+        // Active medication schedule events — one event per day per active medication
         Medication::query()
             ->with(['pet'])
             ->whereDate('start_date', '<=', $end->toDateString())
@@ -106,8 +106,7 @@ class CalendarController extends Controller
                         'id' => "med-{$med->id}-{$cursor->toDateString()}",
                         'title' => $med->name.' — '.$med->pet->name,
                         'start' => $cursor->toDateString(),
-                        'type' => 'medication_schedule',
-                        'color' => '#ff9800',
+                        'type' => 'medication',
                         'url' => '/medications',
                         'petName' => $med->pet->name,
                         'medicationId' => $med->id,
@@ -116,7 +115,7 @@ class CalendarController extends Controller
                 }
             });
 
-        // Food stock alerts (orange) — projected run-out dates
+        // Food stock alerts — projected run-out dates
         $householdId = (string) $request->user()->current_household_id;
         $projections = $this->foodStockService->getProjections($householdId);
 
@@ -132,7 +131,6 @@ class CalendarController extends Controller
                     'title' => 'Running low: '.$item->foodProduct->name,
                     'start' => $runsOutDate->toDateString(),
                     'type' => 'stock_alert',
-                    'color' => '#ff5722',
                     'url' => '/stock',
                 ]);
             }

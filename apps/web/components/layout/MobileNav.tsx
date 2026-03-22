@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  BellRing,
   Building2,
   CalendarDays,
   DollarSign,
@@ -38,7 +39,7 @@ const moreLinks = [
   { label: "Vaccinations", icon: Syringe, path: "/vaccinations" },
   { label: "Medications", icon: Pill, path: "/medications" },
   { label: "Vet Clinics", icon: Building2, path: "/vet-clinics" },
-  { label: "Reminders", icon: Bell, path: "/reminders" },
+  { label: "Reminders", icon: BellRing, path: "/reminders" },
   { label: "Spending", icon: DollarSign, path: "/spending" },
   { label: "Weight History", icon: Weight, path: "/weight-history" },
   { label: "Calendar", icon: CalendarDays, path: "/calendar" },

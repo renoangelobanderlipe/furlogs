@@ -53,9 +53,9 @@ class MedicationAdministrationController extends Controller
     {
         $this->authorize('update', $administration);
 
-        $administration->update($request->validated());
+        $administration = $this->service->updateAdministration($administration, $request->validated());
 
-        return new MedicationAdministrationResource($administration->fresh());
+        return new MedicationAdministrationResource($administration);
     }
 
     public function destroy(MedicationAdministration $administration): Response

@@ -27,6 +27,14 @@ class ReminderService
     }
 
     /**
+     * Delete a reminder record.
+     */
+    public function delete(Reminder $reminder): void
+    {
+        $reminder->delete();
+    }
+
+    /**
      * Update an existing Reminder record.
      *
      * @param  array<string, mixed>  $data

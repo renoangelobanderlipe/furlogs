@@ -52,8 +52,9 @@ class SpendingController extends Controller
             'food' => (float) ($foodMonthly[$m] ?? 0),
         ])->all();
 
-        $vetYtdSpend = array_sum(array_column($monthly, 'vet'));
-        $foodYtdSpend = array_sum(array_column($monthly, 'food'));
+        // Sum the raw pluck collections (DB strings) so the float cast happens once at the boundary.
+        $vetYtdSpend = (float) $vetMonthly->sum();
+        $foodYtdSpend = (float) $foodMonthly->sum();
 
         return response()->json([
             'data' => [

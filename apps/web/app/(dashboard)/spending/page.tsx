@@ -21,7 +21,7 @@ import {
 import { PawWatermark } from "@/components/ui/paw-watermark";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSpendingStats } from "@/hooks/api/useSpending";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatCurrencyChart } from "@/lib/format";
 
 const MONTHS = [
   "Jan",
@@ -339,9 +339,7 @@ export default function SpendingPage() {
                   fill: "hsl(var(--muted-foreground))",
                   fontSize: 11,
                 }}
-                tickFormatter={(v: number) =>
-                  v >= 1000 ? `₱${(v / 1000).toFixed(0)}k` : `₱${v}`
-                }
+                tickFormatter={formatCurrencyChart}
               />
               <Tooltip
                 content={<CustomTooltip />}

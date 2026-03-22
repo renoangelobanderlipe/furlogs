@@ -40,7 +40,7 @@ export interface FoodStockItemAttributes {
   purchasedAt: string;
   openedAt: string | null;
   finishedAt: string | null;
-  purchaseCost: number | null;
+  purchaseCost: string | null;
   purchaseSource: string | null;
   quantity: number;
   notes: string | null;

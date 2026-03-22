@@ -25,6 +25,16 @@ export function formatCurrency(
 }
 
 /**
+ * Formats a currency amount for chart axis labels.
+ * Abbreviates values ≥ 1,000 as ₱Xk; formats smaller values with formatCurrency.
+ */
+export function formatCurrencyChart(amount: number): string {
+  return amount >= 1000
+    ? `₱${(amount / 1000).toFixed(0)}k`
+    : formatCurrency(amount);
+}
+
+/**
  * Formats a YYYY-MM-DD date string to short locale format (e.g. "Mar 20, 2026").
  * Returns "—" for null/undefined/empty input.
  */

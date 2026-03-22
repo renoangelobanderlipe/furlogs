@@ -374,7 +374,7 @@ export function VisitForm({
                   <FormControl>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                        $
+                        ₱
                       </span>
                       <Input
                         type="number"

@@ -75,7 +75,7 @@ it('returns calendar events in date range', function () {
 
     expect($data->where('type', 'vet_visit')->count())->toBe(1);
     expect($data->where('type', 'vaccination')->count())->toBe(1);
-    expect($data->where('type', 'medication')->count())->toBe(1);
+    expect($data->where('type', 'reminder')->count())->toBe(1);
 });
 
 it('excludes events outside date range', function () {

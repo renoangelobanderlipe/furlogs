@@ -70,7 +70,7 @@ class HouseholdService
 
         if ($invitee === null) {
             throw ValidationException::withMessages([
-                'email' => ['No FurLog account found with that email.'],
+                'email' => ['If this email is registered, an invitation will be sent to them.'],
             ]);
         }
 

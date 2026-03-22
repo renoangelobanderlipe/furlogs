@@ -180,7 +180,7 @@ it('invite returns 422 when email has no account', function () {
     $this->actingAs($owner)
         ->postJson("/api/households/{$household->id}/invite", ['email' => 'ghost@example.com'])
         ->assertUnprocessable()
-        ->assertJsonPath('errors.email.0', 'No FurLog account found with that email.');
+        ->assertJsonPath('errors.email.0', 'If this email is registered, an invitation will be sent to them.');
 });
 
 it('invite returns 422 when user is already a member', function () {

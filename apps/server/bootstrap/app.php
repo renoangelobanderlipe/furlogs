@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // TODO(production): Restrict to known proxy CIDR ranges before launch.
+        // Using '*' here makes the client IP unreliable — a secondary email-based rate limiter
+        // in LoginController compensates, but this should be locked down to specific IPs/CIDRs.
         $middleware->trustProxies(at: '*');
         $middleware->statefulApi();
         $middleware->appendToGroup('api', SetPermissionsTeamId::class);

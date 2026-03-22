@@ -251,11 +251,10 @@ export default function MedicationsPage() {
   const pets = petsData?.data ?? [];
 
   const totalCount = meta?.total ?? medications.length;
-  // When filtered to active-only, meta.total is the true server-side count.
-  const activeCount =
-    statusFilter === "active"
-      ? (meta?.total ?? medications.filter((m) => m.attributes.isActive).length)
-      : medications.filter((m) => m.attributes.isActive).length;
+  // When filtered to active-only, meta.total is the true server-side active count.
+  // For other filters, we cannot know the true active count across all pages, so
+  // we return null and render "–" in the UI rather than show an incorrect number.
+  const activeCount = statusFilter === "active" ? (meta?.total ?? null) : null;
 
   const {
     register,
@@ -355,7 +354,7 @@ export default function MedicationsPage() {
             <h1 className="text-2xl font-bold tracking-tight">Medications</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
               {totalCount > 0
-                ? `${totalCount} medication${totalCount !== 1 ? "s" : ""}${activeCount > 0 && statusFilter === "all" ? ` · ${activeCount} active` : ""}`
+                ? `${totalCount} medication${totalCount !== 1 ? "s" : ""}`
                 : "Track your pets' medications"}
             </p>
           </div>
@@ -377,10 +376,15 @@ export default function MedicationsPage() {
             Active Now
           </p>
           <p className="text-2xl font-bold tabular-nums mt-1 text-primary">
-            {activeCount}
+            {activeCount !== null ? activeCount : "–"}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
             {activeCount === 1 ? "medication" : "medications"} in progress
+            {activeCount === null && (
+              <span className="block text-[10px]">
+                filter by Active to see count
+              </span>
+            )}
           </p>
         </div>
         <div

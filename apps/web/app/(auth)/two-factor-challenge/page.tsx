@@ -49,7 +49,7 @@ export default function TwoFactorChallengePage() {
   // against the onSubmit handler when fetchUser() resolves with an unverified
   // user — without it, both would fire and the result would be non-deterministic.
   useEffect(() => {
-    if (user !== null && user.email_verified_at) {
+    if (user?.email_verified_at) {
       router.replace("/pets");
     }
   }, [user, router]);

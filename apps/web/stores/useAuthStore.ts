@@ -2,6 +2,11 @@ import { create } from "zustand";
 import { type AuthUser, authEndpoints } from "@/lib/api/endpoints";
 
 interface AuthStore {
+  // NOTE: The authenticated user object is stored in Zustand (not TanStack Query)
+  // intentionally. Auth state must: (1) survive a query cache flush on logout,
+  // (2) be readable synchronously by route protection middleware without suspense.
+  // Do NOT copy this pattern for other server data — use TanStack Query for all
+  // other server state (pets, visits, etc.).
   user: AuthUser | null;
   isLoading: boolean;
   twoFactorPending: boolean;

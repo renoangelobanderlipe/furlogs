@@ -1,5 +1,6 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,6 +13,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +61,17 @@ import { SPECIES_EMOJI } from "@/lib/constants";
 import { formatCurrency, formatShortDate } from "@/lib/format";
 import { useHouseholdStore } from "@/stores/useHouseholdStore";
 
+const quickVisitSchema = z.object({
+  petId: z.string().min(1, "Pet is required"),
+  type: z.string().min(1, "Visit type is required"),
+  date: z.string().min(1, "Date is required"),
+  cost: z.string().optional(),
+  clinic: z.string().optional(),
+  reason: z.string().optional(),
+});
+
+type QuickVisitFormValues = z.infer<typeof quickVisitSchema>;
+
 const VISIT_TYPES = ["checkup", "treatment", "vaccine", "emergency"] as const;
 
 const VISIT_TYPE_LABEL: Record<VetVisitType, string> = {
@@ -83,13 +97,17 @@ export default function VetVisitsPage() {
   const [petFilter, setPetFilter] = useState(initialVetPetId);
   const [typeFilter, setTypeFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [form, setForm] = useState({
-    petId: "",
-    type: "",
-    date: "",
-    cost: "",
-    clinic: "",
-    diagnosis: "",
+
+  const quickVisitForm = useForm<QuickVisitFormValues>({
+    resolver: zodResolver(quickVisitSchema),
+    defaultValues: {
+      petId: "",
+      type: "",
+      date: "",
+      cost: "",
+      clinic: "",
+      reason: "",
+    },
   });
 
   const debouncedSearch = useDebounce(search, 400);
@@ -134,37 +152,30 @@ export default function VetVisitsPage() {
     setTypeFilter("all");
   };
 
-  const resetForm = () =>
-    setForm({
-      petId: "",
-      type: "",
-      date: "",
-      cost: "",
-      clinic: "",
-      diagnosis: "",
-    });
-
   const handleClose = (open: boolean) => {
     setDialogOpen(open);
-    if (!open) resetForm();
+    if (!open) quickVisitForm.reset();
   };
 
-  const handleAdd = () => {
-    if (!form.petId || !form.date || !form.type) return;
+  const petIdValue = quickVisitForm.watch("petId");
+  const typeValue = quickVisitForm.watch("type");
+  const clinicValue = quickVisitForm.watch("clinic");
+
+  const handleAdd = (values: QuickVisitFormValues) => {
     createVisit.mutate(
       {
-        pet_id: form.petId,
-        visit_type: form.type,
-        visit_date: form.date,
-        reason: form.diagnosis || form.type,
-        ...(form.clinic && { clinic_id: form.clinic }),
-        ...(form.diagnosis && { diagnosis: form.diagnosis }),
-        ...(form.cost && { cost: parseFloat(form.cost) }),
+        pet_id: values.petId,
+        visit_type: values.type,
+        visit_date: values.date,
+        reason: values.reason || values.type,
+        ...(values.clinic &&
+          values.clinic !== "none" && { clinic_id: values.clinic }),
+        ...(values.cost && { cost: parseFloat(values.cost) }),
       },
       {
         onSuccess: () => {
           setDialogOpen(false);
-          resetForm();
+          quickVisitForm.reset();
           setPage(1);
         },
       },
@@ -446,24 +457,117 @@ export default function VetVisitsPage() {
               Record a vet appointment for your pet.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
+          <form onSubmit={quickVisitForm.handleSubmit(handleAdd)} noValidate>
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Pet <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={petIdValue ?? ""}
+                    onValueChange={(v) =>
+                      quickVisitForm.setValue("petId", v, {
+                        shouldValidate: true,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="mt-1.5 bg-muted/50">
+                      <SelectValue placeholder="Select pet" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {pets.map((p) => (
+                        <SelectItem key={p.id} value={String(p.id)}>
+                          {SPECIES_EMOJI[p.attributes.species] ?? "🐾"}{" "}
+                          {p.attributes.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {quickVisitForm.formState.errors.petId && (
+                    <p className="mt-1 text-xs text-destructive">
+                      {quickVisitForm.formState.errors.petId.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Type <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={typeValue ?? ""}
+                    onValueChange={(v) =>
+                      quickVisitForm.setValue("type", v, {
+                        shouldValidate: true,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="mt-1.5 bg-muted/50">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VISIT_TYPES.map((t) => (
+                        <SelectItem key={t} value={t} className="capitalize">
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {quickVisitForm.formState.errors.type && (
+                    <p className="mt-1 text-xs text-destructive">
+                      {quickVisitForm.formState.errors.type.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Date <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    {...quickVisitForm.register("date")}
+                    className="mt-1.5 bg-muted/50"
+                  />
+                  {quickVisitForm.formState.errors.date && (
+                    <p className="mt-1 text-xs text-destructive">
+                      {quickVisitForm.formState.errors.date.message}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Cost (₱)
+                  </Label>
+                  <Input
+                    type="number"
+                    {...quickVisitForm.register("cost")}
+                    placeholder="0"
+                    className="mt-1.5 bg-muted/50"
+                  />
+                </div>
+              </div>
               <div>
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Pet <span className="text-destructive">*</span>
+                  Clinic
                 </Label>
                 <Select
-                  value={form.petId}
-                  onValueChange={(v) => setForm((p) => ({ ...p, petId: v }))}
+                  value={clinicValue ?? ""}
+                  onValueChange={(v) =>
+                    quickVisitForm.setValue("clinic", v, {
+                      shouldValidate: true,
+                    })
+                  }
                 >
                   <SelectTrigger className="mt-1.5 bg-muted/50">
-                    <SelectValue placeholder="Select pet" />
+                    <SelectValue placeholder="Select clinic" />
                   </SelectTrigger>
                   <SelectContent>
-                    {pets.map((p) => (
-                      <SelectItem key={p.id} value={String(p.id)}>
-                        {SPECIES_EMOJI[p.attributes.species] ?? "🐾"}{" "}
-                        {p.attributes.name}
+                    <SelectItem value="none">None</SelectItem>
+                    {clinics.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.attributes.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -471,110 +575,29 @@ export default function VetVisitsPage() {
               </div>
               <div>
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Type <span className="text-destructive">*</span>
+                  Reason / Notes
                 </Label>
-                <Select
-                  value={form.type}
-                  onValueChange={(v) => setForm((p) => ({ ...p, type: v }))}
-                >
-                  <SelectTrigger className="mt-1.5 bg-muted/50">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VISIT_TYPES.map((t) => (
-                      <SelectItem key={t} value={t} className="capitalize">
-                        {t}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Date <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  type="date"
-                  value={form.date}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, date: e.target.value }))
-                  }
+                <Textarea
+                  {...quickVisitForm.register("reason")}
                   className="mt-1.5 bg-muted/50"
-                />
-              </div>
-              <div>
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Cost (₱)
-                </Label>
-                <Input
-                  type="number"
-                  value={form.cost}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, cost: e.target.value }))
-                  }
-                  placeholder="0"
-                  className="mt-1.5 bg-muted/50"
+                  rows={2}
                 />
               </div>
             </div>
-            <div>
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Clinic
-              </Label>
-              <Select
-                value={form.clinic}
-                onValueChange={(v) =>
-                  setForm((p) => ({ ...p, clinic: v === "none" ? "" : v }))
-                }
-              >
-                <SelectTrigger className="mt-1.5 bg-muted/50">
-                  <SelectValue placeholder="Select clinic" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {clinics.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.attributes.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Diagnosis / Notes
-              </Label>
-              <Textarea
-                value={form.diagnosis}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, diagnosis: e.target.value }))
-                }
-                className="mt-1.5 bg-muted/50"
-                rows={2}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="ghost" size="sm">
-                Cancel
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="ghost" size="sm">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit" size="sm" disabled={createVisit.isPending}>
+                {createVisit.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Log Visit
               </Button>
-            </DialogClose>
-            <Button
-              size="sm"
-              onClick={handleAdd}
-              disabled={
-                !form.petId || !form.date || !form.type || createVisit.isPending
-              }
-            >
-              {createVisit.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Log Visit
-            </Button>
-          </DialogFooter>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

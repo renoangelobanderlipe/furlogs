@@ -19,6 +19,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Private Media Disk
+    |--------------------------------------------------------------------------
+    |
+    | The disk used for sensitive private media (e.g. vet visit attachments).
+    | Defaults to FILESYSTEM_DISK so Laravel Cloud's managed storage is used
+    | automatically in production when that env var is set by the platform.
+    | Override with MEDIA_PRIVATE_DISK if a separate dedicated disk is needed.
+    |
+    */
+
+    'media_private_disk' => env('MEDIA_PRIVATE_DISK', env('FILESYSTEM_DISK', 'local')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

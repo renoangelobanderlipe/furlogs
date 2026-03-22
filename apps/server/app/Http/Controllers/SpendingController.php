@@ -21,7 +21,11 @@ class SpendingController extends Controller
      */
     public function stats(Request $request): JsonResponse
     {
-        $year = $request->integer('year', (int) now()->year);
+        $validated = $request->validate([
+            'year' => ['sometimes', 'integer', 'min:2000', 'max:2100'],
+        ]);
+
+        $year = (int) ($validated['year'] ?? now()->year);
 
         // Production uses PostgreSQL. SQLite expressions are kept for test-environment compatibility only.
         $isSqlite = DB::getDriverName() === 'sqlite';

@@ -1,5 +1,11 @@
 import type { NextConfig } from "next";
 
+if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_API_URL) {
+  throw new Error(
+    "NEXT_PUBLIC_API_URL must be set in production. Got undefined.",
+  );
+}
+
 const nextConfig: NextConfig = {
   reactCompiler: true,
   images: {
@@ -25,6 +31,16 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
           },
+          ...(process.env.NODE_ENV === "production"
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains; preload",
+                },
+              ]
+            : []),
+          // Content-Security-Policy is set dynamically per-request in proxy.ts
+          // using a per-request nonce to eliminate unsafe-inline for scripts.
         ],
       },
     ];

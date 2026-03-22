@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\BelongsToHouseholdViaFoodStockItem;
 use Carbon\Carbon;
 use Database\Factories\FoodConsumptionLogFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class FoodConsumptionLog extends Model
 {
     /** @use HasFactory<FoodConsumptionLogFactory> */
-    use HasFactory, HasUuids;
+    use BelongsToHouseholdViaFoodStockItem, HasFactory, HasUuids;
 
     /**
      * @return array<string, mixed>

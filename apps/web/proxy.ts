@@ -3,13 +3,53 @@ import { NextResponse } from "next/server";
 
 const SESSION_COOKIE = "furlogs-session";
 
+const API_ORIGINS =
+  process.env.NODE_ENV === "production"
+    ? "https://api.furlogs.reno-is.dev"
+    : "https://api.furlogs.reno-is.dev http://localhost:8000";
+
+const isDev = process.env.NODE_ENV === "development";
+
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    // strict-dynamic allows nonce-tagged scripts to load further scripts
+    // (required for Next.js chunk loading). unsafe-eval is dev-only for
+    // React error overlays and stack reconstruction.
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    `img-src 'self' data: blob: ${API_ORIGINS}`,
+    `connect-src 'self' ${API_ORIGINS}`,
+    "font-src 'self' data:",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join("; ");
+}
+
 export function proxy(request: NextRequest) {
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const { pathname, searchParams } = request.nextUrl;
   const hasSession = request.cookies.has(SESSION_COOKIE);
 
+  // Forward nonce to server components (Next.js applies it to framework scripts automatically)
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
+  function nextWithCsp(): NextResponse {
+    // Set CSP on request headers so Next.js server components can read it,
+    // and on response headers so the browser enforces it.
+    const csp = buildCsp(nonce);
+    requestHeaders.set("Content-Security-Policy", csp);
+    const res = NextResponse.next({ request: { headers: requestHeaders } });
+    res.headers.set("Content-Security-Policy", csp);
+    return res;
+  }
+
   // Session expired: clear stale cookie and let user reach /login
   if (pathname === "/login" && searchParams.has("expired")) {
-    const response = NextResponse.next();
+    const response = nextWithCsp();
     response.cookies.delete(SESSION_COOKIE);
     return response;
   }
@@ -55,7 +95,7 @@ export function proxy(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  return nextWithCsp();
 }
 
 export const config = {

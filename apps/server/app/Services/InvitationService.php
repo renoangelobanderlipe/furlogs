@@ -19,8 +19,6 @@ class InvitationService
     /**
      * Find an invitation by token, ensuring it belongs to the given actor.
      * Throws 404 if not found or if the token belongs to a different user.
-     *
-     * @throws NotFoundHttpException
      */
     public function getByToken(string $token, User $actor): HouseholdInvitation
     {

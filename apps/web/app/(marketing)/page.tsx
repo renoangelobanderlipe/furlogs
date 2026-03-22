@@ -25,3 +25,5 @@ export function LandingPage() {
     </>
   );
 }
+
+export default LandingPage;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Enums\ReminderStatus;
 use App\Enums\ReminderType;
 use App\Models\Reminder;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -44,7 +43,6 @@ class StoreReminderRequest extends FormRequest
             'due_date' => ['required', 'date'],
             'is_recurring' => ['boolean'],
             'recurrence_days' => ['nullable', 'integer', 'min:1', 'max:365', 'required_if:is_recurring,true'],
-            'status' => ['nullable', Rule::enum(ReminderStatus::class)],
         ];
     }
 }

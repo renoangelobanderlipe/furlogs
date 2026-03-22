@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import NextLink from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -285,6 +286,16 @@ export default function CalendarPage() {
                   },
                 )}
               </p>
+              {selectedEvent.url && (
+                <NextLink
+                  href={selectedEvent.url}
+                  onClick={() => setSelectedEvent(null)}
+                  className="mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  View record
+                </NextLink>
+              )}
             </div>
           )}
         </DialogContent>

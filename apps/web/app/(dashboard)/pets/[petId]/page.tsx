@@ -183,7 +183,7 @@ export default function PetDetailPage({ params }: PetDetailPageProps) {
 
   // ── Derived stats ──────────────────────────────────────────────
   const visits = vetVisitsData?.data ?? [];
-  const totalVisits = visits.length;
+  const totalVisits = vetVisitsData?.meta?.total ?? visits.length;
   const totalSpend = visits.reduce((sum, v) => {
     const c = v.attributes.cost ? parseFloat(v.attributes.cost) : 0;
     return sum + c;

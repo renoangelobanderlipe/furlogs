@@ -8,7 +8,7 @@ import {
   type VetVisitUpdatePayload,
   vetVisitEndpoints,
 } from "@/lib/api/vet-visits";
-import { QUERY_STALE_TIME, vetVisitKeys } from "./queryKeys";
+import { dashboardKeys, QUERY_STALE_TIME, vetVisitKeys } from "./queryKeys";
 
 export type { VetVisitStats };
 
@@ -48,6 +48,7 @@ export function useCreateVetVisit() {
       vetVisitEndpoints.create(data).then((r) => r.data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vetVisitKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Vet visit recorded!");
     },
     onError: (error: unknown) => {
@@ -69,6 +70,7 @@ export function useUpdateVetVisit() {
         queryKey: vetVisitKeys.detail(visit.id),
       });
       queryClient.invalidateQueries({ queryKey: vetVisitKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Vet visit updated");
     },
     onError: (error: unknown) => {
@@ -87,6 +89,7 @@ export function useDeleteVetVisit() {
       vetVisitEndpoints.delete(id).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vetVisitKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Vet visit deleted");
     },
     onError: (error: unknown) => {

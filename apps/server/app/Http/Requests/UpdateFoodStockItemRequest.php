@@ -35,7 +35,7 @@ class UpdateFoodStockItemRequest extends FormRequest
             'purchase_cost' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'purchase_source' => ['sometimes', 'nullable', 'string', 'max:255'],
             'quantity' => ['sometimes', 'nullable', 'integer', 'min:1'],
-            'notes' => ['sometimes', 'nullable', 'string'],
+            'notes' => ['sometimes', 'nullable', 'string', 'max:5000'],
         ];
     }
 }

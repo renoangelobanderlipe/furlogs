@@ -38,11 +38,11 @@ class UpdateFoodProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'name' => ['sometimes', 'string', 'max:255'],
             'brand' => ['sometimes', 'nullable', 'string', 'max:255'],
             'type' => ['sometimes', 'nullable', Rule::enum(FoodType::class)],
             'unit_weight_grams' => ['sometimes', 'nullable', 'integer', 'min:1'],
-            'unit_type' => ['sometimes', 'nullable', Rule::enum(UnitType::class)],
+            'unit_type' => ['sometimes', Rule::enum(UnitType::class)],
             'alert_threshold_pct' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:100'],
             'notes' => ['sometimes', 'nullable', 'string'],
         ];

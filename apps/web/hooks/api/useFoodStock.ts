@@ -7,6 +7,7 @@ import type {
   PurchaseFormValues,
 } from "@/lib/validation/food-stock.schema";
 import {
+  dashboardKeys,
   foodProductKeys,
   foodProjectionKeys,
   foodStockItemKeys,
@@ -151,6 +152,7 @@ export function useLogPurchase() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: foodStockItemKeys.lists() });
       queryClient.invalidateQueries({ queryKey: foodProjectionKeys.all });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Purchase logged!");
     },
     onError: (error: unknown) => {
@@ -168,6 +170,7 @@ export function useOpenStockItem() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: foodStockItemKeys.lists() });
       queryClient.invalidateQueries({ queryKey: foodProjectionKeys.all });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Bag opened!");
     },
     onError: (error: unknown) => {

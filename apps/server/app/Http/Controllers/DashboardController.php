@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\ReminderStatus;
+use App\Models\FoodStockItem;
 use App\Models\Pet;
 use App\Models\Reminder;
 use App\Models\VetVisit;
@@ -22,7 +23,6 @@ class DashboardController extends Controller
         $householdId = (string) $user->current_household_id;
         $petId = $request->filled('filter.pet') ? (string) $request->input('filter.pet') : null;
 
-        // Pet summaries (1 query)
         $pets = Pet::query()
             ->with(['latestWeight'])
             ->when($petId, fn ($q) => $q->where('id', $petId))
@@ -39,10 +39,10 @@ class DashboardController extends Controller
             ] : null,
         ])->values()->all();
 
-        // Upcoming reminders (1 query)
+        // Include Snoozed so reminders re-surface after their snooze window.
         $upcomingReminders = Reminder::query()
             ->with(['pet'])
-            ->where('status', ReminderStatus::Pending)
+            ->whereIn('status', [ReminderStatus::Pending, ReminderStatus::Snoozed])
             ->where('due_date', '>=', now()->toDateString())
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))
             ->orderBy('due_date')
@@ -57,7 +57,6 @@ class DashboardController extends Controller
             'petName' => $r->pet?->name,
         ])->values()->all();
 
-        // Vet visit stats: count + spend this year
         $yearStart = now()->startOfYear()->toDateString();
         $ytdBase = VetVisit::query()
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))
@@ -73,25 +72,37 @@ class DashboardController extends Controller
             ->orderBy('visit_date', 'desc')
             ->first();
 
-        // Monthly spend: current and previous month
         $thisMonthStart = now()->startOfMonth()->toDateString();
         $lastMonthStart = now()->subMonth()->startOfMonth()->toDateString();
         $lastMonthEnd = now()->subMonth()->endOfMonth()->toDateString();
 
-        $currentMonthSpend = (float) VetVisit::query()
+        $currentMonthVetSpend = (float) VetVisit::query()
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))
             ->where('visit_date', '>=', $thisMonthStart)
             ->sum('cost');
 
-        $lastMonthSpend = (float) VetVisit::query()
+        $currentMonthFoodSpend = (float) FoodStockItem::query()
+            ->whereHas('foodProduct', fn ($q) => $q->where('household_id', $householdId))
+            ->where('purchased_at', '>=', $thisMonthStart)
+            ->sum('purchase_cost');
+
+        $currentMonthSpend = $currentMonthVetSpend + $currentMonthFoodSpend;
+
+        $lastMonthVetSpend = (float) VetVisit::query()
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))
             ->whereBetween('visit_date', [$lastMonthStart, $lastMonthEnd])
             ->sum('cost');
+
+        $lastMonthFoodSpend = (float) FoodStockItem::query()
+            ->whereHas('foodProduct', fn ($q) => $q->where('household_id', $householdId))
+            ->whereBetween('purchased_at', [$lastMonthStart, $lastMonthEnd])
+            ->sum('purchase_cost');
+
+        $lastMonthSpend = $lastMonthVetSpend + $lastMonthFoodSpend;
         $changePercent = $lastMonthSpend > 0
             ? round((($currentMonthSpend - $lastMonthSpend) / $lastMonthSpend) * 100, 1)
             : null;
 
-        // Stock status via projections
         $projections = $this->foodStockService->getProjections($householdId);
         $projectionsCollection = collect($projections);
 
@@ -102,10 +113,6 @@ class DashboardController extends Controller
             ->filter(fn ($p) => $p['projection'] !== null)
             ->sortBy(fn ($p) => $p['projection']->daysRemaining)
             ->first();
-
-        if ($worstProjection !== null) {
-            $worstProjection['item']->loadMissing('foodProduct');
-        }
 
         $stockStatus = [
             'totalOpenItems' => count($projections),

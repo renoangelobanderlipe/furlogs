@@ -35,7 +35,12 @@ class UpdateVetVisitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'clinic_id' => ['nullable', 'uuid', 'exists:vet_clinics,id'],
+            'clinic_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('vet_clinics', 'id')
+                    ->where('household_id', $this->user()->current_household_id),
+            ],
             'vet_name' => ['nullable', 'string', 'max:255'],
             'visit_type' => ['sometimes', 'string', Rule::enum(VisitType::class)],
             'visit_date' => ['sometimes', 'date', 'before_or_equal:today'],

@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/medications";
 import {
   administrationKeys,
+  dashboardKeys,
   medicationKeys,
   QUERY_STALE_TIME,
 } from "./queryKeys";
@@ -50,6 +51,7 @@ export function useLogDose() {
         queryKey: administrationKeys.forMedication(medicationId),
       });
       queryClient.invalidateQueries({ queryKey: medicationKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Dose logged!");
     },
     onError: (error: unknown) => {
@@ -90,6 +92,7 @@ export function useCreateMedication() {
       medicationEndpoints.create(data).then((r) => r.data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: medicationKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Medication recorded!");
     },
     onError: (error: unknown) => {
@@ -137,6 +140,7 @@ export function useDeleteMedication() {
       medicationEndpoints.delete(id).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: medicationKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Medication deleted");
     },
     onError: (error: unknown) => {

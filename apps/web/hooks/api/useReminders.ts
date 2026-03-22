@@ -6,7 +6,7 @@ import type {
   ReminderFormValues,
   ReminderUpdateFormValues,
 } from "@/lib/validation/reminder.schema";
-import { QUERY_STALE_TIME, reminderKeys } from "./queryKeys";
+import { dashboardKeys, QUERY_STALE_TIME, reminderKeys } from "./queryKeys";
 
 export function useReminders(filters?: ReminderFilters) {
   return useQuery({
@@ -33,6 +33,7 @@ export function useCreateReminder() {
       reminderEndpoints.create(data).then((r) => r.data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: reminderKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Reminder created");
     },
     onError: (error: unknown) => {
@@ -77,6 +78,7 @@ export function useDeleteReminder() {
       reminderEndpoints.delete(id).then((r) => r.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: reminderKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Reminder deleted");
     },
     onError: (error: unknown) => {
@@ -98,6 +100,7 @@ export function useCompleteReminder() {
         queryKey: reminderKeys.detail(reminder.id),
       });
       queryClient.invalidateQueries({ queryKey: reminderKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Reminder marked complete");
     },
     onError: (error: unknown) => {
@@ -143,6 +146,7 @@ export function useDismissReminder() {
         queryKey: reminderKeys.detail(reminder.id),
       });
       queryClient.invalidateQueries({ queryKey: reminderKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
       toast.success("Reminder dismissed");
     },
     onError: (error: unknown) => {

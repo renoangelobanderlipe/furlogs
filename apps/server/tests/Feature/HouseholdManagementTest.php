@@ -190,7 +190,7 @@ it('invite returns 422 when user is already a member', function () {
     $this->actingAs($owner)
         ->postJson("/api/households/{$household->id}/invite", ['email' => $member->email])
         ->assertUnprocessable()
-        ->assertJsonPath('errors.email.0', 'This user is already a member of your household.');
+        ->assertJsonPath('errors.email.0', 'If this email is registered, an invitation will be sent to them.');
 });
 
 it('member cannot invite others', function () {

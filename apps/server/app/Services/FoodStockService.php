@@ -136,8 +136,8 @@ class FoodStockService
         // so the service can traverse the relationship regardless of auth context.
         $logs = $product->stockItems()
             ->withoutGlobalScopes()
-            ->whereHas('consumptionLog')
-            ->with('consumptionLog')
+            ->whereHas('consumptionLog', fn ($q) => $q->withoutGlobalScopes())
+            ->with(['consumptionLog' => fn ($q) => $q->withoutGlobalScopes()])
             ->get()
             ->pluck('consumptionLog')
             ->filter()

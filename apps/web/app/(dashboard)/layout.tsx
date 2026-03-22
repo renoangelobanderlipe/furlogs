@@ -1,7 +1,6 @@
 "use client";
 
 import type { InternalAxiosRequestConfig } from "axios";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PasswordConfirmDialog } from "@/components/auth/PasswordConfirmDialog";
@@ -9,6 +8,7 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { SettingsApplier } from "@/components/layout/SettingsApplier";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
+import { PawLoader } from "@/components/ui/PawLoader";
 import { PawWatermark } from "@/components/ui/paw-watermark";
 import { apiClient } from "@/lib/api/client";
 import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
@@ -105,7 +105,11 @@ export default function DashboardLayout({
   if (isLoading && !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <PawLoader
+          size={160}
+          message="Loading FurLog"
+          detail="Fetching your pets & household…"
+        />
       </div>
     );
   }

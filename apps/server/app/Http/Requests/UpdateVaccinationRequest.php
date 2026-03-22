@@ -7,6 +7,7 @@ namespace App\Http\Requests;
 use App\Models\Vaccination;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateVaccinationRequest extends FormRequest
 {
@@ -25,6 +26,16 @@ class UpdateVaccinationRequest extends FormRequest
                 $this->merge([$field => strip_tags((string) $this->input($field))]);
             }
         }
+
+        // When administered_date is not part of the PATCH body, inject the
+        // existing model value so next_due_date's after: rule has a reference.
+        if (! $this->has('administered_date')) {
+            /** @var Vaccination $vaccination */
+            $vaccination = $this->route('vaccination');
+            if ($vaccination?->administered_date) {
+                $this->merge(['administered_date' => $vaccination->administered_date->toDateString()]);
+            }
+        }
     }
 
     /**
@@ -33,7 +44,12 @@ class UpdateVaccinationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'clinic_id' => ['nullable', 'uuid', 'exists:vet_clinics,id'],
+            'clinic_id' => [
+                'nullable',
+                'uuid',
+                Rule::exists('vet_clinics', 'id')
+                    ->where('household_id', $this->user()->current_household_id),
+            ],
             'vaccine_name' => ['sometimes', 'string', 'max:255'],
             'administered_date' => ['sometimes', 'date', 'before_or_equal:today'],
             'next_due_date' => ['nullable', 'date', 'after:administered_date'],

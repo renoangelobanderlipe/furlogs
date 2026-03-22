@@ -21,7 +21,7 @@ class ReminderService
      */
     public function create(array $data): Reminder
     {
-        $data['status'] ??= ReminderStatus::Pending;
+        $data['status'] = ReminderStatus::Pending;
 
         return Reminder::query()->create($data);
     }
@@ -39,11 +39,12 @@ class ReminderService
     }
 
     /**
-     * Mark a reminder as completed.
+     * Mark a reminder as completed. Spawns the next occurrence for recurring reminders.
      */
     public function complete(Reminder $reminder): Reminder
     {
         $reminder->update(['status' => ReminderStatus::Completed]);
+        $this->spawnNextOccurrence($reminder);
 
         return $reminder->fresh();
     }
@@ -62,13 +63,36 @@ class ReminderService
     }
 
     /**
-     * Dismiss a reminder permanently.
+     * Dismiss a reminder. Spawns the next occurrence for recurring reminders.
      */
     public function dismiss(Reminder $reminder): Reminder
     {
         $reminder->update(['status' => ReminderStatus::Dismissed]);
+        $this->spawnNextOccurrence($reminder);
 
         return $reminder->fresh();
+    }
+
+    /**
+     * If the reminder is recurring, create the next occurrence at due_date + recurrence_days.
+     */
+    private function spawnNextOccurrence(Reminder $reminder): void
+    {
+        if (! $reminder->is_recurring || ! $reminder->recurrence_days) {
+            return;
+        }
+
+        $this->create([
+            'household_id' => $reminder->household_id,
+            'pet_id' => $reminder->pet_id,
+            'source_id' => $reminder->source_id,
+            'source_type' => $reminder->source_type,
+            'title' => $reminder->title,
+            'type' => $reminder->type,
+            'due_date' => $reminder->due_date->addDays($reminder->recurrence_days),
+            'is_recurring' => true,
+            'recurrence_days' => $reminder->recurrence_days,
+        ]);
     }
 
     /**

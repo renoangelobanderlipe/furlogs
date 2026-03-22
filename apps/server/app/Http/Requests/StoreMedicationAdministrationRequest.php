@@ -30,8 +30,20 @@ class StoreMedicationAdministrationRequest extends FormRequest
      */
     public function rules(): array
     {
+        /** @var Medication|null $medication */
+        $medication = $this->route('medication');
+
+        $administeredAtRules = ['nullable', 'date', 'before_or_equal:now'];
+
+        if ($medication) {
+            $administeredAtRules[] = 'after_or_equal:'.$medication->start_date->toDateString();
+            if ($medication->end_date) {
+                $administeredAtRules[] = 'before_or_equal:'.$medication->end_date->toDateString();
+            }
+        }
+
         return [
-            'administered_at' => ['nullable', 'date', 'before_or_equal:now'],
+            'administered_at' => $administeredAtRules,
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }

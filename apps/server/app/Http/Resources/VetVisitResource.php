@@ -54,7 +54,7 @@ class VetVisitResource extends JsonResource
                         'size' => $media->size,
                         // getTemporaryUrl requires a private cloud disk in production;
                         // falls back to getUrl() on local disk (acceptable for local dev).
-                        'url' => $media->getTemporaryUrl(now()->addMinutes(60)),
+                        'url' => $media->getTemporaryUrl(now()->addMinutes(5)),
                     ]),
                 ),
             ],

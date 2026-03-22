@@ -38,6 +38,7 @@ Route::middleware('guest')->prefix('auth')->group(function () {
         ->name('auth.register');
 
     Route::post('login', LoginController::class)
+        ->middleware('throttle:5,1')
         ->name('auth.login');
 
 });

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\StockStatus;
 use App\Observers\FoodStockItemObserver;
+use App\Traits\BelongsToHouseholdViaFoodProduct;
 use Carbon\Carbon;
 use Database\Factories\FoodStockItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -37,7 +38,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class FoodStockItem extends Model
 {
     /** @use HasFactory<FoodStockItemFactory> */
-    use HasFactory, HasUuids;
+    use BelongsToHouseholdViaFoodProduct, HasFactory, HasUuids;
 
     /**
      * @return array<string, mixed>

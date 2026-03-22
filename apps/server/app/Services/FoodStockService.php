@@ -108,7 +108,8 @@ class FoodStockService
      */
     public function getProjections(string $householdId): array
     {
-        $items = FoodStockItem::query()
+        // Bypass the global scope — this method performs its own household filtering via foodProduct.
+        $items = FoodStockItem::withoutGlobalScopes()
             ->whereHas('foodProduct', fn ($q) => $q->withoutGlobalScopes()->where('household_id', $householdId))
             ->where('status', StockStatus::Open)
             ->with(['foodProduct.consumptionRates'])
@@ -131,7 +132,10 @@ class FoodStockService
      */
     public function getSuggestedRateAdjustment(FoodProduct $product): ?float
     {
+        // Authorization has been verified at the controller layer; bypass the global scope
+        // so the service can traverse the relationship regardless of auth context.
         $logs = $product->stockItems()
+            ->withoutGlobalScopes()
             ->whereHas('consumptionLog')
             ->with('consumptionLog')
             ->get()

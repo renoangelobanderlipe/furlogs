@@ -21,7 +21,9 @@ class CheckStockAlerts
 
     public function __invoke(): void
     {
-        FoodStockItem::query()
+        // Bypass the global scope — this job runs in a queue/scheduler context with no
+        // authenticated user. It processes all households directly.
+        FoodStockItem::withoutGlobalScopes()
             ->where('status', StockStatus::Open)
             ->with([
                 'foodProduct' => fn ($q) => $q

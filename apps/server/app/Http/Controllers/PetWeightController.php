@@ -39,7 +39,7 @@ class PetWeightController extends Controller
 
     public function destroy(Pet $pet, PetWeight $weight): Response
     {
-        $this->authorize('update', $pet);
+        $this->authorize('delete', $weight);
 
         $weight->delete();
 

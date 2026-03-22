@@ -13,7 +13,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
 
 class VetVisitController extends Controller
 {
@@ -104,36 +103,8 @@ class VetVisitController extends Controller
     {
         $this->authorize('viewAny', VetVisit::class);
 
-        $yearStart = now()->startOfYear()->toDateString();
-
-        $ytdVisits = VetVisit::query()
-            ->where('visit_date', '>=', $yearStart)
-            ->count();
-
-        $ytdSpend = VetVisit::query()
-            ->where('visit_date', '>=', $yearStart)
-            ->whereNotNull('cost')
-            ->sum('cost');
-
-        $lastVisit = VetVisit::query()
-            ->orderBy('visit_date', 'desc')
-            ->value('visit_date');
-
-        $topClinic = VetVisit::query()
-            ->with('clinic')
-            ->whereNotNull('clinic_id')
-            ->select('clinic_id', DB::raw('count(*) as visit_count'))
-            ->groupBy('clinic_id')
-            ->orderByDesc('visit_count')
-            ->first()?->clinic?->name;
-
         return response()->json([
-            'data' => [
-                'ytdVisits' => $ytdVisits,
-                'ytdSpend' => (float) $ytdSpend,
-                'lastVisitDate' => $lastVisit,
-                'topClinic' => $topClinic,
-            ],
+            'data' => $this->service->getStats($request->query('pet_id')),
         ]);
     }
 }

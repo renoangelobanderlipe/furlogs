@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\MedicationAdministration;
+use App\Models\PetWeight;
 use App\Models\User;
 use App\Policies\MedicationAdministrationPolicy;
+use App\Policies\PetWeightPolicy;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Gate;
@@ -40,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::policy(MedicationAdministration::class, MedicationAdministrationPolicy::class);
+        Gate::policy(PetWeight::class, PetWeightPolicy::class);
 
         VerifyEmail::toMailUsing(function (mixed $notifiable, string $url): MailMessage {
             return (new MailMessage)

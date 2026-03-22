@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\VetVisit;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
@@ -117,5 +118,49 @@ class VetVisitService
     {
         // BelongsToHouseholdViaPet global scope automatically excludes cross-household IDs.
         VetVisit::query()->whereIn('id', $ids)->delete();
+    }
+
+    /**
+     * Aggregate vet visit stats for a household, optionally filtered to one pet.
+     * Uses a single grouped query for top clinic to avoid N+1 loading.
+     *
+     * @return array<string, mixed>
+     */
+    public function getStats(?string $petId = null): array
+    {
+        $yearStart = now()->startOfYear()->toDateString();
+
+        $ytdVisits = (int) VetVisit::query()
+            ->when($petId, fn ($q) => $q->where('pet_id', $petId))
+            ->where('visit_date', '>=', $yearStart)
+            ->count();
+
+        $ytdSpend = (float) VetVisit::query()
+            ->when($petId, fn ($q) => $q->where('pet_id', $petId))
+            ->where('visit_date', '>=', $yearStart)
+            ->whereNotNull('cost')
+            ->sum('cost');
+
+        $lastVisit = VetVisit::query()
+            ->when($petId, fn ($q) => $q->where('pet_id', $petId))
+            ->orderBy('visit_date', 'desc')
+            ->value('visit_date');
+
+        // Single query — avoids loading all visits to find the most-visited clinic.
+        $topClinic = VetVisit::query()
+            ->when($petId, fn ($q) => $q->where('pet_id', $petId))
+            ->join('vet_clinics', 'vet_visits.clinic_id', '=', 'vet_clinics.id')
+            ->whereNotNull('vet_visits.clinic_id')
+            ->select('vet_clinics.name', DB::raw('count(*) as visit_count'))
+            ->groupBy('vet_clinics.id', 'vet_clinics.name')
+            ->orderByDesc('visit_count')
+            ->value('vet_clinics.name');
+
+        return [
+            'ytdVisits' => $ytdVisits,
+            'ytdSpend' => $ytdSpend,
+            'lastVisitDate' => $lastVisit,
+            'topClinic' => $topClinic,
+        ];
     }
 }

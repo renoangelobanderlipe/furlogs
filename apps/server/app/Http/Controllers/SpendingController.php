@@ -16,19 +16,18 @@ class SpendingController extends Controller
      * Return aggregated vet and food spending broken down by month for a given year.
      *
      * VetVisit uses BelongsToHouseholdViaPet global scope — household filtering is automatic.
-     * FoodStockItem has no global scope — household is enforced via whereHas on foodProduct.
+     * FoodStockItem uses BelongsToHouseholdViaFoodProduct global scope — household filtering is automatic.
+     * Production driver is PostgreSQL; SQLite is supported for test-environment compatibility only.
      */
     public function stats(Request $request): JsonResponse
     {
         $year = $request->integer('year', (int) now()->year);
-        $householdId = $request->user()->current_household_id;
 
+        // Production uses PostgreSQL. SQLite expressions are kept for test-environment compatibility only.
         $isSqlite = DB::getDriverName() === 'sqlite';
-
         $vetMonthExpr = $isSqlite
             ? "CAST(strftime('%m', visit_date) AS INTEGER)"
             : 'EXTRACT(MONTH FROM visit_date)::integer';
-
         $foodMonthExpr = $isSqlite
             ? "CAST(strftime('%m', purchased_at) AS INTEGER)"
             : 'EXTRACT(MONTH FROM purchased_at)::integer';
@@ -40,9 +39,8 @@ class SpendingController extends Controller
             ->groupByRaw($vetMonthExpr)
             ->pluck('total', 'month');
 
-        // Food spending per month (explicit household filter via food_products)
+        // Food spending per month (scoped via BelongsToHouseholdViaFoodProduct global scope)
         $foodMonthly = FoodStockItem::query()
-            ->whereHas('foodProduct', fn ($q) => $q->where('household_id', $householdId))
             ->selectRaw("{$foodMonthExpr} AS month, COALESCE(SUM(purchase_cost), 0) AS total")
             ->whereYear('purchased_at', $year)
             ->groupByRaw($foodMonthExpr)

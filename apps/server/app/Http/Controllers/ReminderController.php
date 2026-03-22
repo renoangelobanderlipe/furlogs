@@ -58,7 +58,7 @@ class ReminderController extends Controller
     {
         $this->authorize('delete', $reminder);
 
-        $reminder->delete();
+        $this->service->delete($reminder);
 
         return response()->noContent();
     }

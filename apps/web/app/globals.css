@@ -205,3 +205,123 @@
     background-position: 200% 0;
   }
 }
+
+/* Hero dot grid pattern */
+.hero-grid {
+  background-image: radial-gradient(hsl(var(--border)) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ── Landing enhancements ──────────────────────────────────────────── */
+
+@keyframes shimmer-flow {
+  0% {
+    background-position: -300% center;
+  }
+  100% {
+    background-position: 300% center;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes orb-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 15px) scale(0.96);
+  }
+}
+
+/* Shimmer CTA button */
+.cta-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(174 80% 34%) 0%,
+    hsl(174 80% 47%) 20%,
+    hsl(174 90% 62%) 50%,
+    hsl(174 80% 47%) 80%,
+    hsl(174 80% 34%) 100%
+  );
+  background-size: 300% auto;
+  animation: shimmer-flow 4s linear infinite;
+  color: white;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.2s ease;
+}
+
+.cta-shimmer:hover {
+  box-shadow: 0 8px 40px hsl(174 80% 40% / 0.5);
+  transform: translateY(-2px);
+}
+
+.cta-shimmer:active {
+  transform: translateY(0);
+}
+
+/* Orb animations for hero bg */
+.orb-animate {
+  animation: orb-drift 12s ease-in-out infinite;
+}
+
+.orb-animate-slow {
+  animation: orb-drift 18s ease-in-out infinite reverse;
+}
+
+/* Paw float animations — three deliberate paw decorations */
+@keyframes paw-breathe {
+  0%,
+  100% {
+    opacity: var(--paw-opacity, 0.055);
+  }
+  50% {
+    opacity: calc(var(--paw-opacity, 0.055) * 1.6);
+  }
+}
+
+.auth-paw-1 {
+  --paw-opacity: 0.055;
+  animation: paw-breathe 10s ease-in-out infinite;
+}
+.auth-paw-2 {
+  --paw-opacity: 0.05;
+  animation: paw-breathe 14s ease-in-out infinite 2s;
+}
+.auth-paw-3 {
+  --paw-opacity: 0.04;
+  animation: paw-breathe 12s ease-in-out infinite 5s;
+}
+
+/* Auth card input focus glow */
+.auth-input:focus-within {
+  box-shadow: 0 0 0 2px hsl(174 80% 40% / 0.25);
+}
+
+/* Gradient border card (used in CTA section) */
+.gradient-border-card {
+  background:
+    linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+    linear-gradient(
+      135deg,
+      hsl(174 80% 40% / 0.5),
+      hsl(174 80% 40% / 0.08) 40%,
+      hsl(174 80% 40% / 0.08) 60%,
+      hsl(174 80% 40% / 0.4)
+    )
+    border-box;
+  border: 1px solid transparent;
+}

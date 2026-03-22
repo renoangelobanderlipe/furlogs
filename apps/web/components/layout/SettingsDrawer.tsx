@@ -11,7 +11,6 @@ import {
   Settings,
   Sun,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useShallow } from "zustand/react/shallow";
 import {
   Sheet,
@@ -22,6 +21,7 @@ import {
 } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/providers/ThemeProvider";
 import {
   type ColorPreset,
   type ColorScheme,

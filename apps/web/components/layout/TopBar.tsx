@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTheme } from "next-themes";
 import { useState } from "react";
 import { HouseholdSwitcher } from "@/components/layout/HouseholdSwitcher";
 import { ProfileDrawer } from "@/components/layout/ProfileDrawer";
@@ -36,6 +35,7 @@ import { SPECIES_EMOJI } from "@/lib/constants";
 import { getInitials } from "@/lib/format";
 import { accountNav, insightsNav, mainNav } from "@/lib/nav";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/providers/ThemeProvider";
 import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useHouseholdStore } from "@/stores/useHouseholdStore";

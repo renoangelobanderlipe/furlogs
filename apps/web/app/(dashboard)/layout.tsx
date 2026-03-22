@@ -1,7 +1,6 @@
 "use client";
 
 import type { InternalAxiosRequestConfig } from "axios";
-import { PawLoader } from "@/components/ui/PawLoader";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PasswordConfirmDialog } from "@/components/auth/PasswordConfirmDialog";
@@ -9,6 +8,7 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { SettingsApplier } from "@/components/layout/SettingsApplier";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
+import { PawLoader } from "@/components/ui/PawLoader";
 import { PawWatermark } from "@/components/ui/paw-watermark";
 import { apiClient } from "@/lib/api/client";
 import { useAppSettingsStore } from "@/stores/useAppSettingsStore";

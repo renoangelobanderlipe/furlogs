@@ -68,7 +68,8 @@ export const useAppSettingsStore = create<AppSettingsStore>()(
       setColorScheme: (colorScheme) => set({ colorScheme }),
       setPreset: (preset) => set({ preset }),
       setFontFamily: (fontFamily) => set({ fontFamily }),
-      setFontSize: (fontSize) => set({ fontSize }),
+      setFontSize: (fontSize) =>
+        set({ fontSize: Math.min(20, Math.max(12, fontSize)) }),
       reset: () => set(defaults),
     }),
     { name: "furlogs-app-settings" },

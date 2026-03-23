@@ -20,14 +20,16 @@ export default function globalSetup(): void {
   // 1. Guarantee the auth-state directory exists.
   mkdirSync('e2e/.auth', { recursive: true });
 
-  // 2. Start Postgres container and wait for it to be healthy.
-  console.log('\n[e2e] Starting E2E Postgres container…');
-  execFileSync(
-    'docker',
-    ['compose', '-f', 'docker-compose.e2e.yml', 'up', '-d', '--wait'],
-    { cwd: root, stdio: 'inherit' },
-  );
-  console.log('[e2e] Postgres ready.');
+  // 2. Start Postgres container (local dev only — CI uses the GitHub Actions service).
+  if (!process.env.CI) {
+    console.log('\n[e2e] Starting E2E Postgres container…');
+    execFileSync(
+      'docker',
+      ['compose', '-f', 'docker-compose.e2e.yml', 'up', '-d', '--wait'],
+      { cwd: root, stdio: 'inherit' },
+    );
+    console.log('[e2e] Postgres ready.');
+  }
 
   // 3. Generate APP_KEY for the testing env.
   console.log('[e2e] Generating testing APP_KEY…');

@@ -12,7 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -38,10 +38,34 @@ import type {
 import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const TYPE_CONFIG: Record<
-  NotificationType,
-  { icon: React.ElementType; color: string; bg: string; label: string }
-> = {
+type NotificationConfig = {
+  icon: React.ElementType;
+  color: string;
+  bg: string;
+  label: string;
+};
+
+const SidebarPlaceholder = ({
+  icon: Icon = Bell,
+  message,
+  spinning = false,
+}: {
+  icon?: React.ElementType;
+  message: string;
+  spinning?: boolean;
+}) => (
+  <div className="flex flex-col items-center justify-center py-16 text-center">
+    <Icon
+      className={cn(
+        "h-8 w-8 text-muted-foreground/30 mb-2",
+        spinning && "animate-spin",
+      )}
+    />
+    <p className="text-sm font-medium text-muted-foreground">{message}</p>
+  </div>
+);
+
+const TYPE_CONFIG: Record<NotificationType, NotificationConfig> = {
   vaccination_reminder: {
     icon: Syringe,
     color: "text-emerald-500",
@@ -80,10 +104,14 @@ const TYPE_CONFIG: Record<
   },
 };
 
-const SUBJECT_CONFIG: Record<
-  string,
-  { icon: React.ElementType; color: string; bg: string; label: string }
-> = {
+const FALLBACK_CONFIG: NotificationConfig = {
+  icon: Bell,
+  color: "text-muted-foreground",
+  bg: "bg-muted",
+  label: "Notification",
+};
+
+const SUBJECT_CONFIG: Record<string, NotificationConfig> = {
   pet: {
     icon: PawPrint,
     color: "text-primary",
@@ -129,7 +157,7 @@ const SUBJECT_CONFIG: Record<
 };
 
 const ActivityItem = ({ entry }: { entry: ActivityEntry }) => {
-  const config = SUBJECT_CONFIG[entry.subject_type] ?? SUBJECT_CONFIG.pet;
+  const config = SUBJECT_CONFIG[entry.subject_type] ?? FALLBACK_CONFIG;
   const Icon = config.icon;
   return (
     <div className="flex items-start gap-3 px-4 py-3.5">
@@ -151,19 +179,130 @@ const ActivityItem = ({ entry }: { entry: ActivityEntry }) => {
           </span>
           <span className="text-xs text-muted-foreground/40">·</span>
           <span className="text-xs text-muted-foreground">{config.label}</span>
-          <span className="text-xs text-muted-foreground/40">·</span>
-          <span className="text-xs text-muted-foreground">
-            {entry.causer_name}
-          </span>
+          {entry.causer_name && (
+            <>
+              <span className="text-xs text-muted-foreground/40">·</span>
+              <span className="text-xs text-muted-foreground">
+                {entry.causer_name}
+              </span>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
+interface InviteNotificationItemProps {
+  notification: AppNotification;
+  config: NotificationConfig;
+  Icon: React.ElementType;
+  isUnread: boolean;
+  onMarkRead: () => void;
+}
+
+const InviteNotificationItem = ({
+  notification: n,
+  config,
+  Icon,
+  isUnread,
+  onMarkRead,
+}: InviteNotificationItemProps) => {
+  const acceptMutation = useAcceptInvitation();
+  const declineMutation = useDeclineInvitation();
+  const token = n.data?.invitation_token;
+  const [settledAction, setSettledAction] = useState<
+    "accepted" | "declined" | null
+  >(null);
+  const isMutating = acceptMutation.isPending || declineMutation.isPending;
+  const showButtons = token && isUnread && !settledAction;
+
+  return (
+    <div className="flex items-start gap-3 px-4 py-3.5">
+      <div
+        className={cn(
+          "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+          config.bg,
+        )}
+      >
+        <Icon className={cn("h-4 w-4", config.color)} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm leading-snug font-medium text-foreground">
+          {n.data?.title ?? config.label}
+        </p>
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          <span className="text-xs text-muted-foreground">
+            {formatRelativeTime(n.createdAt)}
+          </span>
+          <span className="text-xs text-muted-foreground/40">·</span>
+          <span className="text-xs text-muted-foreground">{config.label}</span>
+        </div>
+        {showButtons && (
+          <div className="flex items-center gap-2 mt-2.5">
+            <button
+              type="button"
+              onClick={() =>
+                declineMutation.mutate(token, {
+                  onSuccess: () => {
+                    setSettledAction("declined");
+                    onMarkRead();
+                  },
+                })
+              }
+              disabled={isMutating}
+              className="flex-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent disabled:opacity-50"
+            >
+              {declineMutation.isPending ? (
+                <Loader2 className="h-3 w-3 animate-spin mx-auto" />
+              ) : (
+                "Decline"
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                acceptMutation.mutate(token, {
+                  onSuccess: () => {
+                    setSettledAction("accepted");
+                    onMarkRead();
+                  },
+                })
+              }
+              disabled={isMutating}
+              className="flex-1 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-50"
+            >
+              {acceptMutation.isPending ? (
+                <Loader2 className="h-3 w-3 animate-spin mx-auto" />
+              ) : (
+                "Accept"
+              )}
+            </button>
+          </div>
+        )}
+        {settledAction && (
+          <p className="text-xs text-muted-foreground mt-2">
+            {settledAction === "accepted"
+              ? "Invitation accepted"
+              : "Invitation declined"}
+          </p>
+        )}
+        {!token && isUnread && (
+          <p className="text-xs text-muted-foreground/60 mt-2">
+            Invitation no longer available
+          </p>
+        )}
+      </div>
+      {isUnread && (
+        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+      )}
+    </div>
+  );
+};
+
 interface NotificationItemProps {
   notification: AppNotification;
-  config: (typeof TYPE_CONFIG)[keyof typeof TYPE_CONFIG];
+  config: NotificationConfig;
   Icon: React.ElementType;
   isUnread: boolean;
   isInvite: boolean;
@@ -178,76 +317,27 @@ const NotificationItem = ({
   isInvite,
   onMarkRead,
 }: NotificationItemProps) => {
-  const acceptMutation = useAcceptInvitation();
-  const declineMutation = useDeclineInvitation();
-  const token = n.data?.invitation_token;
-  const isMutating = acceptMutation.isPending || declineMutation.isPending;
-
   if (isInvite) {
     return (
-      <div className="flex items-start gap-3 px-4 py-3.5">
-        <div
-          className={cn(
-            "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-            config.bg,
-          )}
-        >
-          <Icon className={cn("h-4 w-4", config.color)} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm leading-snug font-medium text-foreground">
-            {n.data?.title ?? n.type}
-          </p>
-          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-            <span className="text-xs text-muted-foreground">
-              {formatRelativeTime(n.createdAt)}
-            </span>
-            <span className="text-xs text-muted-foreground/40">·</span>
-            <span className="text-xs text-muted-foreground">
-              {config.label}
-            </span>
-          </div>
-          {token && (
-            <div className="flex items-center gap-2 mt-2.5">
-              <button
-                type="button"
-                onClick={() => declineMutation.mutate(token)}
-                disabled={isMutating}
-                className="flex-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent disabled:opacity-50"
-              >
-                {declineMutation.isPending ? (
-                  <Loader2 className="h-3 w-3 animate-spin mx-auto" />
-                ) : (
-                  "Decline"
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={() => acceptMutation.mutate(token)}
-                disabled={isMutating}
-                className="flex-1 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-colors hover:bg-foreground/90 disabled:opacity-50"
-              >
-                {acceptMutation.isPending ? (
-                  <Loader2 className="h-3 w-3 animate-spin mx-auto" />
-                ) : (
-                  "Accept"
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-        {isUnread && (
-          <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
-        )}
-      </div>
+      <InviteNotificationItem
+        notification={n}
+        config={config}
+        Icon={Icon}
+        isUnread={isUnread}
+        onMarkRead={onMarkRead}
+      />
     );
   }
 
   return (
     <button
       type="button"
-      className="w-full flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-accent/50 text-left"
+      className={cn(
+        "w-full flex items-start gap-3 px-4 py-3.5 transition-colors text-left",
+        isUnread ? "hover:bg-accent/50 cursor-pointer" : "cursor-default",
+      )}
       onClick={isUnread ? onMarkRead : undefined}
+      disabled={!isUnread}
     >
       <div
         className={cn(
@@ -264,7 +354,7 @@ const NotificationItem = ({
             isUnread ? "font-medium text-foreground" : "text-muted-foreground",
           )}
         >
-          {n.data?.title ?? n.type}
+          {n.data?.title ?? config.label}
         </p>
         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
           <span className="text-xs text-muted-foreground">
@@ -298,7 +388,11 @@ export const NotificationSidebar = ({ children }: NotificationSidebarProps) => {
     "all",
   );
 
-  const { data: notificationsData } = useNotifications({ page: 1 });
+  const {
+    data: notificationsData,
+    isLoading,
+    isError,
+  } = useNotifications({ page: 1 });
   const { data: activityData } = useActivity();
   const { data: unreadCount } = useUnreadCount();
   const markRead = useMarkRead();
@@ -315,8 +409,12 @@ export const NotificationSidebar = ({ children }: NotificationSidebarProps) => {
         ? archivedNotifications
         : allNotifications;
 
+  const handleOpenChange = useCallback((open: boolean) => {
+    if (!open) setTab("all");
+  }, []);
+
   return (
-    <Sheet>
+    <Sheet onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent
         side="right"
@@ -331,7 +429,7 @@ export const NotificationSidebar = ({ children }: NotificationSidebarProps) => {
           <div className="flex items-center gap-0.5">
             <button
               type="button"
-              onClick={() => markAllRead.mutate(undefined)}
+              onClick={() => markAllRead.mutate()}
               disabled={unread === 0 || markAllRead.isPending}
               className="flex h-7 w-7 items-center justify-center rounded-md text-emerald-500 hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               title="Mark all as read"
@@ -391,32 +489,31 @@ export const NotificationSidebar = ({ children }: NotificationSidebarProps) => {
         <div className="flex-1 overflow-y-auto divide-y divide-border">
           {tab === "activity" ? (
             (activityData?.data ?? []).length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Bell className="h-8 w-8 text-muted-foreground/30 mb-2" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  No recent activity
-                </p>
-              </div>
+              <SidebarPlaceholder message="No recent activity" />
             ) : (
               (activityData?.data ?? []).map((entry) => (
                 <ActivityItem key={entry.id} entry={entry} />
               ))
             )
+          ) : isLoading ? (
+            <SidebarPlaceholder icon={Loader2} message="Loading…" spinning />
+          ) : isError ? (
+            <SidebarPlaceholder message="Failed to load notifications" />
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Bell className="h-8 w-8 text-muted-foreground/30 mb-2" />
-              <p className="text-sm font-medium text-muted-foreground">
-                {tab === "unread"
+            <SidebarPlaceholder
+              message={
+                tab === "unread"
                   ? "All caught up!"
                   : tab === "archived"
                     ? "No archived notifications"
-                    : "No notifications"}
-              </p>
-            </div>
+                    : "No notifications"
+              }
+            />
           ) : (
             filtered.map((n) => {
               const config =
-                TYPE_CONFIG[n.data?.type] ?? TYPE_CONFIG.vet_follow_up;
+                TYPE_CONFIG[n.data?.type as NotificationType] ??
+                FALLBACK_CONFIG;
               const Icon = config.icon;
               return (
                 <NotificationItem

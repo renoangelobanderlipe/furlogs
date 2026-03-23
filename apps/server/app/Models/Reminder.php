@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property string $id
@@ -34,6 +35,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
  * @property string|null $source_type
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ * @property Carbon|null $deleted_at
  */
 #[Fillable([
     'household_id', 'pet_id', 'type', 'title', 'description',
@@ -43,7 +45,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Reminder extends Model
 {
     /** @use HasFactory<ReminderFactory> */
-    use BelongsToHousehold, HasFactory, HasUuids;
+    use BelongsToHousehold, HasFactory, HasUuids, SoftDeletes;
 
     /**
      * @return array<string, mixed>

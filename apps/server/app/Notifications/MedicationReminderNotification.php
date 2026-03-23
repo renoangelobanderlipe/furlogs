@@ -23,7 +23,11 @@ class MedicationReminderNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        $prefs = $notifiable->notification_preferences ?? [];
+
+        return ($prefs['medication'] ?? true) === false
+            ? ['database']
+            : ['database', 'mail'];
     }
 
     /**

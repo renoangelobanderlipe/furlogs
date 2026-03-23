@@ -42,3 +42,9 @@ Thumbs.db
 # Claude Code
 .claude/
 .claire/
+
+# Playwright
+playwright-report/
+test-results/
+e2e/.auth/
+!e2e/.auth/.gitkeep

@@ -52,13 +52,28 @@ export const reminderEndpoints = {
     apiClient.get<SingleResourceResponse<Reminder>>(`/api/reminders/${id}`),
 
   create: (data: ReminderFormValues) =>
-    apiClient.post<SingleResourceResponse<Reminder>>("/api/reminders", data),
+    apiClient.post<SingleResourceResponse<Reminder>>("/api/reminders", {
+      pet_id: data.petId ?? null,
+      type: data.type,
+      title: data.title,
+      description: data.description,
+      due_date: data.dueDate,
+      is_recurring: data.isRecurring,
+      recurrence_days: data.recurrenceDays ?? null,
+    }),
 
   update: (id: string, data: ReminderUpdateFormValues) =>
-    apiClient.patch<SingleResourceResponse<Reminder>>(
-      `/api/reminders/${id}`,
-      data,
-    ),
+    apiClient.patch<SingleResourceResponse<Reminder>>(`/api/reminders/${id}`, {
+      ...(data.petId !== undefined && { pet_id: data.petId ?? null }),
+      ...(data.type !== undefined && { type: data.type }),
+      ...(data.title !== undefined && { title: data.title }),
+      ...(data.description !== undefined && { description: data.description }),
+      ...(data.dueDate !== undefined && { due_date: data.dueDate }),
+      ...(data.isRecurring !== undefined && { is_recurring: data.isRecurring }),
+      ...(data.recurrenceDays !== undefined && {
+        recurrence_days: data.recurrenceDays ?? null,
+      }),
+    }),
 
   delete: (id: string) => apiClient.delete(`/api/reminders/${id}`),
 
@@ -70,7 +85,7 @@ export const reminderEndpoints = {
   snooze: (id: string, snoozeDays: number) =>
     apiClient.patch<SingleResourceResponse<Reminder>>(
       `/api/reminders/${id}/snooze`,
-      { snooze_days: snoozeDays },
+      { days: snoozeDays },
     ),
 
   dismiss: (id: string) =>

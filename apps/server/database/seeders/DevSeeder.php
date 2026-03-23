@@ -41,6 +41,7 @@ class DevSeeder extends Seeder
             'name' => 'Reno Banderlipe',
             'email' => 'dev@furlogs.test',
             'password' => bcrypt('password'),
+            'email_verified_at' => now(),
         ]);
 
         $devHousehold = $this->householdService->create($devUser, 'Banderlipe Household');

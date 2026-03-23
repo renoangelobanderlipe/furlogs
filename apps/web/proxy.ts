@@ -3,10 +3,14 @@ import { NextResponse } from "next/server";
 
 const SESSION_COOKIE = "furlogs-session";
 
-const API_ORIGINS =
-  process.env.NODE_ENV === "production"
-    ? "https://api.furlogs.reno-is.dev"
-    : "https://api.furlogs.reno-is.dev http://localhost:8000";
+// Always allow the configured API URL (baked in at build time via NEXT_PUBLIC_API_URL)
+// plus the canonical production domain. Using the env var instead of NODE_ENV means
+// `next start` in CI (NODE_ENV=production, API_URL=localhost) still gets the right origin.
+const apiUrlSet = new Set<string>([
+  "https://api.furlogs.reno-is.dev",
+  process.env.NEXT_PUBLIC_API_URL ?? "https://api.furlogs.reno-is.dev",
+]);
+const API_ORIGINS = [...apiUrlSet].join(" ");
 
 const isDev = process.env.NODE_ENV === "development";
 

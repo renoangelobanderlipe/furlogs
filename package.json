@@ -14,6 +14,9 @@
     "format:web": "bun run --cwd apps/web format",
     "test:server": "composer --working-dir=apps/server test",
     "install:server": "composer install --working-dir=apps/server",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -28,6 +31,7 @@
     "@biomejs/biome": "2.2.0",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
+    "@playwright/test": "1.58.2",
     "concurrently": "^9.2.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0"

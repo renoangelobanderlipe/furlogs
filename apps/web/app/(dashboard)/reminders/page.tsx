@@ -141,6 +141,7 @@ export default function RemindersPage() {
           </DialogHeader>
           <ReminderForm
             pets={pets}
+            isLoading={createReminder.isPending}
             onSuccess={handleSubmit}
             onCancel={() => setDialogOpen(false)}
           />

@@ -38,7 +38,14 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+!apps/server/.env.testing.ci
 
 # Claude Code
 .claude/
 .claire/
+
+# Playwright
+playwright-report/
+test-results/
+e2e/.auth/
+!e2e/.auth/.gitkeep

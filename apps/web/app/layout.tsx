@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { headers } from "next/headers";
 import { Toaster } from "@/components/ui/sonner";
 import { SITE_URL } from "@/lib/constants";
@@ -7,8 +7,13 @@ import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const geist = Geist({
   variable: "--font-sans",
+  subsets: ["latin"],
+});
+
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-display",
   subsets: ["latin"],
 });
 
@@ -39,7 +44,7 @@ export default async function RootLayout({
     <html
       lang="en"
       nonce={nonce}
-      className={`dark ${plusJakartaSans.variable} ${geistMono.variable}`}
+      className={`dark ${geist.variable} ${bricolage.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <body>

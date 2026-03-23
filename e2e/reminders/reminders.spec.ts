@@ -99,11 +99,6 @@ test.describe('Reminders', () => {
   // ── Actions ───────────────────────────────────────────────────────────────
 
   test('can mark a reminder as complete via the actions menu', async ({ page }) => {
-    // Wait for the reminders API response so we know data is loaded before asserting.
-    await page.waitForResponse(
-      resp => resp.url().includes('/api/reminders') && resp.status() === 200,
-    );
-
     // The seeder creates many overdue pending reminders visible on page 1.
     // Use the first one to avoid pagination issues.
     const firstMoreActions = page.getByRole('button', { name: 'More actions' }).first();
@@ -117,11 +112,6 @@ test.describe('Reminders', () => {
   });
 
   test('can snooze a reminder via the actions menu', async ({ page }) => {
-    // Wait for the reminders API response so we know data is loaded before asserting.
-    await page.waitForResponse(
-      resp => resp.url().includes('/api/reminders') && resp.status() === 200,
-    );
-
     // Use the second seeded reminder so it doesn't conflict with any prior action.
     const moreActionsButtons = page.getByRole('button', { name: 'More actions' });
     await expect(moreActionsButtons.first()).toBeVisible();

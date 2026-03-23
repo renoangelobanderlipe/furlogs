@@ -3,6 +3,7 @@
 import {
   Bell,
   Home,
+  Loader2,
   LogOut,
   PawPrint,
   Settings,
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { PawWatermark } from "@/components/ui/paw-watermark";
 import {
   Sheet,
@@ -54,7 +56,10 @@ export const ProfileDrawer = ({ children }: ProfileDrawerProps) => {
   const initials = user?.name ? getInitials(user.name) : "?";
   const members = household?.members ?? [];
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const handleLogout = async () => {
+    setIsLoggingOut(true);
     await logout();
     router.replace("/login?expired=true");
   };
@@ -65,7 +70,7 @@ export const ProfileDrawer = ({ children }: ProfileDrawerProps) => {
       <SheetContent
         side="right"
         aria-describedby={undefined}
-        className="w-72 p-0 flex flex-col bg-card border-l border-border relative overflow-hidden"
+        className="w-72 p-0 flex flex-col bg-card border-l border-border overflow-hidden"
       >
         <SheetTitle className="sr-only">Profile</SheetTitle>
         <PawWatermark
@@ -143,14 +148,26 @@ export const ProfileDrawer = ({ children }: ProfileDrawerProps) => {
         </nav>
 
         {/* Logout */}
-        <div className="p-3 pt-0">
+        <div className="px-3 pb-3">
+          <div className="h-px bg-border mb-3" />
           <button
             type="button"
             onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-amber-600 dark:text-amber-500 hover:bg-amber-500/10 transition-colors border border-amber-500/20"
+            disabled={isLoggingOut}
+            className={cn(
+              "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+              "text-destructive hover:bg-destructive/10",
+              "disabled:pointer-events-none disabled:opacity-50",
+            )}
           >
-            <LogOut className="h-4 w-4" />
-            Logout
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-destructive/10 shrink-0">
+              {isLoggingOut ? (
+                <Loader2 className="h-3.5 w-3.5 text-destructive animate-spin" />
+              ) : (
+                <LogOut className="h-3.5 w-3.5 text-destructive" />
+              )}
+            </span>
+            {isLoggingOut ? "Signing out..." : "Sign out"}
           </button>
         </div>
       </SheetContent>

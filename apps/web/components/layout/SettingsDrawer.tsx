@@ -344,7 +344,7 @@ export const SettingsDrawer = () => {
       <SheetContent
         side={rtl ? "left" : "right"}
         aria-describedby={undefined}
-        className="w-80 p-0 overflow-y-auto flex flex-col gap-0 [&>button]:hidden relative"
+        className="w-80 p-0 overflow-y-auto flex flex-col gap-0 [&>button]:hidden"
       >
         <PawWatermark
           size={130}

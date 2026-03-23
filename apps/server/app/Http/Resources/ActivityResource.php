@@ -43,7 +43,7 @@ class ActivityResource extends JsonResource
             'description' => $this->getAttribute('description'),
             'event' => $this->getAttribute('event'),
             'subject_type' => $this->resolveSubjectTypeSlug($subjectType),
-            'causer_name' => $this->causer?->name ?? 'System',
+            'causer_name' => $this->causer?->getAttribute('name') ?? 'System',
             'causer_id' => $this->getAttribute('causer_id'),
             'created_at' => $this->getAttribute('created_at')?->toISOString(),
         ];

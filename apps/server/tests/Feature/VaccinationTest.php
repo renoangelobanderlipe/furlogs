@@ -5,40 +5,10 @@ declare(strict_types=1);
 use App\Models\Household;
 use App\Models\Pet;
 use App\Models\Reminder;
-use App\Models\User;
 use App\Models\Vaccination;
-use Spatie\Permission\Models\Role;
-
-/**
- * @return array{0: User, 1: Household}
- */
-function createVaccinationOwner(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
-
-function createVaccinationMember(Household $household): User
-{
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
-    $user->assignRole('member');
-
-    return $user;
-}
 
 it('creating a vaccination with next_due_date auto-creates a reminder', function () {
-    [$owner, $household] = createVaccinationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $response = $this->actingAs($owner)->postJson('/api/vaccinations', [
@@ -48,7 +18,7 @@ it('creating a vaccination with next_due_date auto-creates a reminder', function
         'next_due_date' => now()->addYear()->toDateString(),
     ]);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
 
     $this->assertDatabaseHas('reminders', [
         'household_id' => $household->id,
@@ -59,7 +29,7 @@ it('creating a vaccination with next_due_date auto-creates a reminder', function
 });
 
 it('creating a vaccination without next_due_date does NOT create a reminder', function () {
-    [$owner, $household] = createVaccinationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $response = $this->actingAs($owner)->postJson('/api/vaccinations', [
@@ -68,13 +38,13 @@ it('creating a vaccination without next_due_date does NOT create a reminder', fu
         'administered_date' => now()->toDateString(),
     ]);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
 
     expect(Reminder::withoutGlobalScopes()->where('type', 'vaccination')->count())->toBe(0);
 });
 
 it('can list vaccinations scoped to the authenticated user household', function () {
-    [$owner, $household] = createVaccinationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     Vaccination::withoutGlobalScopes()->create([
@@ -105,7 +75,7 @@ it('can list vaccinations scoped to the authenticated user household', function 
 });
 
 it('cannot view vaccination from another household', function () {
-    [$owner, $household] = createVaccinationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
     $otherPet = Pet::withoutGlobalScopes()->create([
@@ -127,8 +97,8 @@ it('cannot view vaccination from another household', function () {
 });
 
 it('only owner can delete a vaccination', function () {
-    [$owner, $household] = createVaccinationOwner();
-    $member = createVaccinationMember($household);
+    [$owner, $household] = createOwnerWithHousehold();
+    $member = createMemberWithHousehold($household);
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $vaccination = Vaccination::withoutGlobalScopes()->create([
@@ -144,7 +114,7 @@ it('only owner can delete a vaccination', function () {
 });
 
 it('validates required fields on store vaccination', function () {
-    [$owner] = createVaccinationOwner();
+    [$owner] = createOwnerWithHousehold();
 
     $response = $this->actingAs($owner)->postJson('/api/vaccinations', []);
 
@@ -153,7 +123,7 @@ it('validates required fields on store vaccination', function () {
 });
 
 it('updating next_due_date deletes the old reminder and creates a new one', function () {
-    [$owner, $household] = createVaccinationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     // Create with an initial next_due_date — seeds one reminder
@@ -163,7 +133,7 @@ it('updating next_due_date deletes the old reminder and creates a new one', func
         'administered_date' => now()->toDateString(),
         'next_due_date' => now()->addYear()->toDateString(),
     ]);
-    $response->assertStatus(201);
+    $response->assertCreated();
     $vaccinationId = $response->json('data.id');
 
     expect(Reminder::withoutGlobalScopes()
@@ -188,7 +158,7 @@ it('updating next_due_date deletes the old reminder and creates a new one', func
 });
 
 it('clearing next_due_date deletes the reminder without creating a replacement', function () {
-    [$owner, $household] = createVaccinationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $response = $this->actingAs($owner)->postJson('/api/vaccinations', [
@@ -197,7 +167,7 @@ it('clearing next_due_date deletes the reminder without creating a replacement',
         'administered_date' => now()->toDateString(),
         'next_due_date' => now()->addYear()->toDateString(),
     ]);
-    $response->assertStatus(201);
+    $response->assertCreated();
     $vaccinationId = $response->json('data.id');
 
     expect(Reminder::withoutGlobalScopes()

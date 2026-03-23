@@ -10,38 +10,9 @@ use App\Models\VetVisit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
-
-/**
- * @return array{0: User, 1: Household}
- */
-function createVetVisitOwner(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
-
-function createVetVisitMember(Household $household): User
-{
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
-    $user->assignRole('member');
-
-    return $user;
-}
 
 it('can list vet visits scoped to the authenticated user household', function () {
-    [$owner, $household] = createVetVisitOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
     VetVisit::withoutGlobalScopes()->create([
@@ -74,7 +45,7 @@ it('can list vet visits scoped to the authenticated user household', function ()
 });
 
 it('can create a vet visit and returns 201 with correct JSON:API shape', function () {
-    [$owner, $household] = createVetVisitOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $payload = [
@@ -86,7 +57,7 @@ it('can create a vet visit and returns 201 with correct JSON:API shape', functio
 
     $response = $this->actingAs($owner)->postJson('/api/vet-visits', $payload);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $response->assertJsonStructure([
         'data' => [
             'id',
@@ -103,7 +74,7 @@ it('can create a vet visit and returns 201 with correct JSON:API shape', functio
 });
 
 it('cannot create a vet visit for a pet in a different household', function () {
-    [$owner, $household] = createVetVisitOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
     $otherPet = Pet::withoutGlobalScopes()->create([
@@ -127,12 +98,12 @@ it('cannot create a vet visit for a pet in a different household', function () {
     // The pet exists but is not accessible via the household scope — returns 422 because
     // pet_id is validated with exists:pets,id and pets has a global scope filtering to current household.
     // Route model binding with global scope returns 422 here.
-    $response->assertStatus(422);
+    $response->assertUnprocessable();
 });
 
 it('only owner can delete a vet visit and member gets 403', function () {
-    [$owner, $household] = createVetVisitOwner();
-    $member = createVetVisitMember($household);
+    [$owner, $household] = createOwnerWithHousehold();
+    $member = createMemberWithHousehold($household);
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
     $visit = VetVisit::withoutGlobalScopes()->create([
@@ -154,7 +125,7 @@ it('only owner can delete a vet visit and member gets 403', function () {
 });
 
 it('bulk delete works for owner and returns 204', function () {
-    [$owner, $household] = createVetVisitOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $visit1 = VetVisit::withoutGlobalScopes()->create([
@@ -180,8 +151,8 @@ it('bulk delete works for owner and returns 204', function () {
 });
 
 it('bulk delete is forbidden for members', function () {
-    [$owner, $household] = createVetVisitOwner();
-    $member = createVetVisitMember($household);
+    [$owner, $household] = createOwnerWithHousehold();
+    $member = createMemberWithHousehold($household);
 
     $response = $this->actingAs($member)->deleteJson('/api/vet-visits/bulk', [
         'ids' => [Str::uuid()->toString()],
@@ -191,7 +162,7 @@ it('bulk delete is forbidden for members', function () {
 });
 
 it('user cannot see another household vet visits', function () {
-    [$owner, $household] = createVetVisitOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
     $otherPet = Pet::withoutGlobalScopes()->create([
@@ -216,7 +187,7 @@ it('user cannot see another household vet visits', function () {
 it('can upload attachments when creating a vet visit', function () {
     Storage::fake('public');
 
-    [$owner, $household] = createVetVisitOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $payload = [
@@ -231,7 +202,7 @@ it('can upload attachments when creating a vet visit', function () {
 
     $response = $this->actingAs($owner)->postJson('/api/vet-visits', $payload);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
 
     $visitId = $response->json('data.id');
     $visit = VetVisit::withoutGlobalScopes()->find($visitId);
@@ -239,7 +210,7 @@ it('can upload attachments when creating a vet visit', function () {
 });
 
 it('rejects invalid mime types for attachments', function () {
-    [$owner, $household] = createVetVisitOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $response = $this->actingAs($owner)->postJson('/api/vet-visits', [
@@ -257,7 +228,7 @@ it('rejects invalid mime types for attachments', function () {
 });
 
 it('cannot exceed 5 attachments per visit', function () {
-    [$owner, $household] = createVetVisitOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $response = $this->actingAs($owner)->postJson('/api/vet-visits', [
         'pet_id' => Pet::factory()->create(['household_id' => $household->id])->id,
@@ -272,7 +243,7 @@ it('cannot exceed 5 attachments per visit', function () {
 });
 
 it('validates required fields on store', function () {
-    [$owner] = createVetVisitOwner();
+    [$owner] = createOwnerWithHousehold();
 
     $response = $this->actingAs($owner)->postJson('/api/vet-visits', []);
 
@@ -281,8 +252,8 @@ it('validates required fields on store', function () {
 });
 
 it('bulk delete goes through the policy and returns 403 for members', function () {
-    [$owner, $household] = createVetVisitOwner();
-    $member = createVetVisitMember($household);
+    [$owner, $household] = createOwnerWithHousehold();
+    $member = createMemberWithHousehold($household);
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $visit = VetVisit::withoutGlobalScopes()->create([
@@ -302,7 +273,7 @@ it('bulk delete goes through the policy and returns 403 for members', function (
 });
 
 it('policy returns 403 not 500 when a visit pet is soft-deleted', function () {
-    [$owner, $household] = createVetVisitOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $visit = VetVisit::withoutGlobalScopes()->create([
@@ -319,5 +290,58 @@ it('policy returns 403 not 500 when a visit pet is soft-deleted', function () {
     // becomes invisible (404) once its pet is soft-deleted — not a 500 crash.
     $this->actingAs($owner)
         ->getJson("/api/vet-visits/{$visit->id}")
-        ->assertStatus(404);
+        ->assertNotFound();
+});
+
+it('filters vet visits by pet_id', function () {
+    [$owner, $household] = createOwnerWithHousehold();
+
+    $pet1 = Pet::factory()->create(['household_id' => $household->id]);
+    $pet2 = Pet::factory()->create(['household_id' => $household->id]);
+
+    VetVisit::withoutGlobalScopes()->create([
+        'pet_id' => $pet1->id,
+        'visit_date' => now()->toDateString(),
+        'visit_type' => VisitType::Checkup->value,
+        'reason' => 'Pet 1 visit',
+    ]);
+
+    VetVisit::withoutGlobalScopes()->create([
+        'pet_id' => $pet2->id,
+        'visit_date' => now()->toDateString(),
+        'visit_type' => VisitType::Checkup->value,
+        'reason' => 'Pet 2 visit',
+    ]);
+
+    $response = $this->actingAs($owner)->getJson("/api/vet-visits?pet_id={$pet1->id}");
+
+    $response->assertOk();
+    $response->assertJsonCount(1, 'data');
+    $response->assertJsonPath('data.0.attributes.reason', 'Pet 1 visit');
+});
+
+it('filters vet visits by visit_type', function () {
+    [$owner, $household] = createOwnerWithHousehold();
+
+    $pet = Pet::factory()->create(['household_id' => $household->id]);
+
+    VetVisit::withoutGlobalScopes()->create([
+        'pet_id' => $pet->id,
+        'visit_date' => now()->toDateString(),
+        'visit_type' => VisitType::Checkup->value,
+        'reason' => 'Checkup visit',
+    ]);
+
+    VetVisit::withoutGlobalScopes()->create([
+        'pet_id' => $pet->id,
+        'visit_date' => now()->subDay()->toDateString(),
+        'visit_type' => VisitType::Treatment->value,
+        'reason' => 'Treatment visit',
+    ]);
+
+    $response = $this->actingAs($owner)->getJson('/api/vet-visits?visit_type='.VisitType::Checkup->value);
+
+    $response->assertOk();
+    $response->assertJsonCount(1, 'data');
+    $response->assertJsonPath('data.0.attributes.reason', 'Checkup visit');
 });

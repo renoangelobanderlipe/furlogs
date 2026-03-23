@@ -13,50 +13,15 @@ use App\Models\FoodProduct;
 use App\Models\FoodStockItem;
 use App\Models\Household;
 use App\Models\Pet;
-use App\Models\User;
 use App\Services\FoodStockService;
 use Illuminate\Foundation\Testing\WithFaker;
-use Spatie\Permission\Models\Role;
 
 uses(WithFaker::class);
-
-/**
- * Helper: create a user who owns a household (with Spatie owner role).
- *
- * @return array{0: User, 1: Household}
- */
-function createFoodOwnerWithHousehold(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
-
-/**
- * Helper: create a member user for an existing household.
- */
-function createFoodMemberWithHousehold(Household $household): User
-{
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
-    $user->assignRole('member');
-
-    return $user;
-}
 
 // ─── Projection calculation ───────────────────────────────────────────────────
 
 it('calculates projection correctly for an open item', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -92,7 +57,7 @@ it('calculates projection correctly for an open item', function () {
 // ─── Bag lifecycle ────────────────────────────────────────────────────────────
 
 it('handles full bag lifecycle: sealed → open → finished with log creation', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -148,7 +113,7 @@ it('handles full bag lifecycle: sealed → open → finished with log creation',
 // ─── Stock status thresholds ──────────────────────────────────────────────────
 
 it('returns good status when percentage remaining is above threshold', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -179,7 +144,7 @@ it('returns good status when percentage remaining is above threshold', function 
 });
 
 it('returns low status when percentage remaining is at or below threshold but above 10%', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -210,7 +175,7 @@ it('returns low status when percentage remaining is at or below threshold but ab
 });
 
 it('returns critical status when percentage remaining is at or below 10%', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -243,7 +208,7 @@ it('returns critical status when percentage remaining is at or below 10%', funct
 // ─── Rate adjustment suggestion ───────────────────────────────────────────────
 
 it('returns average actual daily rate when 3 or more completed logs exist', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -275,7 +240,7 @@ it('returns average actual daily rate when 3 or more completed logs exist', func
 });
 
 it('returns null when fewer than 3 completed logs exist', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -306,7 +271,7 @@ it('returns null when fewer than 3 completed logs exist', function () {
 // ─── Observer triggers ────────────────────────────────────────────────────────
 
 it('creates consumption log when stock item status changes to finished', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
     $this->actingAs($owner);
 
     $product = FoodProduct::factory()->create([
@@ -342,7 +307,7 @@ it('creates consumption log when stock item status changes to finished', functio
 // ─── Household isolation ──────────────────────────────────────────────────────
 
 it('cannot see food products from another household', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
 
@@ -365,7 +330,7 @@ it('cannot see food products from another household', function () {
 });
 
 it('returns 404 when accessing a food product from another household', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
 
@@ -385,7 +350,7 @@ it('returns 404 when accessing a food product from another household', function 
 // ─── No consumption rates ─────────────────────────────────────────────────────
 
 it('throws StockProjectionException when no consumption rates are configured', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -406,7 +371,7 @@ it('throws StockProjectionException when no consumption rates are configured', f
 // ─── API endpoint tests ───────────────────────────────────────────────────────
 
 it('can list food products', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     FoodProduct::factory()->count(3)->create(['household_id' => $household->id]);
 
@@ -417,7 +382,7 @@ it('can list food products', function () {
 });
 
 it('can create a food product', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $response = $this->actingAs($owner)->postJson('/api/food-products', [
         'name' => 'Premium Dry Food',
@@ -438,7 +403,7 @@ it('can create a food product', function () {
 });
 
 it('validates required fields when creating a food product', function () {
-    [$owner] = createFoodOwnerWithHousehold();
+    [$owner] = createOwnerWithHousehold();
 
     $response = $this->actingAs($owner)->postJson('/api/food-products', []);
 
@@ -447,7 +412,7 @@ it('validates required fields when creating a food product', function () {
 });
 
 it('owner can delete a food product', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create(['household_id' => $household->id]);
 
@@ -458,9 +423,9 @@ it('owner can delete a food product', function () {
 });
 
 it('member cannot delete a food product', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
-    $member = createFoodMemberWithHousehold($household);
+    $member = createMemberWithHousehold($household);
 
     $product = FoodProduct::factory()->create(['household_id' => $household->id]);
 
@@ -470,7 +435,7 @@ it('member cannot delete a food product', function () {
 });
 
 it('can set consumption rate for a pet on a product', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create(['household_id' => $household->id]);
     $pet = Pet::factory()->create(['household_id' => $household->id]);
@@ -492,7 +457,7 @@ it('can set consumption rate for a pet on a product', function () {
 // ─── Security: IDOR & cross-household ────────────────────────────────────────
 
 it('cannot log a purchase against another households product (IDOR)', function () {
-    [$owner] = createFoodOwnerWithHousehold();
+    [$owner] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
     $foreignProduct = FoodProduct::withoutGlobalScopes()->create([
@@ -513,7 +478,7 @@ it('cannot log a purchase against another households product (IDOR)', function (
 });
 
 it('cannot link a pet from another household to a consumption rate', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
     $product = FoodProduct::factory()->create(['household_id' => $household->id]);
 
     $otherHousehold = Household::factory()->create();
@@ -535,7 +500,7 @@ it('cannot link a pet from another household to a consumption rate', function ()
 });
 
 it('cannot open a stock item from another household', function () {
-    [$owner] = createFoodOwnerWithHousehold();
+    [$owner] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
     $foreignProduct = FoodProduct::withoutGlobalScopes()->create([
@@ -560,7 +525,7 @@ it('cannot open a stock item from another household', function () {
 });
 
 it('cannot mark finished a stock item from another household', function () {
-    [$owner] = createFoodOwnerWithHousehold();
+    [$owner] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
     $foreignProduct = FoodProduct::withoutGlobalScopes()->create([
@@ -586,7 +551,7 @@ it('cannot mark finished a stock item from another household', function () {
 });
 
 it('projections endpoint only returns items for the users household', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -630,7 +595,7 @@ it('projections endpoint only returns items for the users household', function (
 });
 
 it('stock item is invisible when its product is soft-deleted', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create(['household_id' => $household->id]);
     $item = FoodStockItem::factory()->create([
@@ -650,8 +615,8 @@ it('stock item is invisible when its product is soft-deleted', function () {
 });
 
 it('member cannot delete a stock item', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
-    $member = createFoodMemberWithHousehold($household);
+    [$owner, $household] = createOwnerWithHousehold();
+    $member = createMemberWithHousehold($household);
 
     $product = FoodProduct::factory()->create(['household_id' => $household->id]);
     $item = FoodStockItem::factory()->create([
@@ -666,7 +631,7 @@ it('member cannot delete a stock item', function () {
 });
 
 it('throws StockProjectionException when unit_weight_grams is zero', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -690,7 +655,7 @@ it('throws StockProjectionException when unit_weight_grams is zero', function ()
 });
 
 it('does not create a duplicate consumption log when finish is called twice', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,
@@ -718,7 +683,7 @@ it('does not create a duplicate consumption log when finish is called twice', fu
 // ─── Existing API tests ───────────────────────────────────────────────────────
 
 it('can retrieve projections endpoint', function () {
-    [$owner, $household] = createFoodOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $product = FoodProduct::factory()->create([
         'household_id' => $household->id,

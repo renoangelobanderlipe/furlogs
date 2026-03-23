@@ -7,39 +7,9 @@ use App\Enums\ReminderType;
 use App\Models\Household;
 use App\Models\Pet;
 use App\Models\Reminder;
-use App\Models\User;
-use Spatie\Permission\Models\Role;
-
-/**
- * @return array{0: User, 1: Household}
- */
-function createReminderOwner(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
-
-function createReminderMember(Household $household): User
-{
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
-    $user->assignRole('member');
-
-    return $user;
-}
 
 it('can list reminders scoped to authenticated user household', function () {
-    [$owner, $household] = createReminderOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     Reminder::query()->withoutGlobalScopes()->create([
         'household_id' => $household->id,
@@ -67,7 +37,7 @@ it('can list reminders scoped to authenticated user household', function () {
 });
 
 it('can create a reminder', function () {
-    [$owner, $household] = createReminderOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $response = $this->actingAs($owner)->postJson('/api/reminders', [
@@ -78,12 +48,12 @@ it('can create a reminder', function () {
         'is_recurring' => false,
     ]);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $response->assertJsonPath('data.attributes.type', 'vaccination');
 });
 
 it('validates required fields on store reminder', function () {
-    [$owner] = createReminderOwner();
+    [$owner] = createOwnerWithHousehold();
 
     $response = $this->actingAs($owner)->postJson('/api/reminders', []);
 
@@ -92,7 +62,7 @@ it('validates required fields on store reminder', function () {
 });
 
 it('cannot view reminder from another household', function () {
-    [$owner] = createReminderOwner();
+    [$owner] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
     $reminder = Reminder::query()->withoutGlobalScopes()->create([
@@ -110,8 +80,8 @@ it('cannot view reminder from another household', function () {
 });
 
 it('only owner can delete a reminder', function () {
-    [$owner, $household] = createReminderOwner();
-    $member = createReminderMember($household);
+    [$owner, $household] = createOwnerWithHousehold();
+    $member = createMemberWithHousehold($household);
 
     $reminder = Reminder::query()->withoutGlobalScopes()->create([
         'household_id' => $household->id,
@@ -127,7 +97,7 @@ it('only owner can delete a reminder', function () {
 });
 
 it('can complete a reminder', function () {
-    [$owner, $household] = createReminderOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $reminder = Reminder::query()->withoutGlobalScopes()->create([
         'household_id' => $household->id,
@@ -145,7 +115,7 @@ it('can complete a reminder', function () {
 });
 
 it('can snooze a reminder', function () {
-    [$owner, $household] = createReminderOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $dueDate = now()->addDays(1)->toDateString();
     $reminder = Reminder::query()->withoutGlobalScopes()->create([
@@ -166,7 +136,7 @@ it('can snooze a reminder', function () {
 });
 
 it('can dismiss a reminder', function () {
-    [$owner, $household] = createReminderOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $reminder = Reminder::query()->withoutGlobalScopes()->create([
         'household_id' => $household->id,
@@ -184,8 +154,8 @@ it('can dismiss a reminder', function () {
 });
 
 it('member can complete a reminder', function () {
-    [$owner, $household] = createReminderOwner();
-    $member = createReminderMember($household);
+    [$owner, $household] = createOwnerWithHousehold();
+    $member = createMemberWithHousehold($household);
 
     $reminder = Reminder::query()->withoutGlobalScopes()->create([
         'household_id' => $household->id,

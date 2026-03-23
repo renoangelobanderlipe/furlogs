@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
-    "prepare": "husky"
+    "prepare": "husky",
+    "knip": "knip"
   },
   "lint-staged": {
     "apps/web/**/*.{ts,tsx,js,jsx,json,css}": [
@@ -32,8 +33,11 @@
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@playwright/test": "1.58.2",
+    "@types/node": "^25.5.0",
     "concurrently": "^9.2.1",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0"
+    "knip": "^6.0.3",
+    "lint-staged": "^16.4.0",
+    "typescript": "^5.9.3"
   }
 }

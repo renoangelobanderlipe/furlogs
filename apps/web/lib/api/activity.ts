@@ -11,15 +11,6 @@ export interface ActivityEntry {
   created_at: string;
 }
 
-export type ActivitySubjectType =
-  | "pet"
-  | "vet_visit"
-  | "medication"
-  | "vaccination"
-  | "reminder"
-  | "food_stock"
-  | "invitation";
-
 export const activityEndpoints = {
   list: (page = 1) =>
     apiClient.get<PaginatedResponse<ActivityEntry>>("/api/activity", {

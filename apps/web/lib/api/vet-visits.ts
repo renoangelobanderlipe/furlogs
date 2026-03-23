@@ -1,12 +1,8 @@
-import type {
-  VetVisitCreateFormValues,
-  VetVisitUpdateFormValues,
-} from "@/lib/validation/vet-visit.schema";
 import { apiClient } from "./client";
 import type { PaginatedResponse, Pet, SingleResourceResponse } from "./pets";
 import type { VetClinic } from "./vet-clinics";
 
-export interface VetVisitStats {
+interface VetVisitStats {
   ytdVisits: number;
   ytdSpend: number;
   lastVisitDate: string | null;
@@ -169,5 +165,3 @@ export const vetVisitEndpoints = {
 
   stats: () => apiClient.get<{ data: VetVisitStats }>("/api/vet-visits/stats"),
 };
-
-export type { VetVisitCreateFormValues, VetVisitUpdateFormValues };

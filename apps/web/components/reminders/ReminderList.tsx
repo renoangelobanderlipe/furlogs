@@ -196,7 +196,7 @@ function ReminderItem({ reminder, onEdit }: ReminderItemProps) {
   );
 }
 
-export const ReminderListSkeleton = () => {
+const ReminderListSkeleton = () => {
   return (
     <div>
       {Array.from({ length: 4 }).map((_, i) => (

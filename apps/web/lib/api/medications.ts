@@ -12,7 +12,7 @@ export const FREQUENCY_OPTIONS = [
 
 export type FrequencyValue = (typeof FREQUENCY_OPTIONS)[number]["value"];
 
-export interface MedicationAdministration {
+interface MedicationAdministration {
   id: string;
   type: "medication_administrations";
   attributes: {

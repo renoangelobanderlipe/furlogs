@@ -4,13 +4,10 @@ import { extractApiError } from "@/lib/api/extractApiError";
 import {
   type VetVisitFilters,
   type VetVisitPayload,
-  type VetVisitStats,
   type VetVisitUpdatePayload,
   vetVisitEndpoints,
 } from "@/lib/api/vet-visits";
 import { dashboardKeys, QUERY_STALE_TIME, vetVisitKeys } from "./queryKeys";
-
-export type { VetVisitStats };
 
 export function useVetVisits(filters?: VetVisitFilters) {
   return useQuery({
@@ -95,27 +92,6 @@ export function useDeleteVetVisit() {
     onError: (error: unknown) => {
       toast.error(
         extractApiError(error, "Failed to delete vet visit. Please try again."),
-      );
-    },
-  });
-}
-
-export function useBulkDeleteVetVisits() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (ids: string[]) =>
-      vetVisitEndpoints.bulkDelete(ids).then((r) => r.data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: vetVisitKeys.lists() });
-      toast.success("Vet visits deleted");
-    },
-    onError: (error: unknown) => {
-      toast.error(
-        extractApiError(
-          error,
-          "Failed to delete vet visits. Please try again.",
-        ),
       );
     },
   });

@@ -28,19 +28,19 @@ export interface Pet {
   attributes: PetAttributes;
 }
 
-export interface PetWeightAttributes {
+interface PetWeightAttributes {
   weightKg: number;
   recordedAt: string;
   createdAt: string;
 }
 
-export interface PetWeight {
+interface PetWeight {
   id: string;
   type: "pet-weights";
   attributes: PetWeightAttributes;
 }
 
-export interface WeightListResponse {
+interface WeightListResponse {
   data: PetWeight[];
 }
 

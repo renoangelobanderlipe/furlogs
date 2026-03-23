@@ -8,22 +8,7 @@ import type { VetClinic } from "./vet-clinics";
 
 export type VaccinationStatus = "up_to_date" | "due_soon" | "overdue";
 
-export const VACCINATION_STATUS_COLOR: Record<
-  VaccinationStatus,
-  "success" | "warning" | "error"
-> = {
-  up_to_date: "success",
-  due_soon: "warning",
-  overdue: "error",
-};
-
-export const VACCINATION_STATUS_LABEL: Record<VaccinationStatus, string> = {
-  up_to_date: "Up to date",
-  due_soon: "Due soon",
-  overdue: "Overdue",
-};
-
-export interface VaccinationAttributes {
+interface VaccinationAttributes {
   petId: string;
   clinicId: string | null;
   vaccineName: string;
@@ -36,7 +21,7 @@ export interface VaccinationAttributes {
   status: VaccinationStatus | null;
 }
 
-export interface Vaccination {
+interface Vaccination {
   id: string;
   type: "vaccinations";
   attributes: VaccinationAttributes;

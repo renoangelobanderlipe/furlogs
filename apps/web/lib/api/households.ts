@@ -1,6 +1,6 @@
 import { apiClient } from "./client";
 
-export interface Household {
+interface Household {
   id: string;
   name: string;
   created_at: string;
@@ -20,21 +20,21 @@ export interface HouseholdData {
   members: HouseholdMember[];
 }
 
-export interface HouseholdResponse {
+interface HouseholdResponse {
   data: HouseholdData;
 }
 
-export interface UserHousehold {
+interface UserHousehold {
   id: string;
   name: string;
   role: "owner" | "member";
 }
 
-export interface UserHouseholdsResponse {
+interface UserHouseholdsResponse {
   data: UserHousehold[];
 }
 
-export interface SwitchHouseholdResponse {
+interface SwitchHouseholdResponse {
   data: { id: string; name: string };
 }
 

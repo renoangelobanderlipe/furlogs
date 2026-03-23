@@ -16,15 +16,6 @@ export function useReminders(filters?: ReminderFilters) {
   });
 }
 
-export function useReminder(id: string) {
-  return useQuery({
-    queryKey: reminderKeys.detail(id),
-    queryFn: () => reminderEndpoints.get(id).then((r) => r.data.data),
-    staleTime: QUERY_STALE_TIME,
-    enabled: id.length > 0,
-  });
-}
-
 export function useCreateReminder() {
   const queryClient = useQueryClient();
 
@@ -65,25 +56,6 @@ export function useUpdateReminder() {
     onError: (error: unknown) => {
       toast.error(
         extractApiError(error, "Failed to update reminder. Please try again."),
-      );
-    },
-  });
-}
-
-export function useDeleteReminder() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) =>
-      reminderEndpoints.delete(id).then((r) => r.data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: reminderKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
-      toast.success("Reminder deleted");
-    },
-    onError: (error: unknown) => {
-      toast.error(
-        extractApiError(error, "Failed to delete reminder. Please try again."),
       );
     },
   });

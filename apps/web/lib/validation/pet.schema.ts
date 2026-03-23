@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-export const SPECIES = ["dog", "cat"] as const;
-export const SEX = ["male", "female"] as const;
-export const PET_SIZE = ["small", "medium", "large"] as const;
+const SPECIES = ["dog", "cat"] as const;
+const SEX = ["male", "female"] as const;
+const PET_SIZE = ["small", "medium", "large"] as const;
 
 export const SPECIES_OPTIONS = [
   { value: "dog", label: "Dog" },

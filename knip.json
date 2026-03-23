@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "e2e/auth.setup.ts",
+        "e2e/**/*.spec.ts",
+        "e2e/helpers/**/*.ts"
+      ],
+      "project": ["*.config.ts", "e2e/**/*.ts"],
+      "ignoreBinaries": ["composer"]
+    },
+    "apps/web": {
+      "entry": [
+        "app/**/{page,layout,loading,error,not-found,route,template,default,global-error,opengraph-image,sitemap,robots,manifest,icon}.{ts,tsx}"
+      ],
+      "project": ["**/*.{ts,tsx}"],
+    }
+  },
+"ignoreDependencies": ["@commitlint/types"]
+}

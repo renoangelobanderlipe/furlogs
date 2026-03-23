@@ -1,11 +1,6 @@
 import { z } from "zod";
 
-export const VISIT_TYPES = [
-  "checkup",
-  "treatment",
-  "vaccine",
-  "emergency",
-] as const;
+const VISIT_TYPES = ["checkup", "treatment", "vaccine", "emergency"] as const;
 
 export const VISIT_TYPE_OPTIONS = [
   { value: "checkup", label: "Checkup" },
@@ -54,8 +49,4 @@ export const vetVisitSchema = z.object({
     .or(z.literal("")),
 });
 
-export const vetVisitUpdateSchema = vetVisitSchema.partial();
-
 export type VetVisitFormValues = z.infer<typeof vetVisitSchema>;
-export type VetVisitCreateFormValues = VetVisitFormValues;
-export type VetVisitUpdateFormValues = z.infer<typeof vetVisitUpdateSchema>;

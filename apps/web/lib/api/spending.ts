@@ -1,12 +1,12 @@
 import { apiClient } from "./client";
 
-export interface SpendingMonthlyEntry {
+interface SpendingMonthlyEntry {
   month: number;
   vet: number;
   food: number;
 }
 
-export interface SpendingStats {
+interface SpendingStats {
   year: number;
   vetYtdSpend: number;
   foodYtdSpend: number;
@@ -14,7 +14,7 @@ export interface SpendingStats {
   monthly: SpendingMonthlyEntry[];
 }
 
-export interface SpendingStatsResponse {
+interface SpendingStatsResponse {
   data: SpendingStats;
 }
 

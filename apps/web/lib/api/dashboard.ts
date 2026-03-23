@@ -17,27 +17,27 @@ export interface DashboardReminderItem {
   petName: string | null;
 }
 
-export interface DashboardStockStatus {
+interface DashboardStockStatus {
   totalOpenItems: number;
   lowCount: number;
   criticalCount: number;
   worstItem: { name: string; daysLeft: number; status: string } | null;
 }
 
-export interface DashboardVetVisitStats {
+interface DashboardVetVisitStats {
   countThisYear: number;
   totalSpendThisYear: number;
   lastVisitDate: string | null;
   lastVisitPetName: string | null;
 }
 
-export interface DashboardMonthlySpend {
+interface DashboardMonthlySpend {
   currentMonth: number;
   previousMonth: number;
   changePercent: number | null;
 }
 
-export interface DashboardSummary {
+interface DashboardSummary {
   petSummaries: DashboardPetSummary[];
   upcomingReminders: { count: number; items: DashboardReminderItem[] };
   stockStatus: DashboardStockStatus;

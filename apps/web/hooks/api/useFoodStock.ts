@@ -196,23 +196,6 @@ export function useMarkFinished() {
   });
 }
 
-export function useDeleteStockItem() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) =>
-      foodStockEndpoints.deleteItem(id).then((r) => r.data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: foodStockItemKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: foodProjectionKeys.all });
-      toast.success("Stock entry deleted.");
-    },
-    onError: (error: unknown) => {
-      toast.error(extractMessage(error, "Failed to delete stock entry."));
-    },
-  });
-}
-
 // ─── Projections ─────────────────────────────────────────────────────────────
 
 export function useFoodProjections() {

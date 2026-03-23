@@ -19,15 +19,6 @@ export function useVaccinations(filters?: VaccinationFilters) {
   });
 }
 
-export function useVaccination(id: string) {
-  return useQuery({
-    queryKey: vaccinationKeys.detail(id),
-    queryFn: () => vaccinationEndpoints.get(id).then((r) => r.data.data),
-    staleTime: QUERY_STALE_TIME,
-    enabled: id.length > 0,
-  });
-}
-
 export function useCreateVaccination() {
   const queryClient = useQueryClient();
 

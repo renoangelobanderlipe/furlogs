@@ -1,1 +1,7 @@
 bunx lint-staged
+
+echo "Running TypeScript type-check..."
+bun run --cwd apps/web tsc --noEmit
+
+echo "Running PHPStan..."
+composer --working-dir=apps/server exec phpstan analyse -- --no-progress

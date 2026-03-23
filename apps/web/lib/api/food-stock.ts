@@ -72,23 +72,23 @@ export interface FoodProjectionItem {
   projection: FoodProjection | null;
 }
 
-export interface FoodProductListResponse {
+interface FoodProductListResponse {
   data: FoodProduct[];
 }
 
-export interface FoodProductResponse {
+interface FoodProductResponse {
   data: FoodProduct;
 }
 
-export interface FoodStockItemListResponse {
+interface FoodStockItemListResponse {
   data: FoodStockItem[];
 }
 
-export interface FoodStockItemResponse {
+interface FoodStockItemResponse {
   data: FoodStockItem;
 }
 
-export interface FoodProjectionsResponse {
+interface FoodProjectionsResponse {
   data: FoodProjectionItem[];
 }
 

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { activityEndpoints } from "@/lib/api/activity";
 
-export const activityKeys = {
+const activityKeys = {
   all: ["activity"] as const,
   list: (page: number) => [...activityKeys.all, page] as const,
 };

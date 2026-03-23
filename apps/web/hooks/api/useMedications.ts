@@ -60,30 +60,6 @@ export function useLogDose() {
   });
 }
 
-export function useDeleteAdministration() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => medicationEndpoints.deleteAdministration(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: administrationKeys.all });
-      queryClient.invalidateQueries({ queryKey: medicationKeys.lists() });
-      toast.success("Dose removed");
-    },
-    onError: (error: unknown) => {
-      toast.error(extractApiError(error, "Failed to remove dose."));
-    },
-  });
-}
-
-export function useMedication(id: string) {
-  return useQuery({
-    queryKey: medicationKeys.detail(id),
-    queryFn: () => medicationEndpoints.get(id).then((r) => r.data.data),
-    staleTime: QUERY_STALE_TIME,
-    enabled: id.length > 0,
-  });
-}
-
 export function useCreateMedication() {
   const queryClient = useQueryClient();
 

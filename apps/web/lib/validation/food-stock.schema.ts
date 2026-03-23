@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const FOOD_TYPES = ["dry", "wet", "treat", "supplement"] as const;
-export const UNIT_TYPES = ["kg", "can", "pack", "piece"] as const;
+const FOOD_TYPES = ["dry", "wet", "treat", "supplement"] as const;
+const UNIT_TYPES = ["kg", "can", "pack", "piece"] as const;
 
 export const FOOD_TYPE_OPTIONS = [
   { value: "dry", label: "Dry Food" },

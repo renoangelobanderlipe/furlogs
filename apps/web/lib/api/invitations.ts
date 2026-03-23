@@ -1,8 +1,8 @@
 import { apiClient } from "./client";
 
-export type InvitationStatus = "pending" | "accepted" | "declined";
+type InvitationStatus = "pending" | "accepted" | "declined";
 
-export interface InvitationDetails {
+interface InvitationDetails {
   id: string;
   token: string;
   status: InvitationStatus;

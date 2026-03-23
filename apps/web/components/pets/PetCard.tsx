@@ -8,7 +8,7 @@ import { SPECIES_EMOJI } from "@/lib/constants";
 import { formatAge } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export type PetStatus = "healthy" | "vaccine_due";
+type PetStatus = "healthy" | "vaccine_due";
 
 interface PetCardProps {
   pet: Pet;

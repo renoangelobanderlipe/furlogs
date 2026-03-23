@@ -4,7 +4,7 @@ import { authEndpoints } from "@/lib/api/endpoints";
 import { extractApiError } from "@/lib/api/extractApiError";
 import { useAuthStore } from "@/stores/useAuthStore";
 
-export const twoFactorKeys = {
+const twoFactorKeys = {
   qrCode: ["two-factor", "qr-code"] as const,
   secretKey: ["two-factor", "secret-key"] as const,
   recoveryCodes: ["two-factor", "recovery-codes"] as const,

@@ -7,7 +7,6 @@ import {
   Package,
   PawPrint,
   Pill,
-  Settings,
   Stethoscope,
   Syringe,
   Users,
@@ -327,7 +326,7 @@ export const NotificationSidebar = ({ children }: NotificationSidebarProps) => {
         <SheetTitle className="sr-only">Notifications</SheetTitle>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+        <div className="flex items-center justify-between px-4 pr-12 py-3 border-b border-border shrink-0">
           <h3 className="font-semibold text-base">Notifications</h3>
           <div className="flex items-center gap-0.5">
             <button
@@ -339,13 +338,6 @@ export const NotificationSidebar = ({ children }: NotificationSidebarProps) => {
             >
               <CheckCheck className="h-4 w-4" />
             </button>
-            <Link
-              href="/settings?tab=notifications"
-              className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-              title="Notification settings"
-            >
-              <Settings className="h-4 w-4" />
-            </Link>
           </div>
         </div>
 

@@ -8,12 +8,12 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import "./globals.css";
 
 const geist = Geist({
-  variable: "--font-sans",
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
 const bricolage = Bricolage_Grotesque({
-  variable: "--font-display",
+  variable: "--font-bricolage",
   subsets: ["latin"],
 });
 

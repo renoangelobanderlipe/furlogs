@@ -67,7 +67,7 @@ test.describe('Login', () => {
     // Intercept the login API call to keep the button in loading state long
     // enough to assert on it, then let the real response through.
     await page.route('**/api/auth/login', async route => {
-      await page.waitForTimeout(100);
+      await new Promise(resolve => setTimeout(resolve, 100));
       await route.continue();
     });
 

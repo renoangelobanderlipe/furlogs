@@ -40,7 +40,7 @@ test.describe('Register', () => {
     await page.getByLabel('Confirm password').fill(E2E_PASSWORD);
 
     await page.route('**/api/auth/register', async route => {
-      await page.waitForTimeout(100);
+      await new Promise(resolve => setTimeout(resolve, 100));
       await route.continue();
     });
 

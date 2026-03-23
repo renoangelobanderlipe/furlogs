@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SpendingStatsRequest;
 use App\Models\FoodStockItem;
 use App\Models\VetVisit;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class SpendingController extends Controller
@@ -19,13 +19,9 @@ class SpendingController extends Controller
      * FoodStockItem uses BelongsToHouseholdViaFoodProduct global scope — household filtering is automatic.
      * Production driver is PostgreSQL; SQLite is supported for test-environment compatibility only.
      */
-    public function stats(Request $request): JsonResponse
+    public function stats(SpendingStatsRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'year' => ['sometimes', 'integer', 'min:2000', 'max:2100'],
-        ]);
-
-        $year = (int) ($validated['year'] ?? now()->year);
+        $year = $request->integer('year', now()->year);
 
         // Production uses PostgreSQL. SQLite expressions are kept for test-environment compatibility only.
         $isSqlite = DB::getDriverName() === 'sqlite';

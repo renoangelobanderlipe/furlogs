@@ -20,7 +20,7 @@ class VetVisitAttachmentController extends Controller
     {
         $this->service->addAttachment($vetVisit, $request->file('attachment'));
 
-        return (new VetVisitResource($vetVisit->fresh()))->response()->setStatusCode(201);
+        return (new VetVisitResource($vetVisit->load('media')))->response()->setStatusCode(201);
     }
 
     public function destroy(VetVisit $vetVisit, int $mediaId): Response

@@ -41,7 +41,7 @@ class VetClinicController extends Controller
     {
         $vetClinic->update($request->validated());
 
-        return new VetClinicResource($vetClinic->fresh());
+        return new VetClinicResource($vetClinic);
     }
 
     public function destroy(VetClinic $vetClinic): Response

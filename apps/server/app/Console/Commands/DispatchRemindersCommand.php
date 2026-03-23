@@ -31,9 +31,16 @@ class DispatchRemindersCommand extends Command
             ->where('due_date', '<=', now()->addDays(7)->toDateString())
             ->with(['pet', 'household.members'])
             ->chunkById(100, function (Collection $reminders) use (&$dispatched, &$errors): void {
+                $notifiedIds = [];
+
                 foreach ($reminders as $reminder) {
                     try {
-                        $this->processReminder($reminder);
+                        $wasNotified = $this->processReminder($reminder);
+
+                        if ($wasNotified) {
+                            $notifiedIds[] = $reminder->id;
+                        }
+
                         $dispatched++;
                     } catch (\Throwable $e) {
                         $errors++;
@@ -43,6 +50,12 @@ class DispatchRemindersCommand extends Command
                         ]);
                     }
                 }
+
+                if ($notifiedIds !== []) {
+                    Reminder::withoutGlobalScopes()
+                        ->whereIn('id', $notifiedIds)
+                        ->update(['last_notified_at' => now()]);
+                }
             });
 
         $this->info("Dispatched notifications for {$dispatched} reminder(s). Errors: {$errors}.");
@@ -50,7 +63,7 @@ class DispatchRemindersCommand extends Command
         return self::SUCCESS;
     }
 
-    private function processReminder(Reminder $reminder): void
+    private function processReminder(Reminder $reminder): bool
     {
         $pet = $reminder->pet;
         $petName = $pet !== null ? $pet->name : 'your pet';
@@ -72,7 +85,6 @@ class DispatchRemindersCommand extends Command
             foreach ($members as $member) {
                 $member->notify($notification);
             }
-            $reminder->update(['last_notified_at' => now()]);
         }
 
         // Advance recurring reminders
@@ -83,5 +95,7 @@ class DispatchRemindersCommand extends Command
         } elseif (! $reminder->is_recurring && $reminder->due_date->lte(now()->startOfDay())) {
             $reminder->update(['status' => ReminderStatus::Completed]);
         }
+
+        return $shouldNotify;
     }
 }

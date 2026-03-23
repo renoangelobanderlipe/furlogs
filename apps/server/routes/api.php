@@ -45,7 +45,7 @@ Route::middleware('guest')->prefix('auth')->group(function () {
 });
 
 // Auth routes (authenticated)
-Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api'])->prefix('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'destroy'])->name('auth.logout');
 
     Route::post('email/verification-notification', [EmailVerificationController::class, 'resend'])
@@ -61,20 +61,22 @@ Route::get('auth/email/verify/{id}/{hash}', [EmailVerificationController::class,
 // Fetch the authenticated user's own record — no verified check so the
 // frontend can read email_verified_at and redirect unverified users to
 // /verify-email before they reach any protected dashboard route.
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('user', function (Request $request): User {
         return $request->user()->load('currentHousehold');
     })->name('user');
 });
 
 // Authenticated user
-Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'throttle:api'])->group(function () {
     // User profile
     Route::get('user/notification-preferences', [ProfileController::class, 'notificationPreferences'])->name('user.notification-preferences.show');
     Route::patch('user/notification-preferences', [ProfileController::class, 'updateNotificationPreferences'])->name('user.notification-preferences.update');
     Route::get('user/export', [ProfileController::class, 'export'])->name('user.export');
     Route::patch('user', [ProfileController::class, 'update'])->name('user.update');
-    Route::patch('user/password', [ProfileController::class, 'changePassword'])->middleware('password.confirm')->name('user.password');
+    Route::patch('user/password', [ProfileController::class, 'changePassword'])
+        ->middleware(['password.confirm', 'throttle:5,60'])
+        ->name('user.password');
 
     // Dashboard
     Route::get('dashboard/summary', [DashboardController::class, 'summary'])->name('dashboard.summary');
@@ -106,7 +108,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Pets
     Route::apiResource('pets', PetController::class);
-    Route::post('pets/{pet}/avatar', [PetController::class, 'uploadAvatar']);
+    Route::post('pets/{pet}/avatar', [PetController::class, 'uploadAvatar'])->name('pets.avatar');
     Route::apiResource('pets.weights', PetWeightController::class)->only(['index', 'store', 'destroy']);
 
     // Vet Clinics
@@ -123,7 +125,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::patch('food-stock-items/{food_stock_item}/finish', [FoodStockItemController::class, 'markFinished']);
 
     // Projections
-    Route::get('food-stock/projections', [FoodStockItemController::class, 'projections']);
+    Route::get('food-stock/projections', [FoodStockItemController::class, 'projections'])->name('food-stock.projections');
 
     // Vet Visits — non-resource routes must be registered before the resource route
     Route::get('vet-visits/stats', [VetVisitController::class, 'stats'])->name('vet-visits.stats');

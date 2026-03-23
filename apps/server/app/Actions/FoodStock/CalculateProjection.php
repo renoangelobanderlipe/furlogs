@@ -18,10 +18,11 @@ class CalculateProjection
      */
     public function __invoke(FoodStockItem $item): FoodProjectionDTO
     {
-        // Load product without global scopes to support non-HTTP contexts (e.g. observers, scheduled jobs)
-        $product = FoodProduct::withoutGlobalScopes()
-            ->with('consumptionRates')
-            ->find($item->food_product_id);
+        // Use already-loaded relationship when available (e.g. from FoodStockService::getProjections),
+        // otherwise query directly to support non-HTTP contexts (observers, scheduled jobs).
+        $product = $item->relationLoaded('foodProduct')
+            ? $item->foodProduct
+            : FoodProduct::withoutGlobalScopes()->with('consumptionRates')->find($item->food_product_id);
 
         if ($product === null) {
             throw new StockProjectionException('Food product not found for this stock item.');

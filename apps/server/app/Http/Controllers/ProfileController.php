@@ -24,11 +24,10 @@ class ProfileController extends Controller
      */
     public function update(UpdateProfileRequest $request): JsonResponse
     {
-        $request->user()->update([
-            'name' => $request->string('name')->toString(),
-        ]);
+        $user = $request->user();
+        $user->update(['name' => $request->string('name')->toString()]);
 
-        return response()->json(['data' => $request->user()->fresh()]);
+        return response()->json(['data' => $user]);
     }
 
     /**
@@ -58,7 +57,7 @@ class ProfileController extends Controller
         $current = $user->notification_preferences ?? [];
         $user->update(['notification_preferences' => array_merge($current, $request->validated())]);
 
-        return response()->json(['data' => $user->fresh()->notification_preferences]);
+        return response()->json(['data' => $user->notification_preferences]);
     }
 
     /**
@@ -88,7 +87,7 @@ class ProfileController extends Controller
             ->get()
             ->groupBy('pet_id');
 
-        $petsExport = array_map(function (Pet $pet) use ($vaccinations, $medications, $vetVisits): array {
+        $petsExport = $pets->map(function (Pet $pet) use ($vaccinations, $medications, $vetVisits): array {
             return [
                 'id' => $pet->id,
                 'name' => $pet->name,
@@ -131,7 +130,7 @@ class ProfileController extends Controller
                     'notes' => $v->notes,
                 ], ($vetVisits->get($pet->id) ?? collect())->all()),
             ];
-        }, $pets->all());
+        })->values()->all();
 
         return response()->json([
             'exported_at' => now()->toISOString(),

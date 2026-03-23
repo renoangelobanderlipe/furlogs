@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SnoozeReminderRequest;
 use App\Http\Requests\StoreReminderRequest;
 use App\Http\Requests\UpdateReminderRequest;
 use App\Http\Resources\ReminderResource;
@@ -72,15 +73,11 @@ class ReminderController extends Controller
         return new ReminderResource($reminder);
     }
 
-    public function snooze(Request $request, Reminder $reminder): ReminderResource
+    public function snooze(SnoozeReminderRequest $request, Reminder $reminder): ReminderResource
     {
         $this->authorize('update', $reminder);
 
-        $validated = $request->validate([
-            'days' => ['required', 'integer', 'min:1', 'max:30'],
-        ]);
-
-        $reminder = $this->service->snooze($reminder, $validated['days']);
+        $reminder = $this->service->snooze($reminder, $request->integer('days'));
 
         return new ReminderResource($reminder);
     }

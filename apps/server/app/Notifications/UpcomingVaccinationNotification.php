@@ -23,7 +23,11 @@ class UpcomingVaccinationNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        $prefs = $notifiable->notification_preferences ?? [];
+
+        return ($prefs['vaccination'] ?? true) === false
+            ? ['database']
+            : ['database', 'mail'];
     }
 
     /**

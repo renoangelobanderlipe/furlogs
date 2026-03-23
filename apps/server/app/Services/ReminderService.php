@@ -115,7 +115,7 @@ class ReminderService
             ->where('source_type', Vaccination::class)
             ->where('source_id', $vaccination->id)
             ->where('status', ReminderStatus::Pending)
-            ->delete();
+            ->forceDelete();
 
         if ($vaccination->next_due_date === null) {
             return null;
@@ -150,7 +150,7 @@ class ReminderService
             ->where('source_type', VetVisit::class)
             ->where('source_id', $vetVisit->id)
             ->where('status', ReminderStatus::Pending)
-            ->delete();
+            ->forceDelete();
 
         if ($vetVisit->follow_up_date === null) {
             return null;
@@ -185,7 +185,7 @@ class ReminderService
             ->where('source_type', Medication::class)
             ->where('source_id', $medication->id)
             ->where('status', ReminderStatus::Pending)
-            ->delete();
+            ->forceDelete();
 
         if ($medication->end_date === null) {
             return null;

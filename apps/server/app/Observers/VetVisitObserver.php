@@ -62,6 +62,6 @@ class VetVisitObserver
             ->where('source_type', VetVisit::class)
             ->where('source_id', $vetVisit->id)
             ->where('status', ReminderStatus::Pending)
-            ->delete();
+            ->forceDelete();
     }
 }

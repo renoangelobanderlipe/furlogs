@@ -31,9 +31,11 @@ export default function globalSetup(): void {
     console.log('[e2e] Postgres ready.');
   }
 
-  // 3. Generate APP_KEY for the testing env.
-  console.log('[e2e] Generating testing APP_KEY…');
-  execFileSync('php', ['artisan', 'key:generate', '--env=testing', '--force', '--no-ansi'], opts);
+  // 3. Generate APP_KEY for the testing env (local only — CI injects it via workflow).
+  if (!process.env.CI) {
+    console.log('[e2e] Generating testing APP_KEY…');
+    execFileSync('php', ['artisan', 'key:generate', '--env=testing', '--force', '--no-ansi'], opts);
+  }
 
   // 4. Reset and seed the E2E database.
   console.log('[e2e] Running migrate:fresh --seed on furlogs_e2e…');

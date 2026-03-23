@@ -10,7 +10,7 @@ import { futureDate } from '../helpers/api';
 test.describe('Reminders', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/reminders');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
   });
 
   // ── Read ─────────────────────────────────────────────────────────────────
@@ -29,14 +29,14 @@ test.describe('Reminders', () => {
 
   test('pending filter shows reminders', async ({ page }) => {
     await page.getByRole('button', { name: /^pending$/i }).click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     // Should still render the page without error.
     await expect(page.getByRole('heading', { name: 'Reminders' })).toBeVisible();
   });
 
   test('completed filter shows completed reminders', async ({ page }) => {
     await page.getByRole('button', { name: /^completed$/i }).click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
     await expect(page.getByRole('heading', { name: 'Reminders' })).toBeVisible();
   });
 

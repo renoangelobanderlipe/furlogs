@@ -10,7 +10,7 @@ import { today } from '../helpers/api';
 test.describe('Vet Visits', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/vet-visits');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
   });
 
   // ── Read ─────────────────────────────────────────────────────────────────

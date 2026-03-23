@@ -46,7 +46,7 @@ test.describe('Smoke', () => {
     page.on('pageerror', e => errors.push(e.message));
 
     await page.goto('/login');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     expect(errors, `Unexpected JS errors: ${errors.join(', ')}`).toHaveLength(0);
   });

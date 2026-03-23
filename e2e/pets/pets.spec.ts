@@ -11,7 +11,7 @@ test.describe('Pets', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/pets');
     // Wait for the pet list to be hydrated before interacting.
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
   });
 
   // ── Read ─────────────────────────────────────────────────────────────────
@@ -81,7 +81,7 @@ test.describe('Pets', () => {
 
   test('pet detail page shows key stat cards', async ({ page }) => {
     await page.getByRole('heading', { name: 'Max', level: 3 }).click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // The detail page renders Age, Weight, and Vet Visits stat cards.
     await expect(page.getByText(/^age$/i).first()).toBeVisible();
@@ -107,7 +107,7 @@ test.describe('Pets', () => {
 
     // Navigate to pet detail.
     await page.getByRole('heading', { name: petName, level: 3 }).click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('load');
 
     // Trigger the "Remove" button on the detail page.
     await page.getByRole('button', { name: /^remove$/i }).click();

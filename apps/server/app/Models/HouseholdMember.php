@@ -16,6 +16,10 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 /**
  * @property HouseholdRole $role
  * @property Carbon|null $joined_at
+ *
+ * Note: LogsActivity is intentionally NOT applied here. This model extends Pivot,
+ * and spatie/laravel-activitylog does not work reliably with Eloquent Pivot models
+ * because they lack the standard primary-key / model-event lifecycle that the trait depends on.
  */
 #[Fillable(['user_id', 'household_id', 'role', 'invited_at', 'joined_at'])]
 class HouseholdMember extends Pivot

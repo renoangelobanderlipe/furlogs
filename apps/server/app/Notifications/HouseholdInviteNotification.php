@@ -23,7 +23,22 @@ class HouseholdInviteNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['database', 'mail'];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toDatabase(object $notifiable): array
+    {
+        return [
+            'type' => 'household_invite',
+            'title' => "{$this->inviterName} invited you to join {$this->householdName}",
+            'invitation_token' => $this->token,
+            'inviter_name' => $this->inviterName,
+            'household_name' => $this->householdName,
+            'invite_url' => $this->inviteUrl(),
+        ];
     }
 
     public function toMail(object $notifiable): MailMessage

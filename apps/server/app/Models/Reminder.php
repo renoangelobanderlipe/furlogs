@@ -10,6 +10,8 @@ use App\Traits\BelongsToHousehold;
 use Carbon\Carbon;
 use Database\Factories\ReminderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -73,6 +75,21 @@ class Reminder extends Model
     public function source(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    /** @param Builder<Reminder> $query */
+    #[Scope]
+    protected function pending(Builder $query): void
+    {
+        $query->where('status', ReminderStatus::Pending);
+    }
+
+    /** @param Builder<Reminder> $query */
+    #[Scope]
+    protected function upcoming(Builder $query): void
+    {
+        $query->whereIn('status', [ReminderStatus::Pending, ReminderStatus::Snoozed])
+            ->where('due_date', '>=', now()->toDateString());
     }
 
     /**

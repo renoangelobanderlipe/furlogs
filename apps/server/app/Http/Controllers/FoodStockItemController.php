@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\DTOs\FoodProjectionDTO;
 use App\Http\Requests\StoreFoodStockItemRequest;
 use App\Http\Requests\UpdateFoodStockItemRequest;
 use App\Http\Resources\FoodProjectionResource;
@@ -54,7 +55,7 @@ class FoodStockItemController extends Controller
     {
         $foodStockItem->update($request->validated());
 
-        return new FoodStockItemResource($foodStockItem->fresh());
+        return new FoodStockItemResource($foodStockItem);
     }
 
     public function destroy(FoodStockItem $foodStockItem): Response
@@ -93,8 +94,14 @@ class FoodStockItemController extends Controller
         $projections = $this->foodStockService->getProjections($householdId);
 
         $order = ['critical' => 0, 'low' => 1, 'good' => 2];
-        usort($projections, fn (array $a, array $b): int => ($order[$a['projection']->status ?? 'none'] ?? 3) <=> ($order[$b['projection']->status ?? 'none'] ?? 3),
-        );
+        usort($projections, function (array $a, array $b) use ($order): int {
+            /** @var FoodProjectionDTO|null $projA */
+            $projA = $a['projection'];
+            /** @var FoodProjectionDTO|null $projB */
+            $projB = $b['projection'];
+
+            return ($order[$projA !== null ? $projA->status : 'none'] ?? 3) <=> ($order[$projB !== null ? $projB->status : 'none'] ?? 3);
+        });
 
         return FoodProjectionResource::collection($projections);
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BulkDestroyVetVisitRequest;
 use App\Http\Requests\StoreVetVisitRequest;
 use App\Http\Requests\UpdateVetVisitRequest;
 use App\Http\Resources\VetVisitResource;
@@ -85,14 +86,9 @@ class VetVisitController extends Controller
         return response()->noContent();
     }
 
-    public function bulkDestroy(Request $request): Response
+    public function bulkDestroy(BulkDestroyVetVisitRequest $request): Response
     {
         $this->authorize('bulkDelete', VetVisit::class);
-
-        $request->validate([
-            'ids' => ['required', 'array'],
-            'ids.*' => ['string', 'uuid'],
-        ]);
 
         $this->service->bulkDelete($request->input('ids'));
 

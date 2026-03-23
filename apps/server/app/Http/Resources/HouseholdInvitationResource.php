@@ -21,8 +21,8 @@ class HouseholdInvitationResource extends JsonResource
             'token' => $this->token,
             'status' => $this->status,
             'expires_at' => $this->expires_at,
-            'household_name' => $this->household->name,
-            'inviter_name' => $this->inviter->name,
+            'household_name' => $this->whenLoaded('household', fn () => $this->household->name),
+            'inviter_name' => $this->whenLoaded('inviter', fn () => $this->inviter->name),
         ];
     }
 }

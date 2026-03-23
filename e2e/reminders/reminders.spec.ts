@@ -10,13 +10,15 @@ import { futureDate } from '../helpers/api';
 test.describe('Reminders', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/reminders');
-    await page.waitForLoadState('load');
+    // networkidle ensures TanStack Query's initial fetch has completed (or errored)
+    // before any assertion runs, preventing false "element not found" failures.
+    await page.waitForLoadState('networkidle');
   });
 
   // ── Read ─────────────────────────────────────────────────────────────────
 
   test('page heading and add button are visible', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Reminders' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Reminders', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Add Reminder' })).toBeVisible();
   });
 
@@ -31,13 +33,13 @@ test.describe('Reminders', () => {
     await page.getByRole('button', { name: /^pending$/i }).click();
     await page.waitForLoadState('load');
     // Should still render the page without error.
-    await expect(page.getByRole('heading', { name: 'Reminders' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Reminders', exact: true })).toBeVisible();
   });
 
   test('completed filter shows completed reminders', async ({ page }) => {
     await page.getByRole('button', { name: /^completed$/i }).click();
     await page.waitForLoadState('load');
-    await expect(page.getByRole('heading', { name: 'Reminders' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Reminders', exact: true })).toBeVisible();
   });
 
   // ── Create ───────────────────────────────────────────────────────────────
@@ -61,7 +63,7 @@ test.describe('Reminders', () => {
     await expect(dialog).not.toBeVisible({ timeout: 10_000 });
 
     // Page is still functional after save.
-    await expect(page.getByRole('heading', { name: 'Reminders' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Reminders', exact: true })).toBeVisible();
   });
 
   test('reminder form shows loading state while saving', async ({ page }) => {
@@ -106,7 +108,7 @@ test.describe('Reminders', () => {
     await page.getByRole('menuitem', { name: /mark complete/i }).click();
 
     // Page remains functional after the action.
-    await expect(page.getByRole('heading', { name: 'Reminders' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Reminders', exact: true })).toBeVisible();
   });
 
   test('can snooze a reminder via the actions menu', async ({ page }) => {
@@ -118,6 +120,6 @@ test.describe('Reminders', () => {
     await page.getByRole('menuitem', { name: /snooze/i }).click();
 
     // Page remains stable after snoozing.
-    await expect(page.getByRole('heading', { name: 'Reminders' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Reminders', exact: true })).toBeVisible();
   });
 });

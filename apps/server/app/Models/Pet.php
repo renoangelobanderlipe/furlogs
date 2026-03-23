@@ -13,6 +13,8 @@ use Carbon\Carbon;
 use Database\Factories\PetFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -59,6 +61,13 @@ class Pet extends Model implements HasMedia
             'is_neutered' => 'boolean',
             'birthday' => 'date',
         ];
+    }
+
+    /** @param Builder<Pet> $query */
+    #[Scope]
+    protected function ofSpecies(Builder $query, string $species): void
+    {
+        $query->where('species', $species);
     }
 
     /** @return HasMany<PetWeight, $this> */

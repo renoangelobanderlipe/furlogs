@@ -19,8 +19,15 @@ class SetPermissionsTeamId
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()?->current_household_id !== null) {
-            setPermissionsTeamId($request->user()->current_household_id);
+        $user = $request->user();
+
+        if ($user !== null) {
+            /** @var string|null $householdId */
+            $householdId = $user->getAttribute('current_household_id');
+
+            if ($householdId !== null) {
+                setPermissionsTeamId($householdId);
+            }
         }
 
         return $next($request);

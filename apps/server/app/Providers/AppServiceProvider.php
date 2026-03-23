@@ -10,8 +10,12 @@ use App\Models\User;
 use App\Policies\MedicationAdministrationPolicy;
 use App\Policies\PetWeightPolicy;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -30,6 +34,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Model::shouldBeStrict(! app()->isProduction());
+
+        RateLimiter::for('api', function (Request $request): Limit {
+            return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());
+        });
+
         Password::defaults(function () {
             return Password::min(8)
                 ->mixedCase()

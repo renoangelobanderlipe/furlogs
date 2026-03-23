@@ -106,5 +106,13 @@ class InvitationService
             'status' => InvitationStatus::Declined,
             'declined_at' => now(),
         ]);
+
+        $invitation->loadMissing('invitee');
+
+        $invitation->invitee?->notifications()
+            ->whereNull('read_at')
+            ->where('data->type', 'household_invite')
+            ->where('data->invitation_token', $invitation->token)
+            ->update(['read_at' => now()]);
     }
 }

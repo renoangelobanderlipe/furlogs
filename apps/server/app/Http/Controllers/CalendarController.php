@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ReminderStatus;
 use App\Enums\ReminderType;
+use App\Http\Requests\CalendarEventsRequest;
 use App\Models\Medication;
 use App\Models\Pet;
 use App\Models\Reminder;
@@ -14,23 +15,17 @@ use App\Models\VetVisit;
 use App\Services\FoodStockService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class CalendarController extends Controller
 {
     public function __construct(private readonly FoodStockService $foodStockService) {}
 
-    public function events(Request $request): JsonResponse
+    public function events(CalendarEventsRequest $request): JsonResponse
     {
         $this->authorize('viewAny', Pet::class);
 
-        $validated = $request->validate([
-            'start' => ['required', 'date'],
-            'end' => ['required', 'date', 'after_or_equal:start'],
-        ]);
-
-        $start = Carbon::parse($validated['start'])->startOfDay();
-        $end = Carbon::parse($validated['end'])->endOfDay();
+        $start = Carbon::parse($request->input('start'))->startOfDay();
+        $end = Carbon::parse($request->input('end'))->endOfDay();
 
         abort_if($start->diffInDays($end) > 62, 422, 'Date range may not exceed 62 days.');
 
@@ -125,7 +120,6 @@ class CalendarController extends Controller
             $runsOutDate = $p['projection']->runsOutDate;
             if ($runsOutDate->between($start, $end)) {
                 $item = $p['item'];
-                $item->loadMissing('foodProduct');
                 $events->push([
                     'id' => "stock-{$item->id}",
                     'title' => 'Running low: '.$item->foodProduct->name,

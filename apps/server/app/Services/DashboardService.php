@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\ReminderStatus;
 use App\Models\FoodStockItem;
 use App\Models\Pet;
 use App\Models\Reminder;
@@ -41,30 +40,40 @@ class DashboardService
         ])->values()->all();
 
         // Include Snoozed so reminders re-surface after their snooze window.
-        $upcomingReminders = Reminder::query()
+        $upcomingReminderCount = Reminder::query()
+            ->upcoming()
+            ->when($petId, fn ($q) => $q->where('pet_id', $petId))
+            ->count();
+
+        $upcomingReminderItems = Reminder::query()
             ->with(['pet'])
-            ->whereIn('status', [ReminderStatus::Pending, ReminderStatus::Snoozed])
-            ->where('due_date', '>=', now()->toDateString())
+            ->upcoming()
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))
             ->orderBy('due_date')
-            ->get();
-
-        $upcomingReminderItems = $upcomingReminders->take(4)->map(fn (Reminder $r) => [
-            'id' => $r->id,
-            'title' => $r->title,
-            'type' => $r->type->value,
-            'dueDate' => $r->due_date->toDateString(),
-            'urgency' => $r->urgency(),
-            'petName' => $r->pet?->name,
-        ])->values()->all();
+            ->limit(4)
+            ->get()
+            ->map(fn (Reminder $r) => [
+                'id' => $r->id,
+                'title' => $r->title,
+                'type' => $r->type->value,
+                'dueDate' => $r->due_date->toDateString(),
+                'urgency' => $r->urgency(),
+                'petName' => $r->pet?->name,
+            ])->values()->all();
 
         $yearStart = now()->startOfYear()->toDateString();
         $ytdBase = VetVisit::query()
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))
             ->where('visit_date', '>=', $yearStart);
 
-        $ytdVisitCount = (int) (clone $ytdBase)->count();
-        $ytdSpend = (float) (clone $ytdBase)->sum('cost');
+        /** @var array{count: int|string, total: int|string}|null $ytdStats */
+        $ytdStats = (clone $ytdBase)
+            ->selectRaw('COUNT(*) as count, COALESCE(SUM(cost), 0) as total')
+            ->first()
+            ?->toArray();
+
+        $ytdVisitCount = (int) ($ytdStats['count'] ?? 0);
+        $ytdSpend = (float) ($ytdStats['total'] ?? 0);
 
         $lastVisit = VetVisit::query()
             ->with('pet')
@@ -126,7 +135,7 @@ class DashboardService
         return [
             'petSummaries' => $petSummaries,
             'upcomingReminders' => [
-                'count' => $upcomingReminders->count(),
+                'count' => $upcomingReminderCount,
                 'items' => $upcomingReminderItems,
             ],
             'stockStatus' => $stockStatus,

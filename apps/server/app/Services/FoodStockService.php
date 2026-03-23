@@ -39,7 +39,7 @@ class FoodStockService
     {
         $product->update($data);
 
-        return $product->fresh();
+        return $product;
     }
 
     /**
@@ -73,7 +73,7 @@ class FoodStockService
             'opened_at' => $item->opened_at ?? now()->toDateString(),
         ]);
 
-        return $item->fresh();
+        return $item;
     }
 
     /**
@@ -86,7 +86,7 @@ class FoodStockService
             'finished_at' => now()->toDateString(),
         ]);
 
-        return $item->fresh();
+        return $item;
     }
 
     /**

@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePetRequest;
 use App\Http\Requests\UpdatePetRequest;
+use App\Http\Requests\UploadPetAvatarRequest;
 use App\Http\Resources\PetResource;
 use App\Models\Pet;
 use App\Services\PetService;
@@ -62,13 +63,9 @@ class PetController extends Controller
         return new PetResource($pet);
     }
 
-    public function uploadAvatar(Request $request, Pet $pet): JsonResponse
+    public function uploadAvatar(UploadPetAvatarRequest $request, Pet $pet): JsonResponse
     {
         $this->authorize('update', $pet);
-
-        $request->validate([
-            'avatar' => ['required', 'file', 'mimes:jpeg,png,webp', 'max:5120'],
-        ]);
 
         $this->petService->uploadAvatar($pet, $request->file('avatar'));
 

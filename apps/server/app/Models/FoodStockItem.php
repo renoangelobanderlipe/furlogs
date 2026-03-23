@@ -11,6 +11,8 @@ use Carbon\Carbon;
 use Database\Factories\FoodStockItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -53,6 +55,20 @@ class FoodStockItem extends Model
             'purchase_cost' => 'decimal:2',
             'quantity' => 'integer',
         ];
+    }
+
+    /** @param Builder<FoodStockItem> $query */
+    #[Scope]
+    protected function open(Builder $query): void
+    {
+        $query->where('status', StockStatus::Open);
+    }
+
+    /** @param Builder<FoodStockItem> $query */
+    #[Scope]
+    protected function sealed(Builder $query): void
+    {
+        $query->where('status', StockStatus::Sealed);
     }
 
     /** @return BelongsTo<FoodProduct, $this> */

@@ -30,7 +30,7 @@ class MedicationService
     {
         $medication->update($data);
 
-        return $medication->fresh();
+        return $medication;
     }
 
     /**
@@ -62,12 +62,14 @@ class MedicationService
      *
      * Returns the number of consecutive days (ending yesterday or today)
      * on which the required number of doses were administered.
+     *
+     * When the `administrations` relationship is already loaded (e.g. from eager loading
+     * in the controller), the in-memory collection is used to avoid a redundant DB query.
+     * Otherwise falls back to a fresh query capped at 90 days.
      */
     public function calculateStreak(Medication $medication): int
     {
         // Only daily/twice_daily have a meaningful day-by-day streak.
-        // Weekly and monthly would always show 0 streak (missed on non-dose days),
-        // and as_needed has no schedule at all.
         if (! in_array($medication->frequency, [FrequencyType::Daily, FrequencyType::TwiceDaily], true)) {
             return 0;
         }
@@ -76,13 +78,17 @@ class MedicationService
         $streak = 0;
         $day = now()->startOfDay();
 
-        // Use withoutGlobalScopes — authorization already verified at controller level.
-        // Load from medication start_date to avoid the 90-day hard ceiling.
-        $administrations = MedicationAdministration::withoutGlobalScopes()
-            ->where('medication_id', $medication->id)
-            ->where('administered_at', '>=', $medication->start_date->startOfDay())
-            ->get()
-            ->groupBy(fn (MedicationAdministration $a): string => Carbon::parse($a->administered_at)->toDateString());
+        // Use already-loaded relationship to avoid a redundant DB query during serialization.
+        if ($medication->relationLoaded('administrations')) {
+            $administrations = $medication->administrations
+                ->groupBy(fn (MedicationAdministration $a): string => Carbon::parse($a->administered_at)->toDateString());
+        } else {
+            $administrations = MedicationAdministration::withoutGlobalScopes()
+                ->where('medication_id', $medication->id)
+                ->where('administered_at', '>=', now()->subDays(90)->startOfDay())
+                ->get()
+                ->groupBy(fn (MedicationAdministration $a): string => Carbon::parse($a->administered_at)->toDateString());
+        }
 
         $skippedToday = false;
 
@@ -91,7 +97,6 @@ class MedicationService
             $count = isset($administrations[$dateKey]) ? $administrations[$dateKey]->count() : 0;
 
             if ($count < $required) {
-                // Allow skipping today once — a missing dose today doesn't break a prior streak
                 if ($day->isToday() && ! $skippedToday) {
                     $skippedToday = true;
                     $day = $day->copy()->subDay();
@@ -117,7 +122,7 @@ class MedicationService
     {
         $administration->update($data);
 
-        return $administration->fresh();
+        return $administration;
     }
 
     /**

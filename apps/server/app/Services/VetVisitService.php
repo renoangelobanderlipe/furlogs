@@ -66,7 +66,7 @@ class VetVisitService
     {
         $visit->update($data);
 
-        return $visit->fresh();
+        return $visit;
     }
 
     /**
@@ -130,16 +130,16 @@ class VetVisitService
     {
         $yearStart = now()->startOfYear()->toDateString();
 
-        $ytdVisits = (int) VetVisit::query()
+        /** @var array{visits: int|string, spend: int|string}|null $ytdStats */
+        $ytdStats = VetVisit::query()
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))
             ->where('visit_date', '>=', $yearStart)
-            ->count();
+            ->selectRaw('COUNT(*) as visits, COALESCE(SUM(cost), 0) as spend')
+            ->first()
+            ?->toArray();
 
-        $ytdSpend = (float) VetVisit::query()
-            ->when($petId, fn ($q) => $q->where('pet_id', $petId))
-            ->where('visit_date', '>=', $yearStart)
-            ->whereNotNull('cost')
-            ->sum('cost');
+        $ytdVisits = (int) ($ytdStats['visits'] ?? 0);
+        $ytdSpend = (float) ($ytdStats['spend'] ?? 0);
 
         $lastVisit = VetVisit::query()
             ->when($petId, fn ($q) => $q->where('pet_id', $petId))

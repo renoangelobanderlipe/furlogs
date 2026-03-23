@@ -6,42 +6,9 @@ use App\Enums\Sex;
 use App\Enums\Species;
 use App\Models\Household;
 use App\Models\Pet;
-use App\Models\User;
 use Illuminate\Foundation\Testing\WithFaker;
-use Spatie\Permission\Models\Role;
 
 uses(WithFaker::class);
-
-/**
- * Helper: create a user who owns a household (with Spatie owner role).
- */
-function createOwnerWithHousehold(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
-
-/**
- * Helper: create a user who is a member (not owner) of a household.
- */
-function createMemberWithHousehold(Household $household): User
-{
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
-    $user->assignRole('member');
-
-    return $user;
-}
 
 it('can list pets for authenticated user', function () {
     [$owner, $household] = createOwnerWithHousehold();
@@ -82,7 +49,7 @@ it('can create a pet', function () {
 
     $response = $this->actingAs($owner)->postJson('/api/pets', $payload);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $this->assertDatabaseHas('pets', [
         'name' => 'Buddy',
         'household_id' => $household->id,
@@ -158,7 +125,7 @@ it('returns 404 when viewing pet from another household due to scope', function 
 
 it('returns 401 for unauthenticated requests', function () {
     $response = $this->getJson('/api/pets');
-    $response->assertStatus(401);
+    $response->assertUnauthorized();
 });
 
 it('can record a weight for a pet', function () {
@@ -171,6 +138,34 @@ it('can record a weight for a pet', function () {
         'recorded_at' => now()->toDateString(),
     ]);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $this->assertDatabaseHas('pet_weights', ['pet_id' => $pet->id, 'weight_kg' => 12.5]);
 });
+
+it('rejects invalid species value', function (string $value) {
+    [$owner] = createOwnerWithHousehold();
+
+    $response = $this->actingAs($owner)->postJson('/api/pets', [
+        'name' => 'Buddy',
+        'species' => $value,
+        'sex' => Sex::Male->value,
+        'is_neutered' => false,
+    ]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['species']);
+})->with(['fish', 'bird', 'INVALID', '']);
+
+it('rejects invalid sex value', function (string $value) {
+    [$owner] = createOwnerWithHousehold();
+
+    $response = $this->actingAs($owner)->postJson('/api/pets', [
+        'name' => 'Buddy',
+        'species' => Species::Dog->value,
+        'sex' => $value,
+        'is_neutered' => false,
+    ]);
+
+    $response->assertUnprocessable();
+    $response->assertJsonValidationErrors(['sex']);
+})->with(['unknown', 'MALE', 'FEMALE', '']);

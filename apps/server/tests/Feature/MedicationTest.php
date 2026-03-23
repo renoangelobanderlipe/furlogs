@@ -7,40 +7,10 @@ use App\Models\Household;
 use App\Models\Medication;
 use App\Models\Pet;
 use App\Models\Reminder;
-use App\Models\User;
 use App\Models\VetVisit;
-use Spatie\Permission\Models\Role;
-
-/**
- * @return array{0: User, 1: Household}
- */
-function createMedicationOwner(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
-
-function createMedicationMember(Household $household): User
-{
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
-    $user->assignRole('member');
-
-    return $user;
-}
 
 it('creating a medication with end_date auto-creates a reminder', function () {
-    [$owner, $household] = createMedicationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $response = $this->actingAs($owner)->postJson('/api/medications', [
@@ -50,7 +20,7 @@ it('creating a medication with end_date auto-creates a reminder', function () {
         'end_date' => now()->addDays(10)->toDateString(),
     ]);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
 
     $this->assertDatabaseHas('reminders', [
         'household_id' => $household->id,
@@ -61,7 +31,7 @@ it('creating a medication with end_date auto-creates a reminder', function () {
 });
 
 it('creating a medication without end_date does NOT create a reminder', function () {
-    [$owner, $household] = createMedicationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $response = $this->actingAs($owner)->postJson('/api/medications', [
@@ -70,13 +40,13 @@ it('creating a medication without end_date does NOT create a reminder', function
         'start_date' => now()->toDateString(),
     ]);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
 
     expect(Reminder::withoutGlobalScopes()->where('type', 'medication')->count())->toBe(0);
 });
 
 it('can list medications scoped to the authenticated user household', function () {
-    [$owner, $household] = createMedicationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     Medication::withoutGlobalScopes()->create([
@@ -107,7 +77,7 @@ it('can list medications scoped to the authenticated user household', function (
 });
 
 it('cannot view medication from another household', function () {
-    [$owner, $household] = createMedicationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
     $otherPet = Pet::withoutGlobalScopes()->create([
@@ -129,8 +99,8 @@ it('cannot view medication from another household', function () {
 });
 
 it('only owner can delete a medication', function () {
-    [$owner, $household] = createMedicationOwner();
-    $member = createMedicationMember($household);
+    [$owner, $household] = createOwnerWithHousehold();
+    $member = createMemberWithHousehold($household);
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $medication = Medication::withoutGlobalScopes()->create([
@@ -146,7 +116,7 @@ it('only owner can delete a medication', function () {
 });
 
 it('validates required fields on store medication', function () {
-    [$owner] = createMedicationOwner();
+    [$owner] = createOwnerWithHousehold();
 
     $response = $this->actingAs($owner)->postJson('/api/medications', []);
 
@@ -155,7 +125,7 @@ it('validates required fields on store medication', function () {
 });
 
 it('vet_visit_id from a different household is rejected with 422', function () {
-    [$owner, $household] = createMedicationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     // Create a vet visit in a different household
@@ -187,7 +157,7 @@ it('vet_visit_id from a different household is rejected with 422', function () {
 });
 
 it('updating end_date on a medication deletes the old reminder and creates a new one', function () {
-    [$owner, $household] = createMedicationOwner();
+    [$owner, $household] = createOwnerWithHousehold();
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
     $response = $this->actingAs($owner)->postJson('/api/medications', [
@@ -196,7 +166,7 @@ it('updating end_date on a medication deletes the old reminder and creates a new
         'start_date' => now()->toDateString(),
         'end_date' => now()->addDays(10)->toDateString(),
     ]);
-    $response->assertStatus(201);
+    $response->assertCreated();
     $medicationId = $response->json('data.id');
 
     expect(Reminder::withoutGlobalScopes()

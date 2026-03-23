@@ -7,25 +7,7 @@ use App\Models\FoodProduct;
 use App\Models\FoodStockItem;
 use App\Models\Household;
 use App\Models\Pet;
-use App\Models\User;
 use App\Models\VetVisit;
-use Spatie\Permission\Models\Role;
-
-/**
- * @return array{0: User, 1: Household}
- */
-function createSpendingOwnerWithHousehold(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
@@ -36,7 +18,7 @@ it('returns 401 for guests', function () {
 // ─── Happy path ───────────────────────────────────────────────────────────────
 
 it('returns correct YTD totals for vet and food spending', function () {
-    [$owner, $household] = createSpendingOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
@@ -69,7 +51,7 @@ it('returns correct YTD totals for vet and food spending', function () {
 // ─── Monthly array shape ──────────────────────────────────────────────────────
 
 it('always returns 12 months in the monthly array', function () {
-    [$owner] = createSpendingOwnerWithHousehold();
+    [$owner] = createOwnerWithHousehold();
 
     $response = $this->actingAs($owner)->getJson('/api/spending/stats');
 
@@ -85,7 +67,7 @@ it('always returns 12 months in the monthly array', function () {
 // ─── Household isolation ──────────────────────────────────────────────────────
 
 it('does not include other households spending data', function () {
-    [$owner, $household] = createSpendingOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     // Our household — one vet visit
     $pet = Pet::factory()->create(['household_id' => $household->id]);
@@ -140,7 +122,7 @@ it('does not include other households spending data', function () {
 // ─── Year filter ──────────────────────────────────────────────────────────────
 
 it('filters spending to the requested year', function () {
-    [$owner, $household] = createSpendingOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
@@ -185,7 +167,7 @@ it('filters spending to the requested year', function () {
 // ─── Zero spend ───────────────────────────────────────────────────────────────
 
 it('returns zero totals when no spending exists for the year', function () {
-    [$owner] = createSpendingOwnerWithHousehold();
+    [$owner] = createOwnerWithHousehold();
 
     $response = $this->actingAs($owner)->getJson('/api/spending/stats');
 

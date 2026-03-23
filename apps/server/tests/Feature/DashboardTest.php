@@ -12,24 +12,8 @@ use App\Models\User;
 use App\Models\VetVisit;
 use Spatie\Permission\Models\Role;
 
-/**
- * @return array{0: User, 1: Household}
- */
-function createDashboardOwner(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
-
 it('returns dashboard summary for authenticated user', function () {
-    [$owner, $household] = createDashboardOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet1 = Pet::factory()->create(['household_id' => $household->id]);
     $pet2 = Pet::factory()->create(['household_id' => $household->id]);
@@ -73,7 +57,7 @@ it('returns dashboard summary for authenticated user', function () {
 });
 
 it('filters dashboard summary by pet', function () {
-    [$owner, $household] = createDashboardOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet1 = Pet::factory()->create(['household_id' => $household->id]);
     $pet2 = Pet::factory()->create(['household_id' => $household->id]);
@@ -111,7 +95,7 @@ it('returns 401 for unauthenticated request to dashboard', function () {
 
 it('scopes dashboard data to current household', function () {
     // Household 1 — has a pet
-    [$owner1, $household1] = createDashboardOwner();
+    [$owner1, $household1] = createOwnerWithHousehold();
     Pet::factory()->create(['household_id' => $household1->id]);
 
     // Household 2 — no pets

@@ -11,35 +11,16 @@ use App\Enums\UnitType;
 use App\Models\FoodConsumptionRate;
 use App\Models\FoodProduct;
 use App\Models\FoodStockItem;
-use App\Models\Household;
 use App\Models\Pet;
 use App\Models\Reminder;
-use App\Models\User;
 use App\Notifications\LowStockNotification;
 use App\Notifications\UpcomingVaccinationNotification;
 use Illuminate\Support\Facades\Notification;
-use Spatie\Permission\Models\Role;
-
-/**
- * @return array{0: User, 1: Household}
- */
-function createNotificationOwner(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
 
 it('dispatches UpcomingVaccinationNotification when DispatchRemindersCommand runs with a pending vaccination reminder due in 3 days', function () {
     Notification::fake();
 
-    [$user, $household] = createNotificationOwner();
+    [$user, $household] = createOwnerWithHousehold();
     $household->members()->attach($user->id, ['role' => 'owner', 'joined_at' => now()]);
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
@@ -62,7 +43,7 @@ it('dispatches UpcomingVaccinationNotification when DispatchRemindersCommand run
 it('dispatches LowStockNotification when CheckStockAlerts finds low stock', function () {
     Notification::fake();
 
-    [$user, $household] = createNotificationOwner();
+    [$user, $household] = createOwnerWithHousehold();
     $household->members()->attach($user->id, ['role' => 'owner', 'joined_at' => now()]);
 
     $product = FoodProduct::withoutGlobalScopes()->create([
@@ -98,7 +79,7 @@ it('dispatches LowStockNotification when CheckStockAlerts finds low stock', func
 });
 
 it('bulk mark-read sets read_at on all specified notifications', function () {
-    [$user, $household] = createNotificationOwner();
+    [$user, $household] = createOwnerWithHousehold();
 
     $user->notify(new UpcomingVaccinationNotification(
         Reminder::query()->withoutGlobalScopes()->create([
@@ -138,7 +119,7 @@ it('bulk mark-read sets read_at on all specified notifications', function () {
 it('advances recurring reminder due date after dispatch', function () {
     Notification::fake();
 
-    [$user, $household] = createNotificationOwner();
+    [$user, $household] = createOwnerWithHousehold();
     $household->members()->attach($user->id, ['role' => 'owner', 'joined_at' => now()]);
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
@@ -166,7 +147,7 @@ it('advances recurring reminder due date after dispatch', function () {
 it('marks non-recurring reminder as completed after due date passes', function () {
     Notification::fake();
 
-    [$user, $household] = createNotificationOwner();
+    [$user, $household] = createOwnerWithHousehold();
     $household->members()->attach($user->id, ['role' => 'owner', 'joined_at' => now()]);
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);

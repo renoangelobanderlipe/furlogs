@@ -3,54 +3,16 @@
 declare(strict_types=1);
 
 use App\Models\Household;
-use App\Models\User;
 use App\Models\VetClinic;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\Models\Role;
-
-uses(RefreshDatabase::class);
-
-/**
- * Helper: create a user who owns a household (with Spatie owner role).
- *
- * @return array{0: User, 1: Household}
- */
-function createVetClinicOwnerWithHousehold(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
-
-/**
- * Helper: create a member user for a given household.
- */
-function createVetClinicMemberWithHousehold(Household $household): User
-{
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
-    $user->assignRole('member');
-
-    return $user;
-}
 
 it('unauthenticated user cannot list vet clinics', function () {
     $response = $this->getJson('/api/vet-clinics');
 
-    $response->assertStatus(401);
+    $response->assertUnauthorized();
 });
 
 it('can list vet clinics for authenticated user', function () {
-    [$owner, $household] = createVetClinicOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     VetClinic::factory()->count(3)->create(['household_id' => $household->id]);
 
@@ -61,7 +23,7 @@ it('can list vet clinics for authenticated user', function () {
 });
 
 it('cannot see vet clinics from another household', function () {
-    [$owner, $household] = createVetClinicOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $otherHousehold = Household::factory()->create();
     VetClinic::factory()->create(['household_id' => $otherHousehold->id]);
@@ -75,7 +37,7 @@ it('cannot see vet clinics from another household', function () {
 });
 
 it('can create a vet clinic', function () {
-    [$owner, $household] = createVetClinicOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $payload = [
         'name' => 'Happy Paws Clinic',
@@ -86,7 +48,7 @@ it('can create a vet clinic', function () {
 
     $response = $this->actingAs($owner)->postJson('/api/vet-clinics', $payload);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $this->assertDatabaseHas('vet_clinics', [
         'name' => 'Happy Paws Clinic',
         'household_id' => $household->id,
@@ -94,7 +56,7 @@ it('can create a vet clinic', function () {
 });
 
 it('validates vet clinic data on create', function () {
-    [$owner] = createVetClinicOwnerWithHousehold();
+    [$owner] = createOwnerWithHousehold();
 
     $response = $this->actingAs($owner)->postJson('/api/vet-clinics', []);
 
@@ -103,7 +65,7 @@ it('validates vet clinic data on create', function () {
 });
 
 it('can update a vet clinic', function () {
-    [$owner, $household] = createVetClinicOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $clinic = VetClinic::factory()->create(['household_id' => $household->id]);
 
@@ -116,7 +78,7 @@ it('can update a vet clinic', function () {
 });
 
 it('can delete a vet clinic', function () {
-    [$owner, $household] = createVetClinicOwnerWithHousehold();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $clinic = VetClinic::factory()->create(['household_id' => $household->id]);
 

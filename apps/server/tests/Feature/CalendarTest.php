@@ -5,32 +5,13 @@ declare(strict_types=1);
 use App\Enums\ReminderStatus;
 use App\Enums\ReminderType;
 use App\Enums\VisitType;
-use App\Models\Household;
 use App\Models\Pet;
 use App\Models\Reminder;
-use App\Models\User;
 use App\Models\Vaccination;
 use App\Models\VetVisit;
-use Spatie\Permission\Models\Role;
-
-/**
- * @return array{0: User, 1: Household}
- */
-function createCalendarOwner(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
 
 it('returns calendar events in date range', function () {
-    [$owner, $household] = createCalendarOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
@@ -79,7 +60,7 @@ it('returns calendar events in date range', function () {
 });
 
 it('excludes events outside date range', function () {
-    [$owner, $household] = createCalendarOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
@@ -105,7 +86,7 @@ it('excludes events outside date range', function () {
 });
 
 it('validates date range is required for calendar events', function () {
-    [$owner] = createCalendarOwner();
+    [$owner] = createOwnerWithHousehold();
 
     $this->actingAs($owner)->getJson('/api/calendar/events')->assertUnprocessable();
 });

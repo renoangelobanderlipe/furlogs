@@ -3,29 +3,11 @@
 declare(strict_types=1);
 
 use App\Enums\FrequencyType;
-use App\Models\Household;
 use App\Models\Medication;
 use App\Models\Pet;
-use App\Models\User;
-use Spatie\Permission\Models\Role;
-
-/**
- * @return array{0: User, 1: Household}
- */
-function createCalendarMedOwner(): array
-{
-    $household = Household::factory()->create();
-    $user = User::factory()->create(['current_household_id' => $household->id]);
-
-    setPermissionsTeamId($household->id);
-    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
-    $user->assignRole('owner');
-
-    return [$user, $household];
-}
 
 it('active medication produces one event per day in range', function () {
-    [$owner, $household] = createCalendarMedOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
@@ -50,7 +32,7 @@ it('active medication produces one event per day in range', function () {
 });
 
 it('medication ending before range start is excluded', function () {
-    [$owner, $household] = createCalendarMedOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
@@ -75,7 +57,7 @@ it('medication ending before range start is excluded', function () {
 });
 
 it('medication with no end_date continues to end of range', function () {
-    [$owner, $household] = createCalendarMedOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 
@@ -101,7 +83,7 @@ it('medication with no end_date continues to end of range', function () {
 });
 
 it('medication schedule events have type medication_schedule and color #ff9800', function () {
-    [$owner, $household] = createCalendarMedOwner();
+    [$owner, $household] = createOwnerWithHousehold();
 
     $pet = Pet::factory()->create(['household_id' => $household->id]);
 

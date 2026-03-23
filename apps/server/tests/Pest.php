@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Models\Household;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 /*
@@ -46,7 +49,35 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Create a user who owns a household (with Spatie owner role).
+ *
+ * @return array{0: User, 1: Household}
+ */
+function createOwnerWithHousehold(): array
 {
-    // ..
+    $household = Household::factory()->create();
+    $user = User::factory()->create(['current_household_id' => $household->id]);
+
+    setPermissionsTeamId($household->id);
+
+    Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
+    $user->assignRole('owner');
+
+    return [$user, $household];
+}
+
+/**
+ * Create a user who is a member (not owner) of the given household.
+ */
+function createMemberWithHousehold(Household $household): User
+{
+    $user = User::factory()->create(['current_household_id' => $household->id]);
+
+    setPermissionsTeamId($household->id);
+
+    Role::firstOrCreate(['name' => 'member', 'guard_name' => 'web']);
+    $user->assignRole('member');
+
+    return $user;
 }

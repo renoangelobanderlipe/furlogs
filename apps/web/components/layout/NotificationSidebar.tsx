@@ -429,7 +429,7 @@ export const NotificationSidebar = ({ children }: NotificationSidebarProps) => {
           <div className="flex items-center gap-0.5">
             <button
               type="button"
-              onClick={() => markAllRead.mutate()}
+              onClick={() => markAllRead.mutate(undefined)}
               disabled={unread === 0 || markAllRead.isPending}
               className="flex h-7 w-7 items-center justify-center rounded-md text-emerald-500 hover:bg-accent transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
               title="Mark all as read"

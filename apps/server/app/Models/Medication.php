@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * @property string $id
@@ -39,7 +41,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Medication extends Model
 {
     /** @use HasFactory<MedicationFactory> */
-    use BelongsToHouseholdViaPet, HasFactory, HasUuids, SoftDeletes;
+    use BelongsToHouseholdViaPet, HasFactory, HasUuids, LogsActivity, SoftDeletes;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'dosage', 'frequency', 'start_date', 'end_date', 'notes'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * @return array<string, mixed>

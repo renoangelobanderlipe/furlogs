@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * @property string $id
@@ -24,7 +26,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MedicationAdministration extends Model
 {
     /** @use HasFactory<MedicationAdministrationFactory> */
-    use BelongsToHouseholdViaMedication, HasFactory, HasUuids;
+    use BelongsToHouseholdViaMedication, HasFactory, HasUuids, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['administered_at', 'notes'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $fillable = [
         'medication_id',

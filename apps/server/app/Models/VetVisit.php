@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -47,7 +49,15 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class VetVisit extends Model implements HasMedia
 {
     /** @use HasFactory<VetVisitFactory> */
-    use BelongsToHouseholdViaPet, HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
+    use BelongsToHouseholdViaPet, HasFactory, HasUuids, InteractsWithMedia, LogsActivity, SoftDeletes;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['visit_date', 'reason', 'diagnosis', 'weight_at_visit', 'notes'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * @return array<string, mixed>

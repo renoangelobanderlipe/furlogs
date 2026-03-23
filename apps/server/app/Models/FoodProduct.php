@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * @property string $id
@@ -35,7 +37,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class FoodProduct extends Model
 {
     /** @use HasFactory<FoodProductFactory> */
-    use BelongsToHousehold, HasFactory, HasUuids, SoftDeletes;
+    use BelongsToHousehold, HasFactory, HasUuids, LogsActivity, SoftDeletes;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'brand', 'type', 'unit_weight_grams', 'alert_threshold_pct'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * @return array<string, mixed>

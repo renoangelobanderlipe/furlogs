@@ -168,9 +168,9 @@ it('owner can invite a user by email', function () {
     // Invitee's current household is not touched.
     expect($invitee->fresh()->current_household_id)->toBeNull();
 
-    // Email is queued via notification class (mail channel only).
+    // Notification is dispatched via both database and mail channels.
     Notification::assertSentTo($invitee, HouseholdInviteNotification::class, function (HouseholdInviteNotification $notification) {
-        expect($notification->via(new stdClass))->toBe(['mail']);
+        expect($notification->via(new stdClass))->toBe(['database', 'mail']);
 
         return true;
     });

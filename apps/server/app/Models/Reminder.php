@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * @property string $id
@@ -45,7 +47,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Reminder extends Model
 {
     /** @use HasFactory<ReminderFactory> */
-    use BelongsToHousehold, HasFactory, HasUuids, SoftDeletes;
+    use BelongsToHousehold, HasFactory, HasUuids, LogsActivity, SoftDeletes;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['title', 'type', 'due_date', 'status', 'is_recurring'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * @return array<string, mixed>

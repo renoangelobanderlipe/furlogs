@@ -17,6 +17,7 @@ use App\Models\FoodConsumptionRate;
 use App\Models\FoodProduct;
 use App\Models\FoodStockItem;
 use App\Models\Household;
+use App\Models\HouseholdInvitation;
 use App\Models\Medication;
 use App\Models\MedicationAdministration;
 use App\Models\Pet;
@@ -28,7 +29,10 @@ use App\Models\VetClinic;
 use App\Models\VetVisit;
 use App\Services\HouseholdService;
 use Illuminate\Database\Seeder;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use Spatie\Activitylog\Models\Activity;
 
 class DevSeeder extends Seeder
 {
@@ -130,9 +134,12 @@ class DevSeeder extends Seeder
 
         // Stock for each food product
         $finishedStockItems = collect();
+        $openStockItems = collect();
         foreach ($foodProducts as $product) {
             // 1 open bag
-            FoodStockItem::factory()->open()->create(['food_product_id' => $product->id]);
+            $open = FoodStockItem::factory()->open()->create(['food_product_id' => $product->id]);
+            $open->setRelation('foodProduct', $product);
+            $openStockItems->push($open);
 
             // 1-2 sealed bags
             FoodStockItem::factory(fake()->numberBetween(1, 2))->create(['food_product_id' => $product->id]);
@@ -207,6 +214,12 @@ class DevSeeder extends Seeder
 
         // Household-level reminders
         $this->seedHouseholdReminders($household, $devPets);
+
+        // Notifications for the dev user
+        $this->seedNotifications($owner, $devPets, $openStockItems, $household);
+
+        // Activity log entries for the dev household
+        $this->seedActivityLog($owner, $devPets);
     }
 
     /**
@@ -623,5 +636,212 @@ class DevSeeder extends Seeder
         shuffle($available);
 
         return array_slice($available, 0, min($count, count($available)));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Notifications
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Seed a realistic mix of all 6 notification types for the dev user.
+     * Uses direct DatabaseNotification inserts to avoid triggering mail.
+     *
+     * @param  Collection<int, Pet>  $pets
+     * @param  Collection<int, FoodStockItem>  $openStockItems  Pre-loaded with foodProduct relation
+     */
+    private function seedNotifications(
+        User $user,
+        Collection $pets,
+        Collection $openStockItems,
+        Household $household,
+    ): void {
+        // ── 1. Vaccination reminders (3 unread, 2 read) ───────────────────
+        $vacTitles = ['Rabies booster due', 'DHPP vaccination reminder', 'Annual FVRCP booster', 'Bordetella vaccine renewal', 'Leptospirosis vaccination due'];
+        foreach ($pets->take(5) as $i => $pet) {
+            $dueDate = now()->addDays(fake()->numberBetween(3, 30))->format('Y-m-d');
+            $this->insertNotification($user, [
+                'type' => 'vaccination_reminder',
+                'pet_id' => $pet->id,
+                'pet_name' => $pet->name,
+                'title' => $vacTitles[$i % count($vacTitles)],
+                'due_date' => $dueDate,
+                'urgency' => $i < 2 ? 'high' : 'medium',
+            ], readAt: $i < 3 ? null : now()->subDays($i), daysAgo: $i + 1);
+        }
+
+        // ── 2. Medication reminders (3 unread, 2 read) ────────────────────
+        $medTitles = ['Monthly heartworm prevention due', 'Refill flea & tick medication', 'Administer joint supplement', 'Pick up prescription refill', 'Reorder prescription food'];
+        foreach ($pets->take(5) as $i => $pet) {
+            $dueDate = now()->addDays(fake()->numberBetween(1, 14))->format('Y-m-d');
+            $this->insertNotification($user, [
+                'type' => 'medication_reminder',
+                'pet_id' => $pet->id,
+                'pet_name' => $pet->name,
+                'title' => $medTitles[$i % count($medTitles)],
+                'due_date' => $dueDate,
+                'urgency' => $i === 0 ? 'high' : 'medium',
+            ], readAt: $i < 3 ? null : now()->subDays(4 + $i), daysAgo: $i + 2);
+        }
+
+        // ── 3. Vet follow-up reminders (2 unread, 1 read) ─────────────────
+        $vetTitles = ['Follow-up vet appointment', 'Post-surgery check-up', 'Lab results review'];
+        foreach ($pets->take(3) as $i => $pet) {
+            $dueDate = now()->addDays(fake()->numberBetween(5, 21))->format('Y-m-d');
+            $this->insertNotification($user, [
+                'type' => 'vet_follow_up',
+                'pet_id' => $pet->id,
+                'pet_name' => $pet->name,
+                'title' => $vetTitles[$i % count($vetTitles)],
+                'due_date' => $dueDate,
+                'urgency' => 'medium',
+            ], readAt: $i < 2 ? null : now()->subDays(6), daysAgo: $i + 1);
+        }
+
+        // ── 4. Low stock (2 unread, 1 read) ───────────────────────────────
+        foreach ($openStockItems->take(2) as $i => $stockItem) {
+            $daysLeft = fake()->numberBetween(4, 9);
+            $this->insertNotification($user, [
+                'type' => 'low_stock',
+                'title' => "Food stock running low: {$stockItem->foodProduct->name}",
+                'food_stock_item_id' => $stockItem->id,
+                'food_product_id' => $stockItem->food_product_id,
+                'product_name' => $stockItem->foodProduct->name,
+                'days_remaining' => $daysLeft,
+                'urgency' => 'medium',
+            ], readAt: null, daysAgo: $i + 1);
+        }
+
+        if ($openStockItems->count() >= 3) {
+            $stockItem = $openStockItems->values()->get(2);
+            $this->insertNotification($user, [
+                'type' => 'low_stock',
+                'title' => "Food stock running low: {$stockItem->foodProduct->name}",
+                'food_stock_item_id' => $stockItem->id,
+                'food_product_id' => $stockItem->food_product_id,
+                'product_name' => $stockItem->foodProduct->name,
+                'days_remaining' => 7,
+                'urgency' => 'medium',
+            ], readAt: now()->subDays(5), daysAgo: 7);
+        }
+
+        // ── 5. Critical stock (1 unread) ──────────────────────────────────
+        $criticalStockItem = $openStockItems->first();
+
+        if ($criticalStockItem !== null) {
+            $runsOutDate = now()->addDays(2)->toDateString();
+            $this->insertNotification($user, [
+                'type' => 'critical_stock',
+                'title' => "URGENT: {$criticalStockItem->foodProduct->name} critically low",
+                'food_stock_item_id' => $criticalStockItem->id,
+                'food_product_id' => $criticalStockItem->food_product_id,
+                'product_name' => $criticalStockItem->foodProduct->name,
+                'days_remaining' => 2,
+                'runs_out_date' => $runsOutDate,
+                'urgency' => 'high',
+            ], readAt: null, daysAgo: 0);
+        }
+
+        // ── 6. Household invite (1 unread — actionable) ───────────────────
+        $inviter = User::factory()->create([
+            'name' => 'Jamie Cooper',
+            'email' => 'jamie@furlogs.test',
+            'password' => bcrypt('password'),
+            'email_verified_at' => now(),
+        ]);
+
+        $inviterHousehold = $this->householdService->create($inviter, 'Cooper Household');
+
+        $invitation = HouseholdInvitation::factory()->pending()->create([
+            'household_id' => $inviterHousehold->id,
+            'inviter_id' => $inviter->id,
+            'invitee_id' => $user->id,
+        ]);
+
+        $this->insertNotification($user, [
+            'type' => 'household_invite',
+            'title' => "{$inviter->name} invited you to join {$inviterHousehold->name}",
+            'invitation_token' => $invitation->token,
+            'inviter_name' => $inviter->name,
+            'household_name' => $inviterHousehold->name,
+            'invite_url' => config('app.frontend_url').'/invitations/'.$invitation->token,
+        ], readAt: null, daysAgo: 0);
+    }
+
+    /**
+     * Seed realistic activity log entries spread across the last 30 days.
+     *
+     * @param  Collection<int, Pet>  $pets
+     */
+    private function seedActivityLog(User $user, Collection $pets): void
+    {
+        $messages = [
+            fn (Pet $pet) => 'Added pet '.$pet->name.' to the household',
+            fn (Pet $pet) => 'Updated pet profile for '.$pet->name,
+            fn (Pet $pet) => 'Recorded weight for '.$pet->name,
+            fn (Pet $pet) => 'Logged vet visit for '.$pet->name,
+            fn (Pet $pet) => 'Updated vaccination record for '.$pet->name,
+            fn (Pet $pet) => 'Started medication for '.$pet->name,
+            fn (Pet $pet) => 'Marked reminder as completed for '.$pet->name,
+        ];
+
+        $standaloneMessages = [
+            'Added food stock item',
+            'Updated household food stock',
+            'Sent household invitation',
+            'Updated household settings',
+        ];
+
+        foreach ($pets as $pet) {
+            $count = fake()->numberBetween(2, 4);
+            $used = fake()->randomElements($messages, $count);
+
+            foreach ($used as $messageFn) {
+                $log = activity()
+                    ->causedBy($user)
+                    ->performedOn($pet)
+                    ->log($messageFn($pet));
+
+                if ($log instanceof Activity) {
+                    Activity::query()->whereKey($log->getKey())->update([
+                        'created_at' => now()->subDays(fake()->numberBetween(1, 30)),
+                    ]);
+                }
+            }
+        }
+
+        foreach ($standaloneMessages as $message) {
+            $log = activity()
+                ->causedBy($user)
+                ->log($message);
+
+            if ($log instanceof Activity) {
+                Activity::query()->whereKey($log->getKey())->update([
+                    'created_at' => now()->subDays(fake()->numberBetween(1, 30)),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Insert a single database notification record directly, bypassing channels.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function insertNotification(
+        User $user,
+        array $data,
+        ?\DateTimeInterface $readAt,
+        int $daysAgo,
+    ): void {
+        DatabaseNotification::create([
+            'id' => Str::uuid()->toString(),
+            'type' => 'App\\Notifications\\SeededNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+            'data' => $data,
+            'read_at' => $readAt,
+            'created_at' => now()->subDays($daysAgo)->subMinutes(fake()->numberBetween(0, 60)),
+            'updated_at' => now()->subDays($daysAgo),
+        ]);
     }
 }

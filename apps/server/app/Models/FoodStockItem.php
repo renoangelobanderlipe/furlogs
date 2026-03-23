@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * @property string $id
@@ -40,7 +42,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class FoodStockItem extends Model
 {
     /** @use HasFactory<FoodStockItemFactory> */
-    use BelongsToHouseholdViaFoodProduct, HasFactory, HasUuids;
+    use BelongsToHouseholdViaFoodProduct, HasFactory, HasUuids, LogsActivity;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'opened_at', 'quantity', 'notes'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * @return array<string, mixed>

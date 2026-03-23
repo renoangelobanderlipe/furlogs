@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -47,7 +49,15 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 class Pet extends Model implements HasMedia
 {
     /** @use HasFactory<PetFactory> */
-    use BelongsToHousehold, HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
+    use BelongsToHousehold, HasFactory, HasUuids, InteractsWithMedia, LogsActivity, SoftDeletes;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'species', 'breed', 'sex', 'birthday', 'is_neutered', 'size', 'notes'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     /**
      * @return array<string, mixed>

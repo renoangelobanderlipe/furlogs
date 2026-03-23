@@ -30,6 +30,11 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
+    actionTimeout: 15_000,
+  },
+
+  expect: {
+    timeout: 15_000,
   },
 
   /**
